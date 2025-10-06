@@ -1,25 +1,17 @@
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
+/*function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="flex items-center justify-center h-screen bg-green-100">
+      <h1 className="text-4xl font-bold text-green-700">
+        RaphaVets Pet Clinic 🐾
+      </h1>
     </div>
   );
+}*/
+
+import LoginPage from "./LoginPage";
+
+function App() {
+  return <LoginPage />;
 }
 
 export default App;
