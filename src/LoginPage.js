@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 function LoginPage() {
   return (
@@ -125,12 +126,12 @@ function LoginPage() {
             {/* google */}
             <div className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg py-2 sm:py-3 cursor-pointer hover:bg-gray-100 transition-colors font-sansation">
               <i className="fa-brands fa-google text-[#DB4437]"></i>
-              <span className="text-[#404A4C] text-sm sm:text-base">Continue with your Google account</span>
+              <span className="text-[#404A4C] text-sm sm:text-base">Continue with Google account</span>
             </div>
           </form>
 
           <p className="text-xs sm:text-sm text-gray-500 mt-4">
-            Don't have an account? <a href="#" className="text-[#5EE6FE] font-semibold">Sign up</a>
+            Don't have an account? <Link to="/signup" className="text-[#5EE6FE] font-semibold">Sign up</Link>
           </p>
 
           <a href="" className="text-xs sm:text-sm text-gray-500 mt-4 hover:underline">

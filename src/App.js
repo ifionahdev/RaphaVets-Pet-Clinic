@@ -1,17 +1,17 @@
-/*function App() {
-  return (
-    <div className="flex items-center justify-center h-screen bg-green-100">
-      <h1 className="text-4xl font-bold text-green-700">
-        RaphaVets Pet Clinic 🐾
-      </h1>
-    </div>
-  );
-}*/
-
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./LoginPage";
+import SignupPage from "./SignupPage";
 
 function App() {
-  return <LoginPage />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
