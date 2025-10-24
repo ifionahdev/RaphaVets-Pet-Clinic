@@ -4,6 +4,8 @@ import LoginPage from "./LoginPage";
 import SignupPage from "./SignupPage";
 import HomePage from "./guest-pages/HomePage";
 
+import Home from "./user-pages/Home";
+
 function App() {
   return (
     <BrowserRouter>
@@ -11,6 +13,8 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/home" element={<HomePage />} />
+
+        <Route path="/user-home" element={<Home />} />
       </Routes>
     </BrowserRouter>
   );

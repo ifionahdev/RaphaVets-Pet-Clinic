@@ -9,6 +9,9 @@ module.exports = {
         sansation: ['"Sansation"', 'sans-serif'],
         baloo: ['"Baloo Chettan 2"', 'cursive'],
       },
+      animation: {
+        'bounce-slow': 'bounce 3s infinite ease-in-out',
+      },
     },
   },
   plugins: [],

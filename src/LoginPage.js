@@ -227,12 +227,12 @@ function LoginPage() {
               </button>
             </div>
 
-            <button
-              type="submit"
-              className="bg-[#5EE6FE] text-white font-semibold py-2 sm:py-3 rounded-xl mt-1 hover:bg-[#388A98] transition-colors"
+            <Link
+              to = "/user-home"
+              className="text-center bg-[#5EE6FE] text-white font-semibold py-2 sm:py-3 rounded-xl mt-1 hover:bg-[#388A98] transition-colors"
             >
               Login
-            </button>
+            </Link>
 
             {/* divider */}
             <div className="flex items-center my-1">

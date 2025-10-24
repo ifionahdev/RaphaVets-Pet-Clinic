@@ -110,7 +110,7 @@ function HomePage() {
                   )
                 )}
                 <a
-                  href="/signup"
+                  href="/"
                   className="block mt-2 w-full text-center bg-[#5EE6FE] text-white px-4 py-2 rounded-lg font-medium transform transition duration-150 hover:shadow-md"
                 >
                   Get Started
@@ -199,13 +199,63 @@ function HomePage() {
           />
         </svg>
 
-        <div
-          className="w-full h-[560px]"
-          style={{
-            background:
-              "linear-gradient(to bottom, #5EE6FE 0%, #98DAE5 43%, #FFFFFF 100%)",
-          }}
-        ></div>
+        <div className="relative w-full flex justify-center items-center">
+          {/* Background gradient */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to bottom, #5EE6FE 0%, #98DAE5 43%, #FFFFFF 100%)",
+            }}
+          />
+
+          {/* wrapper */}
+          <div className="relative w-full flex justify-start items-center gap-6 px-6 sm:px-12 md:px-20">
+            
+            {/* Masked group */}
+            <div className="relative w-[260px] sm:w-[332px] md:w-[400px] h-[360px] sm:h-[440px] md:h-[520px] -translate-x-132 z-20">
+              {/* bg circle */}
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 
+                              w-[250px] sm:w-[332px] md:w-[400px] 
+                              h-[240px] sm:h-[308px] md:h-[372px] 
+                              bg-[#D9D9D9] rounded-full z-10" />
+
+              {/* lower image */}
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 
+                              w-[260px] sm:w-[332px] md:w-[400px] 
+                              h-[240px] sm:h-[308px] md:h-[372px] 
+                              overflow-hidden rounded-full z-20">
+                <img
+                  src="/images/home-female.png"
+                  alt="Woman holding cat and dog"
+                  className="w-full h-full object-cover object-bottom"
+                />
+              </div>
+
+              {/* top image */}
+              <img
+                src="/images/home-female.png"
+                alt="Woman holding cat and dog (top overlap)"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 
+                          w-[260px] sm:w-[332px] md:w-[400px] 
+                          h-auto z-30"
+                style={{
+                  clipPath: 'inset(0px 0px 115px 0px)'
+                }}
+              />
+            </div>
+
+            {/* Black container for services */}
+            <div className="flex-1 h-auto bg-black/90 rounded-xl p-6 text-white relative z-0">
+              <ul className="space-y-5 text-right">
+                <li> <img src = "/images/vertical-white-paws.png"/>Pet Grooming</li>
+                <li> Vaccination & Health Check</li>
+                <li> Online Consultation</li>
+                <li> Adoption Assistance</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
