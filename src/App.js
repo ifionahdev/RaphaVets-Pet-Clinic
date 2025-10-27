@@ -6,6 +6,7 @@ import HomePage from "./guest-pages/HomePage";
 
 import Home from "./user-pages/pages/Home";
 import Profile from "./user-pages/pages/Profile";
+import PetDetails from "./user-pages/pages/PetDetails";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
 
         <Route path="/user-home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/pet/:id" element={<PetDetails />} />
       </Routes>
     </BrowserRouter>
   );

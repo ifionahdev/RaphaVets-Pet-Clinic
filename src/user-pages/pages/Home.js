@@ -3,6 +3,7 @@ import Header from "../template/Header";
 import Sidebar from "../template/SideBar";
 import PetInfo from "../components/home/PetInfo";
 import AddPetModal from "../components/home/AddPetModal";
+import FloatingChatBox from "../components/FloatingChatBox";
 
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -15,6 +16,7 @@ function Home() {
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
+  const [chatType, setChatType] = useState(null);
 
   // Load theme
   useEffect(() => {
@@ -114,7 +116,7 @@ function Home() {
         </div>
       </div>
 
-      {/* Floating Chat */}
+      {/* Floating Chat Button */}
       <button
         onClick={() => setIsChatOpen(!isChatOpen)}
         className="fixed bottom-8 right-8 sm:bottom-12 sm:right-20 bg-[#5EE6FE] text-white text-2xl w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3ecbe0] transition-all duration-300 z-50"
@@ -122,6 +124,7 @@ function Home() {
         <i className="fa-regular fa-comment"></i>
       </button>
 
+      {/* Chat Menu */}
       {isChatOpen && (
         <>
           <div
@@ -129,15 +132,36 @@ function Home() {
             onClick={() => setIsChatOpen(false)}
           ></div>
           <div className="fixed bottom-32 right-8 sm:right-20 bg-white rounded-2xl shadow-xl p-4 z-50 w-52 flex flex-col gap-3 animate-popUp">
-            <button className="bg-[#5EE6FE] text-white font-semibold py-2 rounded-lg hover:bg-[#3ecbe0] transition-all">
+            <button
+              onClick={() => {
+                setIsChatOpen(false);
+                setChatType("ai");
+              }}
+              className="bg-[#5EE6FE] text-white font-semibold py-2 rounded-lg hover:bg-[#3ecbe0] transition-all"
+            >
               Chat with AI
             </button>
-            <button className="bg-[#EEF4F5] text-gray-700 font-semibold py-2 rounded-lg hover:bg-[#d9d9d9] transition-all">
+            <button
+              onClick={() => {
+                setIsChatOpen(false);
+                setChatType("pro");
+              }}
+              className="bg-[#EEF4F5] text-gray-700 font-semibold py-2 rounded-lg hover:bg-[#d9d9d9] transition-all"
+            >
               Chat with Professional
             </button>
           </div>
         </>
       )}
+
+      {/* Floating Chat Box */}
+      {chatType && (
+        <FloatingChatBox
+          type={chatType}
+          onClose={() => setChatType(null)}
+        />
+      )}
+
 
       {/* ADD PET MODAL */}
       {showModal && (

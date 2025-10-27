@@ -29,7 +29,8 @@ function SideBar({ isMenuOpen, setIsMenuOpen, pets, setShowModal }) {
               </div>
               <div className="flex overflow-x-auto px-2 gap-4 mt-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {pets.map((pet, index) => (
-                  <div key={index} className="flex flex-col items-center flex-shrink-0">
+                  <div key={index} onClick={() => navigate(`/pet/${index}`, { state: { pet } })}
+                       className="flex flex-col items-center flex-shrink-0">
                     <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#5EE6FE]">
                       <img
                         src={pet.photo}
