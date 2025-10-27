@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "./api/axios";
+import FormMessage from "./user-pages/components/FormMessage";
 
 function SignupPage() {
 
@@ -12,6 +13,8 @@ function SignupPage() {
   const [confirm, setConfirm] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [formMessage, setFormMessage] = useState({ message: "", type: "" });
+  const [verifyMessage, setVerifyMessage] = useState({ message: "", type: "" });
 
   const hasUpper = /[A-Z]/.test(password);
   const hasLower = /[a-z]/.test(password);
@@ -24,13 +27,13 @@ function SignupPage() {
 
     // Basic validations first
     if (!firstName || !lastName || !email || !password || !confirm) {
-      return alert("Please fill out all fields.");
+      return setFormMessage({ message: "Please fill out all fields.", type: "error" });
     }
     if (password !== confirm) {
-      return alert("Passwords do not match.");
+      return setFormMessage({ message: "Password do not match.", type: "error" });
     }
     if (!hasUpper || !hasLower || !hasLength || !hasSpecial) {
-      return alert("Password does not meet all requirements.");
+      return setFormMessage({ message: "Password do not meet all requirements.", type: "error" });
     }
 
     try {
@@ -38,7 +41,7 @@ function SignupPage() {
       const check = await api.post("/auth/check-email", { email });
 
       if (check.data.exists) {
-        return alert("This email is already registered. Please use a different one.");
+        return setFormMessage({ message: "This email is already registered. Please use a different one.", type: "error" });
       }
 
       // ✅ Step 2: Proceed only if email not registered
@@ -53,8 +56,12 @@ function SignupPage() {
 
     } catch (err) {
       console.error("❌ Error during signup:", err);
-      alert(err.response?.data?.message || "An error occurred. Please try again.");
+      setFormMessage({
+        message: err.response?.data?.message || "An error occurred. Please try again.",
+        type: "error",
+      });
     }
+
   };
 
 
@@ -143,7 +150,7 @@ function SignupPage() {
   const confirmCode = async (e) => {
     e.preventDefault();
     const code = codeDigits.join("");
-    if (code.length !== 6) return alert("Please enter all 6 digits.");
+    if (code.length !== 6) return setFormMessage({ message: "Please enter all 6 digits number.", type: "error" });
 
     try {
       const res = await api.post("/auth/verify-code", { email: fpEmail, code });
@@ -151,10 +158,10 @@ function SignupPage() {
       if (res.data.success) {
         const registerRes = await api.post("/auth/register", pendingUser);
         console.log("✅ User registered:", registerRes.data);
-        alert("Account created successfully!");
+        setFormMessage({ message: "Account created successfully.", type: "success" });
         setVerifyModalOpen(false);
       } else {
-        alert("Invalid code.");
+        setFormMessage({ message: "Invalid code", type: "error" });
       }
     } catch (err) {
       console.error("❌ Verification error:", err);
@@ -163,14 +170,18 @@ function SignupPage() {
         const { status, data } = err.response;
 
         if (status === 400 && data.message === "Email already registered") {
-          alert("This email is already registered.");
+          setFormMessage({ message: "This email is already registered.", type: "error" });
         } else if (status === 400 && data.message === "Invalid email or password") {
-          alert("Invalid email or password.");
+          setFormMessage({ message: "Invalid email or password.", type: "error" });
         } else {
-          alert(data.message || "Something went wrong. Try again.");
+          setVerifyMessage({
+            message: data.message || "Something went wrong. Try again.",
+            type: "error",
+          });
         }
+                                                    
       } else {
-        alert("Network error. Please try again.");
+        setFormMessage({ message: "Network error. Please try again.", type: "error" });
       }
     }
   };
@@ -254,6 +265,7 @@ function SignupPage() {
 
           <div className="text-gray-600 text-center mb-4 sm:mb-6 text-sm sm:text-base">Sign up with google account</div>
 
+          <FormMessage type={formMessage.type} message={formMessage.message} />
           <form className="flex flex-col gap-1 sm:gap-2 w-full px-4 sm:px-6" onSubmit={handleSubmit}>
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1 min-w-0">
@@ -459,6 +471,8 @@ function SignupPage() {
                   />
                 ))}
               </div>
+              
+              <FormMessage type={verifyMessage.type} message={verifyMessage.message} />
 
               <div className="flex items-center gap-3 text-sm text-gray-500">
                 <button

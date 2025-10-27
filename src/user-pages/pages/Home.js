@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header";
-import Sidebar from "../components/SideBar";
-import PetInfo from "../components/PetInfo";
-import AddPetModal from "../components/AddPetModal";
+import Header from "../template/Header";
+import Sidebar from "../template/SideBar";
+import PetInfo from "../components/home/PetInfo";
+import AddPetModal from "../components/home/AddPetModal";
 
 function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);

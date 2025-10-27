@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import api from "./api/axios";
+import FormMessage from "./user-pages/components/FormMessage";
+
 function LoginPage() {
 
   const navigate = useNavigate();
@@ -12,6 +14,10 @@ function LoginPage() {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [fpEmail, setFpEmail] = useState("");
   const [sending, setSending] = useState(false);
+  const [formMessage, setFormMessage] = useState({ message: "", type: "" });
+  const [emailMessage, setEmailMessage] = useState({ message: "", type: "" });
+  const [verifyMessage, setVerifyMessage] = useState({ message: "", type: "" });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const DIGITS = 6;
   const [codeDigits, setCodeDigits] = useState(Array(DIGITS).fill(""));
@@ -57,27 +63,28 @@ function LoginPage() {
     setSending(true);
 
     try {
-      // 1️⃣ Check if email exists
       const checkRes = await api.post("/auth/check-email", { email: fpEmail });
       if (!checkRes.data.exists) {
-        alert("❌ Account not found");
+        setEmailMessage({ message: "Account not found.", type: "error" });
         return;
       }
 
-      // 2️⃣ Send verification code
       const res = await api.post("/auth/send-code", { email: fpEmail });
       if (res.data.success) {
-        alert("✅ Verification code sent to your email");
-        setEmailModalOpen(false);
-        setVerifyModalOpen(true);
-        setSeconds(60);
-        setTimeout(() => inputsRef.current[0]?.focus(), 120);
+        setEmailMessage({ message: "✅ Verification code sent to your email", type: "success" });
+        setTimeout(() => {
+          setEmailModalOpen(false);
+          setShowSuccessModal(true);
+          setSeconds(60);
+          setTimeout(() => inputsRef.current[0]?.focus(), 120);
+          setEmailMessage({ message: "", type: "" });
+        }, 1000);
       } else {
-        alert(res.data.message || "Failed to send code");
+        setEmailMessage({ message: res.data.message || "Failed to send code", type: "error" });
       }
     } catch (err) {
       console.error("❌ Error sending code:", err);
-      alert(err.response?.data?.message || "Server error");
+      setEmailMessage({ message: err.response?.data?.message || "Server error", type: "error" });
     } finally {
       setSending(false);
     }
@@ -87,17 +94,21 @@ function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginData.email || !loginData.password)
-      return alert("Please fill in all fields.");
+      return setFormMessage({ message: "Please fill in all fields.", type: "error" });
     setLoading(true);
     try {
       const res = await api.post("/auth/login", loginData);
-      alert("✅ Login successful!");
+      setFormMessage({ message: "✅ Login successful!", type: "success" });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/user-home");
+
+      setTimeout(() => navigate("/user-home"), 1000);
     } catch (err) {
       console.error("❌ Login error:", err);
-      alert(err.response?.data?.message || "Server error");
+      setFormMessage({
+        message: err.response?.data?.message || "Server error",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -138,25 +149,38 @@ function LoginPage() {
   const confirmCode = async (e) => {
     e?.preventDefault();
     const code = codeDigits.join("");
-    if (code.length !== DIGITS) return;
+
+    if (code.length !== DIGITS) {
+      setVerifyMessage({ message: "Please enter the full 6-digit code.", type: "error" });
+      return;
+    }
 
     setSending(true);
     try {
       const res = await api.post("/auth/verify-code", { email: fpEmail, code });
       if (res.data.success) {
-        alert("✅ Code verified. You can now reset your password.");
-        setVerifyModalOpen(false);
-        setCodeDigits(Array(DIGITS).fill(""));
+        setVerifyMessage({ message: "✅ Code verified successfully!", type: "success" });
+
+        setTimeout(() => {
+          setVerifyModalOpen(false);
+          setVerifyMessage({ message: "", type: "" });
+          setCodeDigits(Array(DIGITS).fill(""));
+          setShowSuccessModal(true); // 👈 show new success modal
+        }, 1200);
       } else {
-        alert(res.data.message || "Invalid code");
+        setVerifyMessage({ message: res.data.message || "Invalid code", type: "error" });
       }
     } catch (err) {
       console.error("❌ Code verification error:", err);
-      alert(err.response?.data?.message || "Server error");
+      setVerifyMessage({
+        message: err.response?.data?.message || "Server error",
+        type: "error",
+      });
     } finally {
       setSending(false);
     }
   };
+
 
   // resend code
   const resendCode = async () => {
@@ -165,16 +189,19 @@ function LoginPage() {
     try {
       const res = await api.post("/auth/send-code", { email: fpEmail });
       if (res.data.success) {
-        alert("✅ Verification code resent to your email");
+        setVerifyMessage({ message: "✅ Verification code resent to your email", type: "success" });
         setSeconds(60);
         setCodeDigits(Array(DIGITS).fill(""));
         setTimeout(() => inputsRef.current[0]?.focus(), 80);
       } else {
-        alert(res.data.message || "Failed to resend code");
+        setVerifyMessage({ message: res.data.message || "Failed to resend code", type: "error" });
       }
     } catch (err) {
       console.error("❌ Resend code error:", err);
-      alert(err.response?.data?.message || "Server error");
+      setVerifyMessage({
+        message: err.response?.data?.message || "Server error",
+        type: "error",
+      });
     } finally {
       setSending(false);
     }
@@ -256,6 +283,7 @@ function LoginPage() {
           </div>       
 
           <form onSubmit={handleLogin} className="flex flex-col gap-3 sm:gap-4 w-full px-4 sm:px-6">
+            <FormMessage type={formMessage.type} message={formMessage.message} />
 
             {/* email */}
             <div className="flex items-center bg-[#EAEAEA] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#5EE6FE]">
@@ -364,6 +392,9 @@ function LoginPage() {
             </h3>
             <p className="text-sm text-gray-600 mb-4">Enter your email address and we'll send a verification code.</p>
             <form onSubmit={submitEmail} className="flex flex-col gap-3">
+              
+              <FormMessage type={emailMessage.type} message={emailMessage.message} />
+              
               <input
                 type="email"
                 required
@@ -373,6 +404,7 @@ function LoginPage() {
                 placeholder="you@domain.com"
                 className="w-full py-2 px-3 rounded-lg bg-[#F5F7F8] border border-gray-200 outline-none"
               />
+
               <div className="flex items-center justify-end gap-3">
                 <button type="button" className="px-4 py-2 rounded-lg" onClick={() => setEmailModalOpen(false)}>
                   Cancel
@@ -382,7 +414,7 @@ function LoginPage() {
                   className="px-4 py-2 bg-[#5EE6FE] text-white rounded-lg font-semibold hover:bg-[#47c0d7] disabled:opacity-60"
                   disabled={!fpEmail || sending}
                 >
-                  {sending ? "Sending..." : "Send code"}
+                  {sending ? "Sending..." : "Send Link"}
                 </button>
               </div>
             </form>
@@ -390,7 +422,7 @@ function LoginPage() {
         </div>
       )}
 
-      {/* verification modal */}
+      {/* verification modal 
       {verifyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setVerifyModalOpen(false)} />
@@ -410,6 +442,9 @@ function LoginPage() {
             </div>
 
             <form onSubmit={confirmCode} className="mt-6 flex flex-col items-center gap-4">
+              
+              <FormMessage type={verifyMessage.type} message={verifyMessage.message} />
+              
               <div className="flex gap-2">
                 {codeDigits.map((d, i) => (
                   <input
@@ -449,6 +484,43 @@ function LoginPage() {
           </motion.div>
         </div>
       )}
+      */}
+
+      {/* success modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSuccessModal(false)} />
+
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E6F8FB] p-6 text-center"
+          >
+            <div className="flex flex-col items-center">
+              <div className="bg-[#5EE6FE]/10 text-[#5EE6FE] w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                <i className="fa-solid fa-envelope-open-text text-3xl"></i>
+              </div>
+              <h3
+                className="text-xl font-bold text-gray-800 mb-2"
+                style={{ fontFamily: "'Baloo Chettan 2'" }}
+              >
+                Check your email!
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                We've sent a link to your email account for resetting your password.
+                Please check your inbox and follow the instructions to continue.
+              </p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="px-6 py-2 bg-[#5EE6FE] text-white rounded-lg font-semibold hover:bg-[#47c0d7] transition-all duration-300"
+              >
+                Got it
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 }
