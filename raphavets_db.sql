@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 25, 2025 at 01:30 PM
+-- Generation Time: Oct 31, 2025 at 09:55 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -41,7 +41,8 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `firstName`, `lastName`, `eMail`, `password`, `datetimeCreated`) VALUES
-(2, 'Mark', 'Mapili', 'markmapili29@gmail.com', '$2b$10$BQZcuX9rPNcSwTmwmaIaE.lw/uT7.lQXIevkgG9f1pBY8fIpEZX0K', '0000-00-00 00:00:00');
+(2, 'Mark', 'Mapili', 'markmapili29@gmail.com', '$2b$10$BQZcuX9rPNcSwTmwmaIaE.lw/uT7.lQXIevkgG9f1pBY8fIpEZX0K', '0000-00-00 00:00:00'),
+(3, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00');
 
 --
 -- Indexes for dumped tables
@@ -61,7 +62,7 @@ ALTER TABLE `account_tbl`
 -- AUTO_INCREMENT for table `account_tbl`
 --
 ALTER TABLE `account_tbl`
-  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
