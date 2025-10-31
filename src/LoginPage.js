@@ -106,7 +106,7 @@ function LoginPage() {
       setTimeout(() => {
         const role = res.data.user.role;
         if (role === "admin") {
-          navigate("/dashboard");
+          navigate("/admin-pages");
         } else {
           navigate("/user-home");
         }
