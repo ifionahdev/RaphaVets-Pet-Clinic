@@ -105,7 +105,7 @@ function LoginPage() {
       // ✅ Redirect based on role
       setTimeout(() => {
         const role = res.data.user.role;
-        if (role === "admin") {
+        if (role == 2) {
           navigate("/admin-pages");
         } else {
           navigate("/user-home");
