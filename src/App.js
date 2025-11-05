@@ -8,6 +8,9 @@
   import Profile from "./user-pages/pages/Profile";
   import PetDetails from "./user-pages/pages/PetDetails";
   import Booking from "./user-pages/pages/Booking";
+  import BreedDetect from "./user-pages/pages/BreedDetect";
+  import Videos from "./user-pages/pages/Videos";
+  import PetTips from "./user-pages/pages/PetTips";
 
   import Dashboard from "./admin-pages/Dashboard";
   import AdminLayout from "./admin-pages/AdminLayout";
@@ -33,6 +36,9 @@
           <Route path="/profile" element={<Profile />} />
           <Route path="/pet/:id" element={<PetDetails />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/breed-detect" element={<BreedDetect />} />
+          <Route path="/videos" element={<Videos />} />
+          <Route path="/pet-tips" element={<PetTips />} />
 
           /*admin*/
           <Route path="/admin-pages" element={<AdminLayout />}>

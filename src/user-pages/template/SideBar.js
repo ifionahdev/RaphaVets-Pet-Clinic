@@ -80,7 +80,14 @@ function SideBar({ isMenuOpen, setIsMenuOpen, pets, setShowModal }) {
                   <span>Profile</span>
                 </div>
 
-                <div className="text-[15px] flex items-center gap-2 hover:text-[#5EE6FE] cursor-pointer">
+                <div
+                  onClick={() => navigate("/breed-detect")}
+                  className={`text-[15px] flex items-center gap-2 cursor-pointer transition-colors duration-300 ${
+                    location.pathname === "/breed-detect"
+                      ? "text-[#5EE6FE] font-semibold"
+                      : "hover:text-[#5EE6FE] text-gray-700"
+                  }`}
+                >
                   <i className="fa-solid fa-shield-dog"></i>
                   <span>Try Breed Detect</span>
                 </div>
@@ -91,11 +98,25 @@ function SideBar({ isMenuOpen, setIsMenuOpen, pets, setShowModal }) {
             <div className="pb-4 flex flex-col border-b-[1px] border-[#5EE6FE] mt-2">
               <span className="font-[700] text-[20px]">Resources</span>
               <div className="px-3 flex flex-col gap-2 mt-2">
-                <div className="text-[15px] flex items-center gap-2 hover:text-[#5EE6FE] cursor-pointer">
+                <div 
+                  onClick={() => navigate("/videos")}
+                  className={`text-[15px] flex items-center gap-2 cursor-pointer transition-colors duration-300 ${
+                    location.pathname === "/videos"
+                      ? "text-[#5EE6FE] font-semibold"
+                      : "hover:text-[#5EE6FE] text-gray-700"
+                  }`}
+                >
                   <i className="fa-solid fa-film"></i>
                   <span>Videos</span>
                 </div>
-                <div className="text-[15px] flex items-center gap-2 hover:text-[#5EE6FE] cursor-pointer">
+                <div 
+                  onClick={() => navigate("/pet-tips")}
+                  className={`text-[15px] flex items-center gap-2 cursor-pointer transition-colors duration-300 ${
+                    location.pathname === "/pet-tips"
+                      ? "text-[#5EE6FE] font-semibold"
+                      : "hover:text-[#5EE6FE] text-gray-700"
+                  }`}
+                >
                   <i className="fa-solid fa-lightbulb"></i>
                   <span>Pet Tips</span>
                 </div>

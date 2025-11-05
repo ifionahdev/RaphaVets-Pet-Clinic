@@ -22,15 +22,23 @@ function Home() {
   const [chatType, setChatType] = useState(null);
   const [isExpandedChat, setIsExpandedChat] = useState(false);
 
+  const [appointmentFilter, setAppointmentFilter] = useState("Upcoming");
+  const appointments = [
+    { id: 1, petName: "Miguel", type: "General Checkup", date: "Nov 10, 2025", status: "Upcoming" },
+    { id: 2, petName: "Mark", type: "Vaccination", date: "Nov 12, 2025", status: "Upcoming" },
+    { id: 3, petName: "Jordan", type: "Grooming", date: "Oct 25, 2025", status: "Done" },
+  ];
+  const filteredAppointments = appointments.filter(
+    (a) => appointmentFilter === "All" || a.status === appointmentFilter
+  );
+
   const navigate = useNavigate();
 
-  // Load theme
   useEffect(() => {
     const saved = localStorage.getItem("darkMode");
     if (saved) setDarkMode(saved === "true");
   }, []);
 
-  // Save theme
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
@@ -61,12 +69,9 @@ function Home() {
         darkMode ? "bg-[#1E1E1E] text-white" : "bg-[#FBFBFB]"
       } ${isChatOpen ? "overflow-hidden" : ""}`}
     >
-      {/* HEADER */}
       <Header darkMode={darkMode} setDarkMode={setDarkMode} setIsMenuOpen={setIsMenuOpen} />
 
-      {/* MAIN LAYOUT */}
       <div className="flex flex-row gap-5 px-5 sm:px-12 animate-fadeSlideUp">
-        {/* SIDEBAR */}
         <Sidebar
           isMenuOpen={isMenuOpen}
           setIsMenuOpen={setIsMenuOpen}
@@ -74,51 +79,164 @@ function Home() {
           setShowModal={setShowModal}
         />
 
-        {/* MAIN CONTENT */}
         <div
-          className={`transition-all duration-500 ease-in-out flex flex-col gap-7 rounded-xl p-5 w-full ${
+          className={`transition-all duration-500 ease-in-out flex flex-col gap- rounded-xl p-5 w-full ${
             !isMenuOpen ? "md:w-full" : "md:w-[calc(100%-250px)]"
           }`}
         >
-          {/* PET INFO SECTION */}
-          <PetInfo
-            pets={pets}
-            setShowModal={setShowModal}
-            currentPetIndex={currentPetIndex}
-            setCurrentPetIndex={setCurrentPetIndex}
-          />
+          {/* TOP HOME DASHBOARD */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+            <div className="bg-[#FCE7F3] text-[#045D56] p-5 rounded-xl shadow-lg flex flex-col justify-between cursor-pointer hover:scale-105 transition-all">
+              <div>
+                <h3 className="font-bold text-lg mb-2">Daily Walks</h3>
+                <p className="text-sm">Take your dog for at least 30 minutes of walking to keep them healthy.</p>
+              </div>
+              <div className="mt-3 flex justify-end text-2xl">
+                <i className="fa-solid fa-dumbbell"></i>
+              </div>
+            </div>
 
-          {/* Appointment Section */}
-          <div className="px-6 py-4 text-[12px] rounded-2xl bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] flex flex-col h-[300px]">
-            <div className="font-[700] flex flex-row gap-5">
-              {["Appointment", "Medical Reports", "Reminders", "Lab Records"].map((tab) => (
+            <div className="bg-[#E3FAF7] text-[#7C2E38] p-5 rounded-xl shadow-lg flex flex-col justify-between cursor-pointer hover:scale-105 transition-all">
+              <div>
+                <h3 className="font-bold text-lg mb-2">Hydration Reminder</h3>
+                <p className="text-sm">Ensure your pet has access to fresh water at all times.</p>
+              </div>
+              <div className="mt-3 flex justify-end text-2xl">
+                <i className="fa-solid fa-droplet"></i>
+              </div>
+            </div>
+
+            <div
+              onClick={() => navigate("/booking")}
+              className="bg-[#FFF4E5] text-[#5E2A4F] p-5 rounded-xl shadow-lg flex flex-col justify-between cursor-pointer hover:scale-105 transition-all"
+            >
+              <div>
+                <h3 className="font-bold text-lg mb-2">Book Appointment</h3>
+                <p className="text-sm">Schedule a visit with your vet in just a few clicks.</p>
+              </div>
+              <div className="mt-3 flex justify-end text-2xl">
+                <i className="fa-solid fa-calendar-days"></i>
+              </div>
+            </div>
+          </div>
+
+          {/* TABS SECTION */}
+          <div className="px-6 py-4 rounded-2xl bg-white shadow-lg flex flex-col h-[350px]">
+            <div className="font-semibold flex gap-6 border-b pb-3 mb-4">
+              {["Appointment", "Medical Reports", "Lab Records"].map((tab) => (
                 <span
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`cursor-pointer transition-all duration-300 ${
+                  className={`cursor-pointer transition-colors duration-300 ${
                     activeTab === tab
-                      ? "text-[#5EE6FE] border-b-2 border-[#5EE6FE]"
-                      : "hover:text-[#5EE6FE] text-gray-700"
+                      ? "text-[#5EE6FE] border-b-2 border-[#5EE6FE] pb-1"
+                      : "text-gray-400 hover:text-[#5EE6FE]"
                   }`}
                 >
                   {tab}
                 </span>
               ))}
             </div>
-            <div className="flex flex-col">
-              <div className="mt-2 text-[13px] flex flex-row justify-end items-center pr-5">
-                <button 
-                  onClick={() => navigate("/booking")}
-                  className="bg-[#d9d9d9] py-1 px-3 rounded-lg flex flex-row items-center gap-2 hover:bg-[#5EE6FE] hover:text-white transition-all duration-300 active:scale-95">
-                  <i className="fa-solid fa-calendar-days"></i>
-                  <span>Book</span>
-                </button>
-              </div>
-              <div className="flex-1 flex items-center justify-center h-full">
-                <span className="text-gray-500 text-sm font-medium">
-                  No incoming appointments
-                </span>
-              </div>
+
+            <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+              {/* --- APPOINTMENTS TAB --- */}
+              {activeTab === "Appointment" && (
+                <div className="flex flex-col flex-1 gap-3">
+                  <div className="flex gap-3 mb-3">
+                    {["Upcoming", "Done", "All"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setAppointmentFilter(status)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition 
+                          ${
+                            appointmentFilter === status
+                              ? "bg-[#5EE6FE] text-white shadow"
+                              : "bg-gray-100 text-gray-600 hover:bg-[#d3f2fa]"
+                          }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredAppointments.length === 0 ? (
+                    <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+                      No {appointmentFilter.toLowerCase()} appointments
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4 overflow-y-auto">
+                      {filteredAppointments.map((appt) => (
+                        <div
+                          key={appt.id}
+                          className="bg-white/70 backdrop-blur-md border border-[#5EE6FE]/30 p-4 rounded-xl flex justify-between items-center shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all cursor-pointer"
+                        >
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              {appt.petName} — {appt.type}
+                            </p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                              <i className="fa-regular fa-calendar"></i> {appt.date}
+                            </p>
+                          </div>
+                          <button className="bg-[#5EE6FE] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#3ecbe0] transition">
+                            View Details
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* --- MEDICAL REPORTS TAB --- */}
+              {activeTab === "Medical Reports" && (
+                <>
+                  {[
+                    { pet: "Buddy", test: "Heartworm Test", result: "Negative", date: "Nov 01, 2025" },
+                    { pet: "Luna", test: "Blood Test", result: "Normal", date: "Oct 25, 2025" },
+                  ].map((report, i) => (
+                    <div
+                      key={i}
+                      className="bg-white/70 backdrop-blur-md border border-orange-300/40 p-4 rounded-xl flex justify-between items-center shadow-md hover:shadow-xl hover:bg-[#FFF8E7]/60 transition-all cursor-pointer"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-800">{report.pet} — {report.test}</p>
+                        <p className="text-xs text-gray-500">
+                          Result: <span className="font-medium text-orange-600">{report.result}</span> | {report.date}
+                        </p>
+                      </div>
+                      <button className="bg-[#FFA500] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#e59400] transition">
+                        Download PDF
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* --- LAB RECORDS TAB --- */}
+              {activeTab === "Lab Records" && (
+                <>
+                  {[
+                    { pet: "Buddy", test: "CBC", date: "Oct 28, 2025" },
+                    { pet: "Luna", test: "Urinalysis", date: "Oct 20, 2025" },
+                  ].map((lab, i) => (
+                    <div
+                      key={i}
+                      className="bg-white/70 backdrop-blur-md border border-purple-300/40 p-4 rounded-xl flex justify-between items-center shadow-md hover:shadow-xl hover:bg-[#F9F1FF]/60 transition-all cursor-pointer"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-800">{lab.pet} — {lab.test}</p>
+                        <p className="text-xs text-gray-500">
+                          Completed: {lab.date}
+                        </p>
+                      </div>
+                      <button className="bg-[#9C27B0] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#7B1FA2] transition">
+                        View Record
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -132,7 +250,6 @@ function Home() {
         <i className="fa-regular fa-comment"></i>
       </button>
 
-      {/* Chat Menu */}
       {isChatOpen && (
         <>
           <div
@@ -161,33 +278,11 @@ function Home() {
               Chat with Professional
             </button>
           </div>
-
         </>
       )}
 
-      {/* Floating Chat Box */}
-      {chatType && (
-        <FloatingChatBox
-          type={chatType}
-          onClose={() => setChatType(null)}
-        />
-      )}
+      {chatType && <FloatingChatBox type={chatType} onClose={() => setChatType(null)} />}
 
-
-      {/* ADD PET MODAL 
-      {showModal && (
-        <AddPetModal
-          newPet={newPet}
-          setNewPet={setNewPet}
-          handleAddPet={handleAddPet}
-          showPhotoOptions={showPhotoOptions}
-          setShowPhotoOptions={setShowPhotoOptions}
-          handlePhotoChange={handlePhotoChange}
-          setShowModal={setShowModal}
-        />
-      )}*/}
-
-      {/* SUCCESS MESSAGE */}
       {showSuccess && (
         <div className="fixed top-[80px] right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 w-[300px] overflow-hidden">
           <span className="font-semibold">Pet added successfully!</span>
