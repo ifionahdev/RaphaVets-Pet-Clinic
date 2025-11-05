@@ -101,6 +101,8 @@ function LoginPage() {
       setFormMessage({ message: "✅ Login successful!", type: "success" });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("userId", res.data.user.id || res.data.user.accId);
+      
 
       // ✅ Redirect based on role
       setTimeout(() => {

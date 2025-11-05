@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Header from "../template/Header";
 import SideBar from "../template/SideBar";
 
@@ -16,14 +17,46 @@ function Profile() {
   const [showModal, setShowModal] = useState(false);
   const [activeSection, setActiveSection] = useState("Account Information");
   const [showContent, setShowContent] = useState(false); 
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
+        const userId = storedUser ? JSON.parse(storedUser).id : null;
+        
+        console.log("🔑 token:", token);
+        console.log("👤 userId:", userId);
+
+        if (!token || !userId) {
+          console.warn("⚠️ No token or userId found in localStorage");
+          return;
+        }
+
+        const res = await axios.get(`http://localhost:5000/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("✅ API response:", res.data);
+        setUserData(res.data);
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error.response?.data || error.message);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
 
   const sections = {
-    "Account Information": <AccountInformation />,
+    "Account Information": <AccountInformation userData={userData} setUserData={setUserData} />,
     "Notification Settings": <NotificationSettings />,
     "Security & Privacy": <SecurityPrivacy />,
     "Activity Log": <ActivityLog />,
     "Delete Account": <DeleteAccount />,
   };
+
 
   const isMobile = window.innerWidth < 768;
 
