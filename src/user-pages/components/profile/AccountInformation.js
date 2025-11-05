@@ -1,18 +1,90 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function AccountInformation() {
   const [editableFields, setEditableFields] = useState({});
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    contact: "",
+    address: "",
+  });
+
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  // 🔹 Load user data
+  useEffect(() => {
+    if (!token || !userId) {
+      console.warn("⚠️ No token or userId found");
+      return;
+    }
+
+    console.log("🔑 Token:", token);
+console.log("🧍 UserID:", userId);
+
+
+    axios
+      .get(`http://localhost:5000/api/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        // ✅ Check backend response structure
+        // If your backend returns { user: { firstName, lastName, ... } }
+        const user = res.data.user || res.data;
+        setFormData({
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          email: user.email || "",
+          contact: user.contact || "",
+          address: user.address || "",
+        });
+      })
+      .catch((err) => {
+        console.error("❌ Error fetching user info:", err.response?.data || err.message);
+      });
+  }, [token, userId]);
+
+  // 🔹 Handle input changes
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const toggleEdit = (field) => {
     setEditableFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  // 🔹 Save changes
+  const handleSave = async () => {
+    if (!token || !userId) {
+      alert("⚠️ Not logged in!");
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `http://localhost:5000/api/users/${userId}`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("✅ " + (res.data.message || "Profile updated successfully!"));
+
+      // Optional: disable all edit modes again
+      setEditableFields({});
+    } catch (err) {
+      console.error("❌ Error updating profile:", err.response?.data || err.message);
+      alert("Failed to update profile");
+    }
+  };
+
   const fields = [
-    { label: "First Name", field: "firstName", placeholder: "Enter your first name" },
-    { label: "Last Name", field: "lastName", placeholder: "Enter your last name" },
-    { label: "Email Address", field: "email", placeholder: "youremail@example.com" },
-    { label: "Contact Number", field: "contact", placeholder: "+63 912 345 6789" },
-    { label: "Address", field: "address", placeholder: "Enter your address" },
+    { label: "First Name", field: "firstName" },
+    { label: "Last Name", field: "lastName" },
+    { label: "Email Address", field: "email" },
+    { label: "Contact Number", field: "contact" },
+    { label: "Address", field: "address" },
   ];
 
   return (
@@ -25,13 +97,15 @@ function AccountInformation() {
             <div className="flex items-center">
               <input
                 type="text"
+                name={item.field}
+                value={formData[item.field] || ""}
+                onChange={handleChange}
                 disabled={!editableFields[item.field]}
                 className={`w-full border rounded-lg px-3 py-2 focus:ring-1 focus:ring-[#5EE6FE] focus:border-[#5EE6FE] transition-all ${
                   editableFields[item.field]
                     ? "border-[#5EE6FE] bg-white"
                     : "border-gray-300 bg-gray-100 cursor-not-allowed"
                 }`}
-                placeholder={item.placeholder}
               />
               <button
                 onClick={() => toggleEdit(item.field)}
@@ -46,7 +120,10 @@ function AccountInformation() {
       </div>
 
       <div className="text-right">
-        <button className="px-6 py-2 bg-[#5EE6FE] text-white rounded-lg font-semibold hover:bg-[#47c0d7] transition-all duration-300">
+        <button
+          onClick={handleSave}
+          className="px-6 py-2 bg-[#5EE6FE] text-white rounded-lg font-semibold hover:bg-[#47c0d7] transition-all duration-300"
+        >
           Save Changes
         </button>
       </div>
