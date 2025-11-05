@@ -65,7 +65,7 @@ export const loginUser = async (req, res) => {
     console.log("🧠 User from DB:", user);
 
     const token = jwt.sign(
-      { id: user.accId, email: user.email, role: user.userType }, // ✅ include role
+      { id: user.accId, email: user.email, role: user.roleID }, // ✅ include role
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
@@ -77,7 +77,7 @@ export const loginUser = async (req, res) => {
         id: user.accId,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
-        role: user.userType, // ✅ include role in response
+        role: user.roleID, // ✅ include role in response
       },
     });
   } catch (error) {
