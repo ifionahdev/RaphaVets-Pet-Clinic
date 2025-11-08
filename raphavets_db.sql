@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 03, 2025 at 09:03 AM
+-- Generation Time: Nov 08, 2025 at 01:27 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,8 +43,10 @@ CREATE TABLE `account_tbl` (
 -- Dumping data for table `account_tbl`
 --
 
-INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `eMail`, `password`, `createdAt`, `lastUpdatedAt`, `isDeleted`) VALUES
-(2, 1, 'Mark', 'Mapili', 'markmapili29@gmail.com', '$2b$10$BQZcuX9rPNcSwTmwmaIaE.lw/uT7.lQXIevkgG9f1pBY8fIpEZX0K', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0);
+INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `isDeleted`) VALUES
+(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$BQZcuX9rPNcSwTmwmaIaE.lw/uT7.lQXIevkgG9f1pBY8fIpEZX0K', '0000-00-00 00:00:00', '2025-11-08 17:57:55', 0),
+(3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0);
 
 -- --------------------------------------------------------
 
@@ -126,6 +128,26 @@ CREATE TABLE `breed_tbl` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `clientinfo_tbl`
+--
+
+CREATE TABLE `clientinfo_tbl` (
+  `cliendInfoId` int(11) NOT NULL,
+  `accId` int(11) NOT NULL,
+  `address` varchar(250) NOT NULL,
+  `contactNo` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `clientinfo_tbl`
+--
+
+INSERT INTO `clientinfo_tbl` (`cliendInfoId`, `accId`, `address`, `contactNo`) VALUES
+(1, 2, '141-I 16th Avenue East Rembo', 321452142);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `pet_allergies_tbl`
 --
 
@@ -174,6 +196,20 @@ INSERT INTO `role_tbl` (`roleID`, `roleName`) VALUES
 (2, 'Administrator'),
 (3, 'Veterinarian');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vet_table`
+--
+
+CREATE TABLE `vet_table` (
+  `vetId` int(11) NOT NULL,
+  `accId` int(11) NOT NULL,
+  `licenseNumber` int(50) NOT NULL,
+  `specializationId` int(11) NOT NULL,
+  `certificationId` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -219,6 +255,13 @@ ALTER TABLE `breed_tbl`
   ADD PRIMARY KEY (`breedID`);
 
 --
+-- Indexes for table `clientinfo_tbl`
+--
+ALTER TABLE `clientinfo_tbl`
+  ADD PRIMARY KEY (`cliendInfoId`),
+  ADD KEY `accIdClient` (`accId`);
+
+--
 -- Indexes for table `pet_allergies_tbl`
 --
 ALTER TABLE `pet_allergies_tbl`
@@ -237,6 +280,13 @@ ALTER TABLE `pet_tbl`
 --
 ALTER TABLE `role_tbl`
   ADD PRIMARY KEY (`roleID`);
+
+--
+-- Indexes for table `vet_table`
+--
+ALTER TABLE `vet_table`
+  ADD PRIMARY KEY (`vetId`),
+  ADD KEY `accIdVet` (`accId`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -279,6 +329,12 @@ ALTER TABLE `breed_tbl`
   MODIFY `breedID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `clientinfo_tbl`
+--
+ALTER TABLE `clientinfo_tbl`
+  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
@@ -289,6 +345,12 @@ ALTER TABLE `pet_tbl`
 --
 ALTER TABLE `role_tbl`
   MODIFY `roleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `vet_table`
+--
+ALTER TABLE `vet_table`
+  MODIFY `vetId` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -309,6 +371,12 @@ ALTER TABLE `appointment_tbl`
   ADD CONSTRAINT `statudID_appointment_fk` FOREIGN KEY (`statusID`) REFERENCES `appointment_status_tbl` (`statusID`);
 
 --
+-- Constraints for table `clientinfo_tbl`
+--
+ALTER TABLE `clientinfo_tbl`
+  ADD CONSTRAINT `accIdClient` FOREIGN KEY (`accId`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `pet_allergies_tbl`
 --
 ALTER TABLE `pet_allergies_tbl`
@@ -320,6 +388,12 @@ ALTER TABLE `pet_allergies_tbl`
 --
 ALTER TABLE `pet_tbl`
   ADD CONSTRAINT `breedID_pet_fk` FOREIGN KEY (`breedID`) REFERENCES `breed_tbl` (`breedID`);
+
+--
+-- Constraints for table `vet_table`
+--
+ALTER TABLE `vet_table`
+  ADD CONSTRAINT `accIdVet` FOREIGN KEY (`accId`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
