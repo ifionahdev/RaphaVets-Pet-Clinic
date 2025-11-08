@@ -77,19 +77,15 @@ export default function PetTips() {
     },
   ];
 
-
-
-
   const cardColors = [
-    "#E3FAF7", // teal light
-    "#FCE7F3", // pink light
-    "#FFF4E5", // orange light
-    "#E6F4EA", // green light
-    "#E5E7FF", // blue light
-    "#FFF1F0", // red light
+    "#E3FAF7", 
+    "#FCE7F3", 
+    "#FFF4E5", 
+    "#E6F4EA", 
+    "#E5E7FF", 
+    "#FFF1F0", 
   ];
 
-  // Filter + Search Logic
   const filteredTips = tips.filter(
     (tip) =>
       (filter === "All" || tip.category === filter) &&
@@ -134,7 +130,7 @@ export default function PetTips() {
                 placeholder="Search tips..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#5EE6FE] focus:outline-none mt-3 sm:mt-0 w-full sm:w-64"
+                className="border border-gray-300 rounded-3xl px-4 py-2 text-sm focus:ring-2 focus:ring-[#5EE6FE] focus:outline-none mt-3 sm:mt-0 w-full sm:w-64"
               />
             </div>
 

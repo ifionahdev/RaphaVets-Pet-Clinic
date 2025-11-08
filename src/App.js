@@ -11,6 +11,7 @@
   import BreedDetect from "./user-pages/pages/BreedDetect";
   import Videos from "./user-pages/pages/Videos";
   import PetTips from "./user-pages/pages/PetTips";
+  import Forum from "./user-pages/pages/Forum";
 
   import Dashboard from "./admin-pages/Dashboard";
   import AdminLayout from "./admin-pages/AdminLayout";
@@ -39,6 +40,7 @@
           <Route path="/breed-detect" element={<BreedDetect />} />
           <Route path="/videos" element={<Videos />} />
           <Route path="/pet-tips" element={<PetTips />} />
+          <Route path="/forum" element={<Forum />} />
 
           /*admin*/
           <Route path="/admin-pages" element={<AdminLayout />}>
