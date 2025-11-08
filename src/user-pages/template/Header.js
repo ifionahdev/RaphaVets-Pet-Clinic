@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
+  const navigate = useNavigate();
+
   return (
     <div className="pt-5 pb-2 px-5 sm:px-10 flex flex-row justify-between items-center animate-fadeSlideDown">
       <div className="flex flex-row items-center gap-3">
@@ -26,15 +29,21 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
 
       {/* RIGHT SIDE - NOTIF + FORUM + MODE TOGGLE */}
       <div className="flex flex-row justify-end items-center gap-5 sm:gap-8 text-gray-700 animate-fadeSlideDown delay-100">
+        {/* Notification */}
         <span className="text-2xl transition-transform duration-300 hover:scale-110 cursor-pointer">
           <i className="fa-solid fa-bell"></i>
         </span>
-        <div className="flex items-center gap-2 transition-transform duration-300 hover:scale-105 cursor-pointer">
+
+        {/* Forum Button */}
+        <div
+          onClick={() => navigate("/forum")}
+          className="flex items-center gap-2 transition-transform duration-300 hover:scale-105 cursor-pointer"
+        >
           <i className="fa-solid fa-users"></i>
           <span className="font-semibold">Forum</span>
         </div>
 
-        {/* MODE TOGGLE */}
+        {/* Mode Toggle */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">Mode</span>
           <div
