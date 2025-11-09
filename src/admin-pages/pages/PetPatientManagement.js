@@ -151,10 +151,10 @@ const PetPatientManagement = () => {
               setSelectedPet(null);
               setSearchQuery("");
             }}
-            className={`relative px-5 py-2 font-semibold text-sm transition-colors ${
+            className={`relative px-5 py-2 font-semibold text-md transition-colors ${
               activeTab === tab
-                ? "text-[#5EE6FE]"
-                : "text-gray-600 dark:text-gray-300 hover:text-[#5EE6FE] dark:hover:text-[#3BAFDA]"
+                ? "text-[#A9E6FF]"
+                : "text-gray-600 dark:text-gray-300 hover:text-[#A9E6FF] dark:hover:text-[#3BAFDA]"
             }`}
           >
             {tab}

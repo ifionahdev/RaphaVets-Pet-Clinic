@@ -66,7 +66,7 @@ const Dashboard = () => {
           {/* Stat Cards */}
           <div className="grid grid-cols-4 gap-4">
             {[
-              { title: "Total Patients", value: 120, color: "from-[#E0F7FA] to-[#E5FBFF]" },
+              { title: "Total Pet Owners", value: 120, color: "from-[#E0F7FA] to-[#E5FBFF]" },
               { title: "Total Pets", value: 85, color: "from-[#E8F5E9] to-[#F1FBF1]" },
               { title: "Upcoming Appointments", value: 8, color: "from-[#FFF8E1] to-[#FFFBEA]" },
               { title: "Missing Pets", value: 4, color: "from-[#FCE4EC] to-[#FFF0F5]" },
