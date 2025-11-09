@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 09, 2025 at 05:48 AM
+-- Generation Time: Nov 09, 2025 at 08:11 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,7 +47,7 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`) VALUES
-(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-09 12:47:41', '2025-11-09 12:21:30', '2025-11-09 12:47:36', '2025-11-09 12:47:41', 0),
+(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-09 13:26:34', '2025-11-09 12:21:30', '2025-11-09 13:26:34', '2025-11-09 12:47:41', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
 (5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0);
 
@@ -95,7 +95,7 @@ CREATE TABLE `appointment_tbl` (
   `appointmentID` int(11) NOT NULL,
   `accID` int(11) NOT NULL,
   `petID` int(11) NOT NULL,
-  `service` varchar(255) NOT NULL,
+  `serviceID` int(11) NOT NULL,
   `appointmentDate` date NOT NULL,
   `startTime` time NOT NULL,
   `endTime` time NOT NULL,
@@ -202,6 +202,35 @@ INSERT INTO `role_tbl` (`roleID`, `roleName`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `service_tbl`
+--
+
+CREATE TABLE `service_tbl` (
+  `serviceID` int(11) NOT NULL,
+  `service` varchar(250) NOT NULL,
+  `description` varchar(250) NOT NULL,
+  `duration` varchar(250) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `service_tbl`
+--
+
+INSERT INTO `service_tbl` (`serviceID`, `service`, `description`, `duration`) VALUES
+(1, 'Consultation', 'General check-up', '30-50 min'),
+(2, 'Basic Soft Tissue Surgery', 'Scheduled procedure', 'Varies'),
+(3, 'CBC', 'Complete blood count', 'Varies'),
+(4, 'Microchipping', 'Permanent ID implant', 'Varies'),
+(5, 'Deworming', 'Parasite control', 'Varies'),
+(6, 'Vaccination', 'Routine vaccines', 'Varies'),
+(7, 'Blood Chemistry Lab', 'Detailed panel', 'Varies'),
+(8, 'Veterinary Health Certificate', 'Travel & export docs', 'Varies'),
+(9, 'Confinement', 'Overnight observation', 'Varies'),
+(10, 'Dental Prophylaxis', 'Cleaning & check', 'Varies');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `userpreference_tbl`
 --
 
@@ -219,7 +248,7 @@ CREATE TABLE `userpreference_tbl` (
 --
 
 INSERT INTO `userpreference_tbl` (`userprefID`, `accId`, `appointmentReminders`, `petHealthUpd`, `promoEmail`, `clinicAnnouncement`) VALUES
-(1, 2, 1, 0, 1, 0);
+(1, 2, 0, 0, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -265,7 +294,8 @@ ALTER TABLE `appointment_tbl`
   ADD PRIMARY KEY (`appointmentID`),
   ADD KEY `accID_appointment_fk` (`accID`),
   ADD KEY `petID_appointment_fk` (`petID`),
-  ADD KEY `statudID_appointment_fk` (`statusID`);
+  ADD KEY `statudID_appointment_fk` (`statusID`),
+  ADD KEY `serviceID_appointment_fk` (`serviceID`);
 
 --
 -- Indexes for table `breed_records_tbl`
@@ -305,6 +335,12 @@ ALTER TABLE `pet_tbl`
 --
 ALTER TABLE `role_tbl`
   ADD PRIMARY KEY (`roleID`);
+
+--
+-- Indexes for table `service_tbl`
+--
+ALTER TABLE `service_tbl`
+  ADD PRIMARY KEY (`serviceID`);
 
 --
 -- Indexes for table `userpreference_tbl`
@@ -379,6 +415,12 @@ ALTER TABLE `role_tbl`
   MODIFY `roleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `service_tbl`
+--
+ALTER TABLE `service_tbl`
+  MODIFY `serviceID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `userpreference_tbl`
 --
 ALTER TABLE `userpreference_tbl`
@@ -404,9 +446,10 @@ ALTER TABLE `account_tbl`
 -- Constraints for table `appointment_tbl`
 --
 ALTER TABLE `appointment_tbl`
-  ADD CONSTRAINT `accID_appointment_fk` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`),
-  ADD CONSTRAINT `petID_appointment_fk` FOREIGN KEY (`petID`) REFERENCES `pet_tbl` (`petID`),
-  ADD CONSTRAINT `statudID_appointment_fk` FOREIGN KEY (`statusID`) REFERENCES `appointment_status_tbl` (`statusID`);
+  ADD CONSTRAINT `accID_appointment_fk` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `petID_appointment_fk` FOREIGN KEY (`petID`) REFERENCES `pet_tbl` (`petID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `serviceID_appointment_fk` FOREIGN KEY (`serviceID`) REFERENCES `service_tbl` (`serviceID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `statudID_appointment_fk` FOREIGN KEY (`statusID`) REFERENCES `appointment_status_tbl` (`statusID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `clientinfo_tbl`
