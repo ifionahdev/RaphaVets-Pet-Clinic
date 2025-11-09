@@ -1,55 +1,118 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { PlusCircle, Edit2, Trash2 } from "lucide-react";
 import Header from "../template/Header";
 import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
 import AddPetModal from "../components/petpatient-management/AddPetModal";
+import SuccessToast from "../../template/SuccessToast";
+import ErrorToast from "../../template/ErrorToast";
 
 const PetPatientManagement = () => {
   const [activeTab, setActiveTab] = useState("Pet Owners");
   const [selectedOwner, setSelectedOwner] = useState(null);
   const [selectedPet, setSelectedPet] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [isAddOwnerModalOpen, setIsAddOwnerModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showUploadRecordModal, setShowUploadRecordModal] = useState(false);
+  const fileInputRef = useRef(null);
 
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  // State for pet owners
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   const [petOwners, setPetOwners] = useState([
     { id: 1, name: "Mark Mapili", email: "sample@example.com", phone: "09123456789", createdAt: "2022-03-05" },
     { id: 2, name: "Miguel Rojero", email: "sample@example.com", phone: "09987654321", createdAt: "2022-04-12" },
     { id: 3, name: "Jordan Frando", email: "sample@example.com", phone: "09234567890", createdAt: "2022-05-20" },
   ]);
 
-  // State for pets
   const [pets, setPets] = useState([
     { id: 1, name: "Bogart", type: "Dog", owner: "Mark Mapili" },
     { id: 2, name: "Tan tan", type: "Cat", owner: "Miguel Rojero" },
     { id: 3, name: "Ming", type: "Cat", owner: "Jordan Frando" },
   ]);
 
-  // Add new owner handler
-  const handleAddOwner = (newOwner) => {
-    const nextId = petOwners.length ? Math.max(...petOwners.map(o => o.id)) + 1 : 1;
-    setPetOwners([...petOwners, { id: nextId, name: `${newOwner.firstName} ${newOwner.lastName}`, ...newOwner, createdAt: new Date().toISOString().split('T')[0] }]);
+  const filteredOwners = petOwners.filter(o =>
+    o.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredPets = pets.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDelete = (id, type) => {
+    try {
+      if (type === "owner") {
+        setPetOwners(prev => prev.filter(o => o.id !== id));
+        if (selectedOwner?.id === id) setSelectedOwner(null);
+        setSuccessMessage("Owner deleted successfully!");
+      } else {
+        setPets(prev => prev.filter(p => p.id !== id));
+        if (selectedPet?.id === id) setSelectedPet(null);
+        setSuccessMessage("Pet deleted successfully!");
+      }
+    } catch {
+      setErrorMessage("Failed to delete!");
+    }
   };
 
-  // Filtered lists for search
-  const filteredOwners = petOwners.filter(owner =>
-    owner.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const filteredPets = pets.filter(pet =>
-    pet.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleEdit = (item, type) => {
+    setEditingItem({ ...item, type });
+    if (type === "owner") setIsAddOwnerModalOpen(true);
+    else setIsAddPetModalOpen(true);
+  };
 
-  const handleAddPet = (newPet) => {
-    const nextId = pets.length ? Math.max(...pets.map(p => p.id)) + 1 : 1;
-    setPets([...pets, { id: nextId, ...newPet }]);
+  const handleSaveOwner = (newData) => {
+    try {
+      if (editingItem) {
+        setPetOwners(prev =>
+          prev.map(o =>
+            o.id === editingItem.id
+              ? { ...o, ...newData, name: `${newData.firstName} ${newData.lastName}` }
+              : o
+          )
+        );
+        setEditingItem(null);
+        setSuccessMessage("Owner updated successfully!");
+      } else {
+        const nextId = petOwners.length ? Math.max(...petOwners.map(o => o.id)) + 1 : 1;
+        setPetOwners([...petOwners, { id: nextId, name: `${newData.firstName} ${newData.lastName}`, ...newData, createdAt: new Date().toISOString().split("T")[0] }]);
+        setSuccessMessage("Owner added successfully!");
+      }
+    } catch {
+      setErrorMessage("Failed to save owner!");
+    }
+  };
+
+  const handleSavePet = (newData) => {
+    try {
+      if (editingItem) {
+        setPets(prev => prev.map(p => (p.id === editingItem.id ? { ...p, ...newData } : p)));
+        setEditingItem(null);
+        setSuccessMessage("Pet updated successfully!");
+      } else {
+        const nextId = pets.length ? Math.max(...pets.map(p => p.id)) + 1 : 1;
+        setPets([...pets, { id: nextId, ...newData }]);
+        setSuccessMessage("Pet added successfully!");
+      }
+    } catch {
+      setErrorMessage("Failed to save pet!");
+    }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#FBFBFB] dark:bg-[#101010] p-4 gap-4">
+    <div className="flex flex-col h-screen bg-[#FBFBFB] dark:bg-[#101010] p-4 gap-4 relative">
       <Header title="Pet & Patient Management" />
+
+      {/* Toasts */}
+      {successMessage && (
+        <SuccessToast message={successMessage} duration={3000} onClose={() => setSuccessMessage(null)} />
+      )}
+      {errorMessage && (
+        <ErrorToast message={errorMessage} duration={3000} onClose={() => setErrorMessage(null)} />
+      )}
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4 relative">
@@ -76,121 +139,142 @@ const PetPatientManagement = () => {
         ))}
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1 gap-4 min-h-0">
-        {/* Left Panel */}
+      <div className="flex-1 flex gap-4 min-h-0">
+        {/* Main Tables */}
         <div className="flex flex-col flex-1 bg-white dark:bg-[#181818] rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 p-4 min-h-0">
           <div className="flex justify-between items-center mb-4">
             <input
               type="text"
-              placeholder={`Search ${activeTab === "Pet Owners" ? "owners" : "pets"}...`}
+              placeholder={
+                activeTab === "Pet Owners"
+                  ? "Search owners..."
+                  : activeTab === "Pets"
+                  ? "Search pets..."
+                  : "Search records..."
+              }
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="p-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1B1B1B] text-gray-800 dark:text-gray-200 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]/50"
             />
             <button
               className="ml-2 flex items-center gap-2 bg-[#5EE6FE] hover:bg-[#40c6e3] text-white px-3 py-2 rounded-lg transition"
               onClick={() => {
+                setEditingItem(null);
                 if (activeTab === "Pet Owners") setIsAddOwnerModalOpen(true);
-                else setIsAddPetModalOpen(true);
+                else if (activeTab === "Pets") setIsAddPetModalOpen(true);
+                else if (activeTab === "Lab/Medical Records") setShowUploadRecordModal(true);
               }}
             >
               <PlusCircle size={16} />
               <span className="text-sm font-semibold">
-                {activeTab === "Pet Owners" ? "Add Owner" : "Add Pet"}
+                {activeTab === "Pet Owners"
+                  ? "Add Owner"
+                  : activeTab === "Pets"
+                  ? "Add Pet"
+                  : "Add Record"}
               </span>
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto min-h-0 rounded-lg border border-gray-100 dark:border-gray-800">
-            {/* Pet Owners Table */}
-            {activeTab === "Pet Owners" && (
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
-                  <tr>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">ID</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Name</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Email</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Phone</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Actions</th>
+          {/* Owners Table */}
+          {activeTab === "Pet Owners" && (
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
+                <tr>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">ID</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Name</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Email</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Phone</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOwners.map(owner => (
+                  <tr key={owner.id} className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition" onClick={() => setSelectedOwner(owner)}>
+                    <td className="p-2 text-sm">{owner.id}</td>
+                    <td className="p-2 text-sm">{owner.name}</td>
+                    <td className="p-2 text-sm">{owner.email}</td>
+                    <td className="p-2 text-sm">{owner.phone}</td>
+                    <td className="p-2 text-sm flex gap-2">
+                      <Edit2
+                        size={16}
+                        className="text-blue-500 cursor-pointer hover:text-blue-600"
+                        onClick={e => { e.stopPropagation(); handleEdit(owner, "owner"); }}
+                      />
+                      <Trash2
+                        size={16}
+                        className="text-red-500 cursor-pointer hover:text-red-600"
+                        onClick={e => { e.stopPropagation(); setDeleteTarget({ type: 'owner', id: owner.id }); setShowDeleteModal(true); }}
+                      />
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredOwners.map(owner => (
-                    <tr
-                      key={owner.id}
-                      className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition"
-                      onClick={() => setSelectedOwner(owner)}
-                    >
-                      <td className="p-2 text-sm">{owner.id}</td>
-                      <td className="p-2 text-sm">{owner.name}</td>
-                      <td className="p-2 text-sm">{owner.email}</td>
-                      <td className="p-2 text-sm">{owner.phone}</td>
-                      <td className="p-2 text-sm flex gap-2">
-                        <Edit2
-                          size={16}
-                          className="text-blue-500 cursor-pointer hover:text-blue-600"
-                          onClick={e => { e.stopPropagation(); /* Add edit logic */ }}
-                        />
-                        <Trash2
-                          size={16}
-                          className="text-red-500 cursor-pointer hover:text-red-600"
-                          onClick={e => { e.stopPropagation(); /* Add delete logic */ }}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                ))}
+              </tbody>
+            </table>
+          )}
 
-            {/* Pets Table */}
-            {activeTab === "Pets" && (
+          {/* Pets Table */}
+          {activeTab === "Pets" && (
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
+                <tr>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">ID</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Name</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Type</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Owner</th>
+                  <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPets.map(pet => (
+                  <tr key={pet.id} className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition" onClick={() => setSelectedPet(pet)}>
+                    <td className="p-2 text-sm">{pet.id}</td>
+                    <td className="p-2 text-sm">{pet.name}</td>
+                    <td className="p-2 text-sm">{pet.type}</td>
+                    <td className="p-2 text-sm">{pet.owner}</td>
+                    <td className="p-2 text-sm flex gap-2">
+                      <Edit2
+                        size={16}
+                        className="text-blue-500 cursor-pointer hover:text-blue-600"
+                        onClick={e => { e.stopPropagation(); handleEdit(pet, "pet"); }}
+                      />
+                      <Trash2
+                        size={16}
+                        className="text-red-500 cursor-pointer hover:text-red-600"
+                        onClick={e => { e.stopPropagation(); setDeleteTarget({ type: 'pet', id: pet.id }); setShowDeleteModal(true); }}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {/* Lab/Medical Records Table */}
+          {activeTab === "Lab/Medical Records" && (
+            <div className="flex flex-col flex-1">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
                   <tr>
                     <th className="p-2 text-sm text-gray-600 dark:text-gray-300">ID</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Name</th>
+                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Pet Name</th>
                     <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Type</th>
-                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Owner</th>
+                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Uploaded On</th>
+                    <th className="p-2 text-sm text-gray-600 dark:text-gray-300">File</th>
                     <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPets.map(pet => (
-                    <tr
-                      key={pet.id}
-                      className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition"
-                      onClick={() => setSelectedPet(pet)}
-                    >
-                      <td className="p-2 text-sm">{pet.id}</td>
-                      <td className="p-2 text-sm">{pet.name}</td>
-                      <td className="p-2 text-sm">{pet.type}</td>
-                      <td className="p-2 text-sm">{pet.owner}</td>
-                      <td className="p-2 text-sm flex gap-2">
-                        <Edit2
-                          size={16}
-                          className="text-blue-500 cursor-pointer hover:text-blue-600"
-                          onClick={e => { e.stopPropagation(); /* Add edit logic */ }}
-                        />
-                        <Trash2
-                          size={16}
-                          className="text-red-500 cursor-pointer hover:text-red-600"
-                          onClick={e => { e.stopPropagation(); /* Add delete logic */ }}
-                        />
-                      </td>
-                    </tr>
-                  ))}
+                  <tr className="hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition">
+                    <td colSpan={6} className="text-center p-4 text-gray-400 dark:text-gray-500">
+                      No records yet
+                    </td>
+                  </tr>
                 </tbody>
               </table>
-            )}
+            </div>
+          )}
 
-            {activeTab === "Lab/Medical Records" && (
-              <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
-                No records available
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right Panel */}
@@ -198,7 +282,10 @@ const PetPatientManagement = () => {
           {/* Pet Owners Details */}
           {activeTab === "Pet Owners" && selectedOwner && (
             <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{selectedOwner.name}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{selectedOwner.name}</h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">ID: {selectedOwner.id}</span>
+              </div>
               <div className="flex flex-col gap-2">
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Email</span>
@@ -241,7 +328,10 @@ const PetPatientManagement = () => {
                   alt={selectedPet.name}
                   className="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
                 />
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{selectedPet.name}</h3>
+                <div className="flex flex-col">
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{selectedPet.name}</h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">ID: {selectedPet.id}</span>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -289,19 +379,176 @@ const PetPatientManagement = () => {
         </div>
       </div>
 
-      {/* Add Owner Modal */}
+      {/* Add/Edit Modals */}
       <AddOwnerModal
         isOpen={isAddOwnerModalOpen}
-        onClose={() => setIsAddOwnerModalOpen(false)}
-        onSave={handleAddOwner}
+        onClose={() => { setIsAddOwnerModalOpen(false); setEditingItem(null); }}
+        onSave={handleSaveOwner}
+        initialData={editingItem?.type === "owner" ? editingItem : null}
       />
-
       <AddPetModal
         isOpen={isAddPetModalOpen}
-        onClose={() => setIsAddPetModalOpen(false)}
-        onSave={handleAddPet}
+        onClose={() => { setIsAddPetModalOpen(false); setEditingItem(null); }}
+        onSave={handleSavePet}
         owners={petOwners}
+        initialData={editingItem?.type === "pet" ? editingItem : null}
       />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-6 w-96 shadow-xl flex flex-col gap-4">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Confirm Delete</h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete this {deleteTarget.type === "owner" ? "owner" : "pet"}?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#222] transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  handleDelete(deleteTarget.id, deleteTarget.type);
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Record Modal */}
+      {showUploadRecordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-6 w-[900px] max-w-full shadow-xl flex gap-6 max-h-[85vh] overflow-hidden">
+      
+            {/* Left Panel: Pet Selection */}
+            <div className="flex-1 flex flex-col gap-4 border-r border-gray-200 dark:border-gray-700 pr-4 min-w-0">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Select Pet</h3>
+        
+              <input
+                type="text"
+                placeholder="Search pet or owner..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="p-2 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1B1B1B] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]/50 transition"
+              />
+
+              {/* Scrollable Pet List */}
+              <div className="flex-1 overflow-y-auto mt-2">
+                {pets.filter(p =>
+                  p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.owner.toLowerCase().includes(searchQuery.toLowerCase())
+                ).length === 0 ? (
+                  <p className="text-gray-400 dark:text-gray-500 text-center mt-4">No pets found</p>
+                ) : (
+                  <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {pets.filter(p =>
+                      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      p.owner.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map(pet => (
+                      <li
+                        key={pet.id}
+                        className={`p-2 rounded-lg cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] ${
+                          selectedPet?.id === pet.id ? "bg-[#5EE6FE]/20 dark:bg-[#3BAFDA]/20" : ""
+                        }`}
+                        onClick={() => setSelectedPet(pet)}
+                      >
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-800 dark:text-gray-200">{pet.id} {pet.name}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{pet.owner}</span>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{pet.type}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Right Half: File Upload */}
+            <div className="flex-1 flex flex-col gap-2 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Upload Record</h3>
+
+              {/* Selected Pet Info */}
+              {selectedPet ? (
+                <div className="p-3 rounded-lg bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">{selectedPet.name}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{selectedPet.owner}</span>
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{selectedPet.type}</div>
+                </div>
+              ) : (
+                <p className="text-gray-400 dark:text-gray-500">Select a pet from the left</p>
+              )}
+
+              {/* Upload Form Card */}
+              <div className="flex flex-col gap-4 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
+
+                {/* Record Title */}
+                <div className="flex flex-col">
+                  <label className="text-gray-600 dark:text-gray-300 font-medium mb-1">Record Title / Description</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Vaccination, Lab Test, X-ray"
+                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1B1B1B] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]/50 transition"
+                  />
+                </div>
+
+                {/* Type Selector */}
+                <div className="flex flex-col">
+                  <label className="text-gray-600 dark:text-gray-300 font-medium mb-1">Type</label>
+                  <select className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1B1B1B] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]/50 transition">
+                    <option>Lab Record</option>
+                    <option>Medical History</option>
+                  </select>
+                </div>
+
+                {/* File Upload */}
+                <div className="flex flex-col">
+                  <label className="text-gray-600 dark:text-gray-300 font-medium mb-1">Upload PDF</label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    className="p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#1B1B1B] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]/50"
+                  />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Only PDF files are allowed.</p>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-3 mt-auto">
+                <button
+                  onClick={() => setShowUploadRecordModal(false)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#222] transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setSuccessMessage("Record uploaded successfully!");
+                    setShowUploadRecordModal(false);
+                    setSelectedPet(null);
+                    setSearchQuery("");
+                  }}
+                  className="px-4 py-2 rounded-lg bg-[#5EE6FE] hover:bg-[#40c6e3] text-white font-semibold transition"
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
