@@ -12,7 +12,7 @@ const MedicalReportsTab = () => {
       {records.map((record, index) => (
         <div
           key={index}
-          className="bg-white/70 backdrop-blur-md border border-[#5EE6FE]/30 p-5 rounded-xl shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all"
+          className="bg-[#E3FAF7] backdrop-blur-md border border-[#5EE6FE]/30 p-5 rounded-xl shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all"
         >
           <div className="flex items-center gap-3 mb-3">
             <i className={`fa-solid ${record.icon} text-[#5EE6FE] text-lg`}></i>

@@ -12,10 +12,10 @@ const LabRecordsTab = () => {
       {labs.map((lab, index) => (
         <div
           key={index}
-          className="bg-white/70 backdrop-blur-md border border-[#5EE6FE]/30 p-5 rounded-xl shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all"
+          className="bg-[#FFF8F9] backdrop-blur-md border border-[#5EE6FE]/30 p-5 rounded-xl shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all"
         >
           <div className="flex items-center gap-3 mb-3">
-            <i className={`fa-solid ${lab.icon} text-[#5EE6FE] text-lg`}></i>
+            <i className={`fa-solid ${lab.icon} text-[#FFB6C1] text-lg`}></i>
             <h3 className="font-semibold text-gray-800">{lab.title}</h3>
           </div>
           <p className="text-sm text-gray-500 mb-4 flex items-center gap-1">
@@ -23,7 +23,7 @@ const LabRecordsTab = () => {
           </p>
           <button
             onClick={() => alert(`Downloading ${lab.title} PDF...`)}
-            className="bg-[#5EE6FE] text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-[#3ecbe0] transition-all"
+            className="bg-[#FFB6C1] text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-[#3ecbe0] transition-all"
           >
             <i className="fa-solid fa-download mr-2"></i>Download PDF
           </button>
