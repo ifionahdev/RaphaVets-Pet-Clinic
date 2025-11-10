@@ -16,14 +16,14 @@ export default function Step2DateTime({
   isPast
 }) {
   const [timeSlots, setTimeSlots] = useState([]);
+  const [bookedSlots, setBookedSlots] = useState([]);
 
   // Fetch time slots from backend
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/appointment/time");
-        const data = await res.json();
-        const formatted = data.map((t) => formatTime(t.startTime));
+        const res = await api.get("/appointment/time");
+        const formatted = res.data.map((t) => formatTime(t.startTime));
         setTimeSlots(formatted);
       } catch (err) {
         console.error("❌ Failed to load time slots:", err);
@@ -31,6 +31,25 @@ export default function Step2DateTime({
     };
     fetchTimeSlots();
   }, []);
+
+  // Fetch booked slots whenever date changes
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      if (!selectedDate) return;
+      
+      try {
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+        const res = await api.get(`/appointment/booked-slots?date=${formattedDate}`);
+        const bookedTimes = res.data.map(slot => formatTime(slot.startTime));
+        console.log('Booked times:', bookedTimes);
+        setBookedSlots(bookedTimes);
+      } catch (err) {
+        console.error("❌ Failed to fetch booked slots:", err);
+      }
+    };
+
+    fetchBookedSlots();
+  }, [selectedDate]);
 
   // Helper to format "08:00:00" → "8:00 AM"
   const formatTime = (timeStr) => {
@@ -107,17 +126,23 @@ export default function Step2DateTime({
               ) : (
                 timeSlots.map((slot) => {
                   const active = selectedTime === slot;
+                  const isBooked = bookedSlots.includes(slot);
+                  
                   return (
                     <button
                       key={slot}
-                      onClick={() => setSelectedTime(slot)}
+                      onClick={() => !isBooked && setSelectedTime(slot)}
+                      disabled={isBooked}
                       className={`text-sm rounded-lg py-2 px-2 transition ${
                         active
                           ? "bg-[#5EE6FE] text-white shadow-md"
+                          : isBooked
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                           : "bg-white border border-gray-100 hover:bg-[#EEF8FA]"
                       }`}
                     >
                       {slot}
+                      {isBooked && <span className="ml-1 text-xs">(Booked)</span>}
                     </button>
                   );
                 })

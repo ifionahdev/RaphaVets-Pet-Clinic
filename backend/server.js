@@ -5,7 +5,6 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoute from "./routes/userRoute.js"; 
 import appointmentRoute from "./routes/appointmentRoute.js";
 import petRoute from "./routes/petRoute.js";
-//import petRoute from "./routes/petRoute.js";
 const app = express();
 
 app.use(cors());

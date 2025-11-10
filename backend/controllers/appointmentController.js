@@ -1,4 +1,4 @@
-import db from "../config/db.js"; // make sure this is your MySQL pool
+import db from "../config/db.js";
 
 export const getAllServices = async (req, res) => {
   try {
@@ -10,11 +10,35 @@ export const getAllServices = async (req, res) => {
   }
 };
 
-export const  getAllTime = async (req, res) =>{
+export const getBookedSlots = async (req, res) => {
+  const { date } = req.query;
+  
+  if (!date) {
+    return res.status(400).json({ message: "Date is required" });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `SELECT startTime 
+       FROM appointment_tbl 
+       WHERE appointmentDate = ? 
+       AND statusID != 3`
+      [date]
+    );
+
+    console.log('Booked slots found:', rows);
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Failed to fetch booked slots:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAllTime = async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM starttime_tbl");
     res.json(rows);
-  }catch (err) {
+  } catch (err) {
     console.error("❌ Failed to fetch time slots:", err);
     res.status(500).json({ message: "Server error" });
   }
@@ -58,3 +82,39 @@ export const bookAppointment = async (req, res) => {
   }
 };
 
+export const getUserAppointments = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const userId = req.user.id;
+
+    const [rows] = await db.query(
+      `
+      SELECT 
+        a.appointmentID AS id,
+        p.petName,
+        s.service AS type,
+        CONCAT(DATE_FORMAT(a.appointmentDate, '%b %e, %Y'), ' - ', a.startTime) AS date,
+        CASE 
+          WHEN a.statusID = 1 THEN 'Pending'
+          WHEN a.statusID = 2 THEN 'Upcoming'
+          WHEN a.statusID = 3 THEN 'Done'
+          ELSE 'Unknown'
+        END AS status
+      FROM appointment_tbl a
+      JOIN pet_tbl p ON a.petID = p.petID
+      JOIN service_tbl s ON a.serviceID = s.serviceID
+      WHERE a.accID = ?
+      ORDER BY a.appointmentDate DESC
+      `,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Failed to fetch appointments:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
