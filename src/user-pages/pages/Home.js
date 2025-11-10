@@ -48,8 +48,7 @@ function Home() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const token = localStorage.getItem("token"); // or however you store JWT
-
+        const token = localStorage.getItem("token"); 
         const res = await api.get("/appointment/user", {
           headers: { Authorization: `Bearer ${token}` },
         });

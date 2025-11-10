@@ -95,6 +95,7 @@ export const getUserAppointments = async (req, res) => {
       SELECT 
         a.appointmentID AS id,
         p.petName,
+        CONCAT(u.firstName, ' ', u.lastName) AS ownerName,
         s.service AS type,
         CONCAT(DATE_FORMAT(a.appointmentDate, '%b %e, %Y'), ' - ', a.startTime) AS date,
         CASE 
@@ -106,8 +107,9 @@ export const getUserAppointments = async (req, res) => {
       FROM appointment_tbl a
       JOIN pet_tbl p ON a.petID = p.petID
       JOIN service_tbl s ON a.serviceID = s.serviceID
+      JOIN account_tbl u ON a.accID = u.accId
       WHERE a.accID = ?
-      ORDER BY a.appointmentDate DESC
+      ORDER BY a.appointmentDate DESC;
       `,
       [userId]
     );

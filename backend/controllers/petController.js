@@ -7,7 +7,7 @@ const calculateAge = (dob) => {
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return age + " yrs";
+  return age + " years old";
 };
 
 // Get pets for logged-in user
@@ -41,6 +41,50 @@ export const getUserPets = async (req, res) => {
     res.json(pets);
   } catch (err) {
     console.error("❌ Failed to fetch pets:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const getPetDetails = async (req, res) => {
+  const petID = req.params.id;
+
+  try {
+    // Fetch pet info
+    const [petRows] = await db.query(
+      `SELECT p.petID, p.petName, p.gender, b.breedName AS breed, p.dateOfBirth, p.weight_kg, p.imageName
+       FROM pet_tbl p
+       JOIN breed_tbl b ON p.breedID = b.breedID
+       WHERE p.petID = ? AND p.isDeleted = 0`,
+      [petID]
+    );
+
+    if (!petRows.length) return res.status(404).json({ message: "Pet not found" });
+    const pet = petRows[0];
+
+    // Fetch appointments for this pet
+    const [appointments] = await db.query(
+      `SELECT 
+          a.appointmentID AS id,
+          s.service AS type,
+          CONCAT(DATE_FORMAT(a.appointmentDate, '%b %e, %Y'), ' - ', a.startTime) AS date,
+          CASE 
+            WHEN a.statusID = 1 THEN 'Pending'
+            WHEN a.statusID = 2 THEN 'Upcoming'
+            WHEN a.statusID = 3 THEN 'Done'
+            ELSE 'Unknown'
+          END AS status
+       FROM appointment_tbl a
+       JOIN service_tbl s ON a.serviceID = s.serviceID
+       WHERE a.petID = ? 
+       ORDER BY a.appointmentDate DESC`,
+      [petID]
+    );
+
+    res.json({ ...pet, appointments });
+    console.log(petRows);
+    } catch (err) {
+    console.error("❌ Error fetching pet details:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

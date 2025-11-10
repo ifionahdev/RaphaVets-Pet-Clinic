@@ -1,5 +1,8 @@
 import express from "express";
-import { getUserPets } from "../controllers/petController.js";
+import { 
+    getUserPets,
+    getPetDetails,
+} from "../controllers/petController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -11,5 +14,5 @@ const router = express.Router();
 
 // Get pets for logged-in user
 router.get("/", verifyToken, getUserPets);
-
+router.get("/:id", verifyToken, getPetDetails);
 export default router;
