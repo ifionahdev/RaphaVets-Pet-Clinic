@@ -1,6 +1,6 @@
 import { useState } from "react"; 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Users, Calendar, Wrench, FileText, Settings, LogOut } from "lucide-react";
+import { Home, Users, Calendar, Brain, FileText, Settings, LogOut } from "lucide-react";
 
 const Sidebar = () => {
   const location = useLocation(); 
@@ -9,9 +9,9 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: "Dashboard", icon: <Home size={18} />, path: "/admin-pages/dashboard" },
+    { name: "Diagnostic Tool", icon: <Brain size={18} />, path: "/admin-pages/tools" },
     { name: "Client & Pet Management", icon: <Users size={18} />, path: "/admin-pages/pet-management" },
     { name: "Appointments", icon: <Calendar size={18} />, path: "/admin-pages/appointments" },
-    { name: "Tools", icon: <Wrench size={18} />, path: "/admin-pages/tools" },
     { name: "Content Manager", icon: <FileText size={18} />, path: "/admin-pages/content-manager" },
     { name: "Reports", icon: <FileText size={18} />, path: "/admin-pages/reports" },
     { name: "Admin Settings", icon: <Settings size={18} />, path: "/admin-pages/settings" },

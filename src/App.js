@@ -18,7 +18,7 @@
   import Dashboard from "./admin-pages/pages/Dashboard";
   import PetPatientManagement from "./admin-pages/pages/PetPatientManagement";
   import Appointments from "./admin-pages/pages/Appointments";
-  import Tools from "./admin-pages/pages/Tools";
+  import Tools from "./admin-pages/pages/DiagnosticTools";
   import ContentManager from "./admin-pages/pages/ContentManager";
   import Reports from "./admin-pages/pages/Reports";
   import AdminSettings from "./admin-pages/pages/AdminSetting";
@@ -46,7 +46,7 @@
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="pet-management" element={<PetPatientManagement />} />
             <Route path="appointments" element={<Appointments />} />
-            <Route path="/admin-pages/tools" element={<Tools />} />
+            <Route path="tools" element={<Tools />} />
             <Route path="/admin-pages/content-manager" element={<ContentManager />} />
             <Route path="/admin-pages/reports" element={<Reports />} />
             <Route path="/admin-pages/settings" element={<AdminSettings />} />
