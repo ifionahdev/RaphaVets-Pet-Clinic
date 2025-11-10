@@ -6,14 +6,19 @@ import { PlusCircle, Edit2, Trash2, Eye } from "lucide-react";
 import AppointmentRequestModal from "../components/appointments/AppointmentRequestModal";
 import AppointmentDetailsModal from "../components/appointments/AppointmentDetailsModal";
 
+// Get current year and month dynamically
+const currentYear = new Date().getFullYear();
+const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+
+// Sample appointments using current year & month
 const sampleAppointments = [
-  { id: 1, petName: "Bogart", owner: "Mark Mapili", date: "2025-11-10", time: "9:00 AM", status: "Completed" },
-  { id: 2, petName: "Tan tan", owner: "Miguel Rojero", date: "2025-11-12", time: "11:30 AM", status: "Pending" },
-  { id: 3, petName: "Ming", owner: "Jordan Frando", date: "2025-11-15", time: "1:00 PM", status: "Ongoing" },
-  { id: 4, petName: "Rocky", owner: "Anna Cruz", date: "2025-11-15", time: "3:00 PM", status: "Pending" },
-  { id: 5, petName: "Rocky", owner: "Anna Cruz", date: "2025-11-15", time: "3:00 PM", status: "Pending" },
-  { id: 6, petName: "Rocky", owner: "Anna Cruz", date: "2025-11-15", time: "3:00 PM", status: "Pending" },
-  { id: 7, petName: "Rocky", owner: "Anna Cruz", date: "2025-11-15", time: "3:00 PM", status: "Pending" },
+  { id: 1, petName: "Bogart", owner: "Mark Mapili", date: `${currentYear}-${currentMonth}-10`, time: "9:00 AM", status: "Completed" },
+  { id: 2, petName: "Tan tan", owner: "Miguel Rojero", date: `${currentYear}-${currentMonth}-12`, time: "11:30 AM", status: "Pending" },
+  { id: 3, petName: "Ming", owner: "Jordan Frando", date: `${currentYear}-${currentMonth}-15`, time: "1:00 PM", status: "Ongoing" },
+  { id: 4, petName: "Rocky", owner: "Anna Cruz", date: `${currentYear}-${currentMonth}-16`, time: "3:00 PM", status: "Pending" },
+  { id: 5, petName: "Snow", owner: "Ella Santos", date: `${currentYear}-${currentMonth}-18`, time: "10:00 AM", status: "Completed" },
+  { id: 6, petName: "Snow", owner: "Ella Santos", date: `${currentYear}-${currentMonth}-18`, time: "10:00 AM", status: "Pending" },
+  { id: 7, petName: "Snow", owner: "Ella Santos", date: `${currentYear}-${currentMonth}-18`, time: "10:00 AM", status: "Pending" },
 ];
 
 const statusColors = {
@@ -61,18 +66,31 @@ const Appointments = () => {
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
+  // --- Fixed and Accurate Calendar Date Generation ---
   const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
   const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
+  // Determine the first weekday (0=Sun...6=Sat)
+  const startDayOfWeek = startOfMonth.getDay();
+  const totalDays = endOfMonth.getDate();
+
+  // Create days array including padding before month start
   const daysInMonth = [];
-  for (let i = 1; i <= endOfMonth.getDate(); i++) {
+
+  // Add previous month's trailing days for proper alignment
+  for (let i = 0; i < startDayOfWeek; i++) {
+    daysInMonth.push(null);
+  }
+
+  // Add current month days
+  for (let i = 1; i <= totalDays; i++) {
     daysInMonth.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i));
   }
 
   const dayAppointments = appointments.filter(a => isSameDay(parseISO(a.date), selectedDate));
 
   return (
-    <div className="flex flex-col h-screen bg-[#FBFBFB] p-6 gap-4 font-sans">
+    <div className="flex flex-col h-screen bg-[#FBFBFB] p-6 gap-2 font-sans">
       <Header title="Appointments" />
 
       {/* Tabs */}
@@ -107,10 +125,10 @@ const Appointments = () => {
 
 
       {activeTab === "Calendar" && (
-        <div className="flex gap-6 h-[calc(100%-150px)]">
+        <div className="flex gap-6 h-[calc(100%-130px)]">
           {/* Calendar Panel */}
-          <div className="w-3/5 flex flex-col gap-4">
-            <div className="bg-[#F4F7F8] rounded-3xl shadow-md p-5 flex flex-col gap-4 h-full border border-[#E8F7FA]">
+          <div className="w-3/5 flex flex-col">
+            <div className="bg-[#F4F7F8] rounded-3xl shadow-md p-5 flex flex-col gap-2 h-full border border-[#E8F7FA]">
               {/* Month Navigation */}
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-base font-semibold text-gray-700">
@@ -141,7 +159,12 @@ const Appointments = () => {
 
               {/* Calendar Days */}
               <div className="grid grid-cols-7 gap-2 flex-1">
-                {daysInMonth.map(day => {
+                {daysInMonth.map((day, index) => {
+                  if (!day) {
+                    // Empty cell for alignment
+                    return <div key={`empty-${index}`} />;
+                  }
+
                   const dayApps = appointments.filter(a => isSameDay(parseISO(a.date), day));
                   const isSelected = isSameDay(day, selectedDate);
                   const isToday = isSameDay(day, new Date());
@@ -219,7 +242,7 @@ const Appointments = () => {
       {activeTab === "Appointment List" && (
         <div className="mt-">
           {/* Search & Filter */}
-          <div className="flex gap-3 mb-4 flex-wrap items-center">
+          <div className="flex gap-2 mb-4 flex-wrap items-center">
             <input
               type="text"
               placeholder="Search pets or owners..."
@@ -322,7 +345,7 @@ const Appointments = () => {
 
       {/* Requests Tab */}
       {activeTab === "Requests" && (
-        <div className="overflow-y-auto h-[calc(100%-150px)] grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 pr-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 pr-2 pb-2 overflow-y-auto">
           {filteredRequests.length === 0 ? (
             <p className="text-gray-400 text-center col-span-2">No pending requests.</p>
           ) : (
