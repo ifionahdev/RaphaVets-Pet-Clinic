@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-const AddOwnerModal = ({ isOpen, onClose, onSave }) => {
+const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
   const [ownerData, setOwnerData] = useState({
     firstName: "",
     lastName: "",
@@ -29,6 +29,36 @@ const AddOwnerModal = ({ isOpen, onClose, onSave }) => {
   const dogBreeds = ["Labrador", "Golden Retriever", "Bulldog", "Poodle", "Beagle"];
   const catBreeds = ["Persian", "Siamese", "Maine Coon", "Sphynx", "Ragdoll"];
 
+  useEffect(() => {
+    if (initialData) {
+      // For owner modal
+      setOwnerData({
+        firstName: initialData.firstName || "",
+        lastName: initialData.lastName || "",
+        email: initialData.email || "",
+        phone: initialData.phone || "",
+        address: initialData.address || "",
+        sex: initialData.sex || "",
+        dob: initialData.dob || "",
+      });
+
+      if (initialData.pets && initialData.pets[0]) {
+        setPetData({
+          type: initialData.pets[0].type || "",
+          breed: initialData.pets[0].breed || "",
+          name: initialData.pets[0].name || "",
+          age: initialData.pets[0].age || "",
+          sex: initialData.pets[0].sex || "",
+          weight: initialData.pets[0].weight || "",
+          color: initialData.pets[0].color || "",
+          dob: initialData.pets[0].dob || "",
+          notes: initialData.pets[0].notes || "",
+        });
+      }
+    }
+  }, [initialData]);
+
+  
   const handleOwnerChange = (field, value) => setOwnerData({ ...ownerData, [field]: value });
   const handlePetChange = (field, value) => {
     const updated = { ...petData, [field]: value };
@@ -85,7 +115,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave }) => {
 
         {step === "form" && (
           <>
-            <h2 className="text-2xl font-semibold text-[#212529] dark:text-white mb-6">Add Pet Owner & Pet</h2>
+            <h2 className="text-2xl font-semibold text-[#212529] dark:text-white mb-6">{initialData ? "Edit Pet Owner" : "Add Pet Owner"}</h2>
 
             <div className="flex gap-6">
               {/* Owner Info */}

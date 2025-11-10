@@ -34,7 +34,7 @@
           /*user*/
           <Route path="/user-home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/pet" element={<PetDetails />} />
+          <Route path="/pet/:id" element={<PetDetails />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/breed-detect" element={<BreedDetect />} />
           <Route path="/videos" element={<Videos />} />
@@ -44,8 +44,8 @@
           /*admin*/
           <Route path="/admin-pages" element={<AdminLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="patient-management" element={<PetPatientManagement />} />
-            <Route path="/admin-pages/appointments" element={<Appointments />} />
+            <Route path="pet-management" element={<PetPatientManagement />} />
+            <Route path="appointments" element={<Appointments />} />
             <Route path="/admin-pages/tools" element={<Tools />} />
             <Route path="/admin-pages/content-manager" element={<ContentManager />} />
             <Route path="/admin-pages/reports" element={<Reports />} />

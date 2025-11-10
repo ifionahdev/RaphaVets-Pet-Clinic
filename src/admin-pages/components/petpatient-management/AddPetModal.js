@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Search } from "lucide-react";
 
-const AddPetModal = ({ isOpen, onClose, onSave, owners }) => {
+const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
   const [petData, setPetData] = useState({
     ownerId: "",
     type: "",
@@ -18,6 +18,23 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners }) => {
   const [ownerSearch, setOwnerSearch] = useState("");
   const dogBreeds = ["Labrador", "Golden Retriever", "Bulldog", "Poodle", "Beagle"];
   const catBreeds = ["Persian", "Siamese", "Maine Coon", "Sphynx", "Ragdoll"];
+
+  useEffect(() => {
+    if (initialData) {
+      setPetData({
+        ownerId: initialData.ownerId || "",
+        type: initialData.type || "",
+        breed: initialData.breed || "",
+        name: initialData.name || "",
+        age: initialData.age || "",
+        sex: initialData.sex || "",
+        weight: initialData.weight || "",
+        color: initialData.color || "",
+        dob: initialData.dob || "",
+        notes: initialData.notes || "",
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (field, value) => {
     const updated = { ...petData, [field]: value };
@@ -204,7 +221,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners }) => {
               </div>
 
               <div className="col-span-2">
-                <label className="block mb-1">Notes</label>
+                <label className="block mb-1">Notes (optional)</label>
                 <textarea
                   value={petData.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
