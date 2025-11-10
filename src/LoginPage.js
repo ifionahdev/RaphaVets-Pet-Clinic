@@ -7,7 +7,7 @@ import FormMessage from "./user-pages/components/FormMessage";
 function LoginPage() {
 
   const navigate = useNavigate();
-  const [loginData, setLoginData] = useState( { email: "", password: "" });
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   // forgot-password / verification modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -18,6 +18,7 @@ function LoginPage() {
   const [emailMessage, setEmailMessage] = useState({ message: "", type: "" });
   const [verifyMessage, setVerifyMessage] = useState({ message: "", type: "" });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false); // New modal state
 
   const DIGITS = 6;
   const [codeDigits, setCodeDigits] = useState(Array(DIGITS).fill(""));
@@ -25,6 +26,40 @@ function LoginPage() {
 
   const [seconds, setSeconds] = useState(60);
   const timerRef = useRef(null);
+
+  // Steps for account creation
+  const accountCreationSteps = [
+    {
+      step: 1,
+      title: "Visit Our Clinic",
+      description: "Come to RaphaVets Pet Clinic in person with your pet and a valid ID.",
+      icon: "fa-building"
+    },
+    {
+      step: 2,
+      title: "Request Account Creation",
+      description: "Ask our front desk staff to create an online account for you.",
+      icon: "fa-user-plus"
+    },
+    {
+      step: 3,
+      title: "Provide Information",
+      description: "We'll register your details and set up your account in our system.",
+      icon: "fa-clipboard-list"
+    },
+    {
+      step: 4,
+      title: "Receive Login Credentials",
+      description: "You'll get your email and password to access your account online.",
+      icon: "fa-envelope"
+    },
+    {
+      step: 5,
+      title: "Start Booking",
+      description: "Use your credentials to log in and book appointments anytime!",
+      icon: "fa-calendar-check"
+    }
+  ];
 
   useEffect(() => {
     if (!verifyModalOpen) {
@@ -413,15 +448,14 @@ function LoginPage() {
                   <div className="flex-grow h-[1px] bg-gray-300"></div>
                 </div>
 
-                {/* google */}
-                <div className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg py-2 sm:py-3 cursor-pointer hover:bg-gray-100 transition-colors font-sansation">
-                  <img
-                      src="/images/g-logo.png"
-                      alt="Google logo"
-                      className="w-5 h-5"
-                    />
-                  <span className="text-[#404A4C] text-sm sm:text-base">Continue with Google account</span>
-                </div>
+                {/* Create Account Button - Replaced Google */}
+                <button
+                  onClick={() => setShowCreateAccountModal(true)}
+                  className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg py-3 sm:py-3 cursor-pointer hover:border-[#5EE6FE] hover:bg-gray-50 transition-all duration-200 font-sansation"
+                >
+                  <i className="fa-solid fa-user-plus text-[#5EE6FE] text-base"></i>
+                  <span className="text-gray-700 text-sm sm:text-base">How to create an account</span>
+                </button>
               </form>
 
               {/* signup link 
@@ -575,6 +609,108 @@ function LoginPage() {
               >
                 Got it
               </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Create Account Requirements Modal */}
+      {showCreateAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateAccountModal(false)} />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-200 max-h-[90vh] flex flex-col overflow-hidden" // Keep overflow-hidden here
+          >
+            {/* Header */}
+            <div className="bg-white border-b border-gray-100 p-6 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-[#5EE6FE] rounded-xl flex items-center justify-center">
+                  <i className="fa-solid fa-user-plus text-white text-xl"></i>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">Account Creation</h3>
+                  <p className="text-gray-500 text-sm mt-1">Requirements for online access</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content - Scrollable if needed */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <i className="fa-solid fa-info-circle text-blue-500 text-lg mt-0.5"></i>
+                  <div>
+                    <p className="text-blue-800 font-medium text-sm">To create an online account, you must:</p>
+                    <p className="text-blue-700 text-sm mt-1">Have at least one completed service with us</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-check text-green-600 text-xs"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Visit Our Clinic</h4>
+                    <p className="text-gray-600 text-sm mt-1">Book and complete any veterinary service</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-check text-green-600 text-xs"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Request Online Access</h4>
+                    <p className="text-gray-600 text-sm mt-1">Ask our staff to activate your online account</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i className="fa-solid fa-check text-green-600 text-xs"></i>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-sm">Receive Credentials</h4>
+                    <p className="text-gray-600 text-sm mt-1">Get your login details after service completion</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h5 className="font-semibold text-gray-700 text-sm mb-2">Available Services Include:</h5>
+                <ul className="text-gray-600 text-sm space-y-1">
+                  <li>• Consultation & Check-ups</li>
+                  <li>• Vaccinations</li>
+                  <li>• Laboratory Tests</li>
+                  <li>• Dental Procedures</li>
+                  <li>• And many more...</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4 flex-shrink-0">
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setShowCreateAccountModal(false)}
+                  className="flex-1 border border-gray-300 bg-white text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition-all font-medium text-sm"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateAccountModal(false);
+                    navigate('/home');
+                  }}
+                  className="flex-1 bg-[#5EE6FE] text-white py-3 rounded-lg hover:bg-[#3ecbe0] transition-all font-medium text-sm"
+                >
+                  View Services
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
