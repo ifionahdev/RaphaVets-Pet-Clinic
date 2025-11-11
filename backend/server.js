@@ -23,7 +23,8 @@ app.use("/api/appointment", appointmentRoute);
 //pet routes
 app.use("/api/pets", petRoute);
 
-
+// Serve uploaded pet images
+app.use("/uploads", express.static("uploads"));
 
 
 // Test route to verify server

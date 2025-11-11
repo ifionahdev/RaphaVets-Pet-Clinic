@@ -17,29 +17,24 @@ const createFileFilter = (allowedTypes) => {
 {
   /* Function to create multer storage configuration */
 }
-export const createMulter = (foldername, allowedTypes = [], maxSizeMB = 5) => {
-  const uploadPath = path.join("../uploads", foldername);
-
-  // Ensure the upload directory exists
-  fs.mkdirSync(uploadPath, { recursive: true });
-
+export const createMulter = (folderName, allowedTypes, maxSizeMB) => {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+      const uploadPath = path.join(process.cwd(), "..", "uploads", folderName);
+      fs.mkdirSync(uploadPath, { recursive: true }); // ensure folder exists
       cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(
-        null,
-        file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname)
-      );
+      const ext = path.extname(file.originalname);
+      cb(null, file.fieldname + "-" + uniqueSuffix + ext);
     },
   });
 
-  const fileFilter = createFileFilter(allowedTypes);
-  return multer({
-    storage,
-    fileFilter,
-    limits: { fileSize: maxSizeMB * 1024 * 1024 },
-  });
+  const fileFilter = (req, file, cb) => {
+    if (allowedTypes.includes(file.mimetype)) cb(null, true);
+    else cb(new Error("File type not allowed"), false);
+  };
+
+  return multer({ storage, fileFilter, limits: { fileSize: maxSizeMB * 1024 * 1024 } });
 };
