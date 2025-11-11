@@ -38,7 +38,7 @@ function Forum() {
 
   const [newPost, setNewPost] = useState({ ...emptyPostTemplate });
 
-  
+  /*  
   //** Sample posts data for testing **
   const [posts, setPosts] = useState([
     {
@@ -89,9 +89,8 @@ function Forum() {
       contact: "jordan@example.com",
       date: "Nov 7, 2025",
     },
-  ]);
-  
- /*
+  ]); 
+ */
   const [posts, setPosts] = useState([]);
 
   const fetchedOnce = useRef(false);
@@ -117,7 +116,6 @@ function Forum() {
     fetchedOnce.current = true;
     fetchPosts();
   }, []);
-  */
   useEffect(() => {
     const saved = localStorage.getItem("darkMode");
     if (saved) setDarkMode(saved === "true");
@@ -199,7 +197,7 @@ function Forum() {
         const createdPost = res.data;
         console.log("✅ Post created:", createdPost);
         
-        //fetchPosts();
+        fetchPosts();
         setShowCreateModal(false);
         setNewPost({ ...emptyPostTemplate, user: newPost.user });
         setInputKey(Date.now());
@@ -234,7 +232,10 @@ function Forum() {
     }, 3000);
   };
 
-  const userPosts = posts.filter((p) => p.user === "You");
+  const accID = localStorage.getItem("userId");
+  console.log("Logged in user accID:", accID);
+  console.log("All posts accountIDs:", posts.map(p => p.accID));
+  const userPosts = posts.filter((p) => p.accID == accID);
 
   const closeLightbox = () => {
     setLightbox({ open: false, src: null, alt: "" });

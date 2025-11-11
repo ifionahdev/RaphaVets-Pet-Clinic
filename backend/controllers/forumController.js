@@ -69,18 +69,24 @@ export const getAllPosts = async (req, res) => {
         "p.contact, " +
         "p.email, " +
         "if(p.isAnonymous, 'Anonymous', CONCAT(a.firstName, ' ', a.lastName)) AS userName, " +
-        "p.createdAt  " +
+        "p.createdAt,  " +
+        "p.accID " + 
       "FROM forum_posts_tbl p " +
       "JOIN account_tbl a ON p.accID = a.accID " +
       "WHERE p.isDeleted = FALSE AND a.isDeleted = FALSE " +
       "ORDER BY p.createdAt DESC " +
       "LIMIT 20"
     );
-    const postIds = posts.map(post => post.forumID);
+    if(!posts.length){
+      return res.status(200).json({ message: "✅ No posts found.", posts: [] });
+    }
+    const postIds = posts.map(post => post.forumID).filter(formID => formID != null);
+
+    const placeholder = postIds.map(() => '?').join(',');
 
     const [images] = await db.query(
-      `SELECT * FROM forum_images_tbl WHERE forumID IN (?)`,
-      [postIds]
+      `SELECT * FROM forum_images_tbl WHERE forumID IN (${placeholder})`,
+      postIds
     );
 
     const cleanedPosts = posts.map(post => ({
@@ -107,6 +113,7 @@ export const getAllPosts = async (req, res) => {
         month: 'short',
         day: 'numeric'
       }),
+      accID: post.accID,
     }));
 
 
@@ -119,3 +126,6 @@ export const getAllPosts = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+export const updatePost = async (req, res) => { 
+    
+}

@@ -4,7 +4,8 @@ import { verifyToken } from '../middleware/authMiddleware.js';
 import { createMulter } from '../middleware/multer.js';
 import {
     createPost,
-    getAllPosts
+    getAllPosts,
+    updatePost
 } from '../controllers/forumController.js';
 
 const router = express.Router();
@@ -12,6 +13,7 @@ const upload = createMulter('forum', ['image/jpeg', 'image/png', 'image/webp'], 
 
 router.post('/', verifyToken, upload.array('image', 5), createPost);
 router.get('/', getAllPosts);
+router.put('/:id', verifyToken, upload.array('image', 5), updatePost);//di ko sure if maguupload pa ulit ng image
 
 router.get('/images/:filename', (req, res) => {
     const filename = req.params.filename;
