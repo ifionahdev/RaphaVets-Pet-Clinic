@@ -37,12 +37,6 @@ function Home() {
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
 
-  // const appointments = [
-  //   { id: 1, petName: "Miguel", ownerName: "Fionah Beltran", type: "General Checkup", date: "Nov 10, 2025 - 10:00 AM", status: "Pending", notes: "Bring previous medical records." },
-  //   { id: 2, petName: "Mark", ownerName: "Vanerie Lyza", type: "Vaccination", date: "Nov 12, 2025 - 1:30 PM", status: "Upcoming", notes: "Rabies and deworming included." },
-  //   { id: 3, petName: "Jordan", ownerName: "Sarili ko lang", type: "Grooming", date: "Oct 25, 2025 - 9:00 AM", status: "Done", notes: "Full grooming session completed." },
-  // ];
-
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
@@ -121,19 +115,12 @@ function Home() {
       {showDetailsModal && selectedAppointment && <ViewDetailsModal appointment={selectedAppointment} closeModal={closeModal} />}
 
       {/* Floating Chat Button */}
-      <button onClick={() => setIsChatOpen(!isChatOpen)} className="fixed bottom-8 right-8 sm:bottom-12 sm:right-20 bg-[#5EE6FE] text-white text-2xl w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3ecbe0] transition-all duration-300 z-50">
-        <i className="fa-regular fa-comment"></i>
+      <button 
+        onClick={() => setChatType("ai")} 
+        className="fixed bottom-8 right-8 sm:bottom-12 sm:right-20 bg-[#5EE6FE] text-white text-2xl w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-50 group"
+      >
+        <i className="fa-regular fa-comment group-hover:scale-110 transition-transform duration-300"></i>
       </button>
-
-      {isChatOpen && (
-        <>
-          <div className="fixed inset-0 bg-black/40 z-40 animate-fadeIn" onClick={() => setIsChatOpen(false)}></div>
-          <div className="fixed bottom-32 right-8 sm:right-20 bg-white rounded-2xl shadow-xl p-4 z-50 w-52 flex flex-col gap-3 animate-popUp">
-            <button className="bg-[#5EE6FE] text-white font-semibold py-2 rounded-lg hover:bg-[#3ecbe0] transition-all" onClick={() => { setChatType("ai"); setIsChatOpen(false); }}>Chat with AI</button>
-            <button className="bg-[#EEF4F5] text-gray-700 font-semibold py-2 rounded-lg hover:bg-[#d9d9d9] transition-all" onClick={() => { setChatType("pro"); setIsChatOpen(false); }}>Chat with Professional</button>
-          </div>
-        </>
-      )}
 
       {chatType && <FloatingChatBox type={chatType} onClose={() => setChatType(null)} />}
     </div>

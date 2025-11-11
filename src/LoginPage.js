@@ -3,12 +3,15 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import api from "./api/axios";
 import FormMessage from "./user-pages/components/FormMessage";
+import LandingAnimation from "./LandingAnimation";
 
 function LoginPage() {
 
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   // forgot-password / verification modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
@@ -144,15 +147,13 @@ function LoginPage() {
 
       setFormMessage({ message: "✅ Login successful!", type: "success" });
 
-      // ✅ Redirect based on role
-      setTimeout(() => {
-        const role = res.data.user.role;
-        if (role === 2) {
-          navigate("/admin-pages");
-        } else {
-          navigate("/user-home");
-        }
-      }, 1000);
+      // ✅ Set user info and show animation
+      setUserInfo({
+        type: res.data.user.role === 2 ? 'admin' : 'user',
+        name: res.data.user.name || res.data.user.username || res.data.user.email
+      });
+      setShowAnimation(true);
+      
     } catch (err) {
       console.error("❌ Login error:", err);
       // Clear any existing auth data on error
@@ -167,6 +168,17 @@ function LoginPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAnimationComplete = () => {
+    setShowAnimation(false);
+    // Navigate to appropriate dashboard based on role
+    const role = localStorage.getItem("userRole");
+    if (role === "2") {
+      navigate("/admin-pages");
+    } else {
+      navigate("/user-home");
     }
   };
 
@@ -714,6 +726,14 @@ function LoginPage() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {showAnimation && (
+        <LandingAnimation
+          userType={userInfo?.type}
+          userName={userInfo?.name}
+          onAnimationComplete={handleAnimationComplete}
+        />
       )}
 
     </div>
