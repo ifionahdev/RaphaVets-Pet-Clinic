@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 10, 2025 at 04:57 PM
+-- Generation Time: Nov 11, 2025 at 10:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,7 +47,7 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`) VALUES
-(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-09 19:26:19', '2025-11-09 12:21:30', '2025-11-09 19:26:19', '2025-11-09 19:26:09', 0),
+(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-11 14:52:51', '2025-11-09 12:21:30', '2025-11-11 14:52:51', '2025-11-09 19:26:09', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
 (5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-09 15:38:36', '2025-11-09 12:21:30', '2025-11-09 15:38:36', '2025-11-09 12:20:21', 0);
 
@@ -154,6 +154,15 @@ CREATE TABLE `forum_images_tbl` (
   `imageName` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `forum_images_tbl`
+--
+
+INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`) VALUES
+(1, 2, 'image-1762845150467-911614694.jpg'),
+(2, 2, 'image-1762845150469-459744250.jpg'),
+(3, 3, 'image-1762850249237-957902209.jpg');
+
 -- --------------------------------------------------------
 
 --
@@ -165,11 +174,21 @@ CREATE TABLE `forum_posts_tbl` (
   `accID` int(11) NOT NULL,
   `postType` enum('Found','Lost') NOT NULL,
   `description` varchar(255) NOT NULL,
-  `contact` int(11) NOT NULL,
+  `contact` varchar(13) NOT NULL,
   `email` varchar(255) NOT NULL,
   `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
-  `isAnonymous` tinyint(1) NOT NULL
+  `lastUpdatedAt` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `isAnonymous` tinyint(1) NOT NULL,
+  `isDeleted` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `forum_posts_tbl`
+--
+
+INSERT INTO `forum_posts_tbl` (`forumID`, `accID`, `postType`, `description`, `contact`, `email`, `createdAt`, `lastUpdatedAt`, `isAnonymous`, `isDeleted`) VALUES
+(2, 2, 'Found', 'May nakita akong tae sa daan', '0', 'tar@ntado.com', '2025-11-11 15:12:30', '2025-11-11 15:12:30', 0, 0),
+(3, 2, 'Lost', 'Last seen at cornelia st., alley rose. Likes to read, meows like a dog in heat.', '2147483647', 'sh@tpo.st', '2025-11-11 16:37:29', '2025-11-11 16:37:29', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -476,13 +495,13 @@ ALTER TABLE `clientinfo_tbl`
 -- AUTO_INCREMENT for table `forum_images_tbl`
 --
 ALTER TABLE `forum_images_tbl`
-  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `forum_posts_tbl`
 --
 ALTER TABLE `forum_posts_tbl`
-  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `pet_tbl`
