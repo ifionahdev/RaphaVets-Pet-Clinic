@@ -86,7 +86,6 @@ export const getPetDetails = async (req, res) => {
       [petID]
     );
 
-    // Backend: petController.js
     res.json({
       ...pet,
       image: pet.imageName

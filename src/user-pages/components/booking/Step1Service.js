@@ -13,21 +13,23 @@ export default function Step1Service({ selectedService, setSelectedService }) {
         const mapped = res.data.map((s) => ({
           id: s.serviceID,
           label: s.service,
-          note: s.description,
+          shortDescription: s.shortDescription,
+          longDescription: s.longDescription,
+          note: s.note,
           duration: s.duration,
-          price: s.price || "Contact for pricing",
+          pricing: s.pricing || {},
         }));
         setServiceTypes(mapped);
       } catch (err) {
         console.error("Failed to fetch services:", err);
       }
     };
-
     fetchServices();
   }, []);
 
+
   // Service details content based on your images
-  const serviceDetails = {
+  /*const serviceDetails = {
     "Consultation": {
       description: "Our veterinary consultations provide expert guidance to ensure your pets stay healthy and well-cared for. From routine check-ups to addressing specific health concerns, our dedicated vets take the time to understand your pet's needs and offer tailored advice for their overall well-being.",
       note: "Consultation fees may vary depending on the type of service required."
@@ -120,10 +122,11 @@ export default function Step1Service({ selectedService, setSelectedService }) {
         ]
       }
     }
-  };
+  };*/
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Choose a service</h2>
@@ -137,15 +140,16 @@ export default function Step1Service({ selectedService, setSelectedService }) {
           View all service details
         </button>
       </div>
-      
+
+      {/* Grid of service cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-        {serviceTypes.map((t) => (
+        {serviceTypes.map((service) => (
           <motion.button
-            key={t.id}
+            key={service.id}
             whileHover={{ scale: 1.02 }}
-            onClick={() => setSelectedService(t)}
+            onClick={() => setSelectedService(service)}
             className={`relative text-left p-4 rounded-2xl border transition-all shadow-sm hover:shadow-md focus:outline-none ${
-              selectedService?.id === t.id
+              selectedService?.id === service.id
                 ? "border-[#5EE6FE] bg-[#EAFBFD] shadow-lg"
                 : "border-gray-100 bg-white"
             }`}
@@ -155,31 +159,39 @@ export default function Step1Service({ selectedService, setSelectedService }) {
                 <i className="fa-solid fa-paw text-[#5EE6FE]" />
               </div>
               <div>
-                <div className="font-semibold text-gray-800">{t.label}</div>
-                <div className="text-xs text-gray-500 mt-1">{t.note}</div>
+                <div className="font-semibold text-gray-800">{service.label}</div>
+                <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                  {service.shortDescription}
+                </div>
               </div>
             </div>
             <div className="absolute right-3 top-3 text-xs text-gray-400">
-              {t.duration}
+              {service.duration}
             </div>
           </motion.button>
         ))}
       </div>
 
+      {/* Modal for all services */}
       {showServicesModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowServicesModal(false)}></div>
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowServicesModal(false)}
+          ></div>
           <div className="relative z-50 mx-4 w-full max-w-4xl">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-              {/* Header */}
+              {/* Modal Header */}
               <div className="bg-white border-b border-gray-100 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900">Service Catalog</h3>
-                    <p className="text-gray-500 mt-1">Detailed information about all our veterinary services</p>
+                    <p className="text-gray-500 mt-1">
+                      Detailed information about all our veterinary services
+                    </p>
                   </div>
-                  <button 
-                    onClick={() => setShowServicesModal(false)} 
+                  <button
+                    onClick={() => setShowServicesModal(false)}
                     className="text-gray-400 hover:text-gray-600 text-xl transition-colors p-2 hover:bg-gray-100 rounded-lg"
                   >
                     ✕
@@ -187,72 +199,84 @@ export default function Step1Service({ selectedService, setSelectedService }) {
                 </div>
               </div>
 
-              {/* Content */}
+              {/* Modal Content */}
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-8">
-                  {serviceTypes.map((service) => {
-                    const details = serviceDetails[service.label] || {};
-                    return (
-                      <div key={service.id} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                        {/* Service Header */}
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-start gap-4">
-                            <div className="w-14 h-14 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
-                              <i className={`fa-solid ${details.icon || 'fa-paw'} text-[#5EE6FE] text-xl`} />
-                            </div>
-                            <div>
-                              <h4 className="text-xl font-semibold text-gray-900">{service.label}</h4>
-                              <p className="text-gray-500 text-sm mt-1">{service.duration}</p>
-                            </div>
+                  {serviceTypes.map((service) => (
+                    <div
+                      key={service.id}
+                      className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                    >
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 bg-white rounded-xl border border-gray-200 flex items-center justify-center shadow-sm">
+                            <i className="fa-solid fa-paw text-[#5EE6FE] text-xl" />
                           </div>
-                          <button
-                            onClick={() => {
-                              setSelectedService(service);
-                              setShowServicesModal(false);
-                            }}
-                            className="bg-[#5EE6FE] text-white px-6 py-2 rounded-lg hover:bg-[#3ecbe0] transition-all font-medium shadow-sm hover:shadow-md"
-                          >
-                            Select
-                          </button>
+                          <div>
+                            <h4 className="text-xl font-semibold text-gray-900">
+                              {service.label}
+                            </h4>
+                            <p className="text-gray-500 text-sm mt-1">{service.duration}</p>
+                          </div>
                         </div>
-
-                        {/* Description */}
-                        <p className="text-gray-600 leading-relaxed mb-4">{details.description}</p>
-
-                        {/* Note */}
-                        {details.note && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <p className="text-sm text-blue-700 flex items-start gap-2">
-                              <i className="fa-solid fa-info-circle text-blue-500 mt-0.5"></i>
-                              {details.note}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Pricing */}
-                        {details.pricing && Object.entries(details.pricing).map(([category, items]) => (
-                          <div key={category} className="mb-4 last:mb-0">
-                            <h5 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">{category}</h5>
-                            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-                              {items.map((item, index) => (
-                                <div key={index} className="flex justify-between items-center py-3 px-4">
-                                  <span className="text-gray-700">{item.split(' - ')[0]}</span>
-                                  <span className="text-gray">{item.split(' - ')[1]}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                        <button
+                          onClick={() => {
+                            setSelectedService(service);
+                            setShowServicesModal(false);
+                          }}
+                          className="bg-[#5EE6FE] text-white px-6 py-2 rounded-lg hover:bg-[#3ecbe0] transition-all font-medium shadow-sm hover:shadow-md"
+                        >
+                          Select
+                        </button>
                       </div>
-                    );
-                  })}
+
+                      {/* Long Description */}
+                      <p className="text-gray-600 leading-relaxed mb-4">
+                        {service.longDescription || service.note || "No description available."}
+                      </p>
+
+                      {/* Pricing */}
+                      {service.pricing && Object.keys(service.pricing).length > 0 ? (
+                        <div className="space-y-4">
+                          {Object.entries(service.pricing).map(([category, items]) => (
+                            <div key={category}>
+                              <h5 className="font-semibold text-gray-800 mb-2 text-sm uppercase tracking-wide">
+                                {category}
+                              </h5>
+                              <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                                {items.map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between items-center py-3 px-4"
+                                  >
+                                    <span className="text-gray-700">{item.label}</span>
+                                    <span className="text-gray-500">P{item.price}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        service.note && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                          <p className="text-sm text-blue-700 flex items-start gap-2">
+                            <i className="fa-solid fa-info-circle text-blue-500 mt-0.5"></i>
+                            {service.note}
+                          </p>
+                        </div>
+                        )
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Footer */}
+              {/* Modal Footer */}
               <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
                 <div className="flex justify-center">
-                  <button 
+                  <button
                     onClick={() => setShowServicesModal(false)}
                     className="border border-gray-300 bg-white text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-all font-medium shadow-sm"
                   >

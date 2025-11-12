@@ -2,13 +2,50 @@ import db from "../config/db.js";
 
 export const getAllServices = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM service_tbl");
-    res.json(rows);
+    const [rows] = await db.query(`
+      SELECT s.*, p.category, p.label, p.price
+      FROM service_tbl s
+      LEFT JOIN service_pricing_tbl p ON s.serviceID = p.serviceID
+      ORDER BY s.serviceID, p.category, p.price
+    `);
+
+    // Group pricing under each service
+    const services = [];
+    const map = {};
+
+    for (const row of rows) {
+      if (!map[row.serviceID]) {
+        map[row.serviceID] = {
+          serviceID: row.serviceID,
+          service: row.service,
+          shortDescription: row.description,
+          longDescription: row.long_description,
+          note: row.note,
+          duration: row.duration,
+          pricing: {}
+        };
+        services.push(map[row.serviceID]);
+      }
+
+      if (row.category && row.label) {
+        if (!map[row.serviceID].pricing[row.category]) {
+          map[row.serviceID].pricing[row.category] = [];
+        }
+        map[row.serviceID].pricing[row.category].push({
+          label: row.label,
+          price: row.price
+        });
+      }
+    }
+
+    res.json(services);
   } catch (err) {
     console.error("❌ Failed to fetch services:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 export const getBookedSlots = async (req, res) => {
   const { date } = req.query;
