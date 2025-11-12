@@ -20,6 +20,7 @@ function PetDetails() {
   
   // Modal and toast states
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -36,39 +37,47 @@ function PetDetails() {
   };
 
   useEffect(() => {
-    const fetchPetData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await api.get(`/pets/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const petData = res.data;
+  const fetchPetData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.get(`/pets/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        const mappedPet = {
-          id: petData.petID,
-          name: petData.petName,
-          breed: petData.breed,
-          gender: petData.petGender || "N/A",
-          age: calculateAge(petData.dateOfBirth),
-          image: petData.imageName || "/images/dog-profile.png",
-          weight: petData.weight_kg,
-          lastCheck: petData.lastCheck || "N/A",
-        };
-        setPet(mappedPet);
+      const petData = res.data;
 
-        const mappedAppointments = (petData.appointments || []).map((appt) => ({
-          ...appt,
-          dateObj: new Date(appt.date)
-        }));
-        setAppointments(mappedAppointments);
-      } catch (err) {
-        console.error("❌ Failed to fetch pet details:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPetData();
-  }, [id]);
+      const mappedPet = {
+        id: petData.petID,
+        name: petData.petName,
+        breed: petData.breed,
+        gender: petData.petGender || "N/A",
+        age: calculateAge(petData.dateOfBirth),
+        image: petData.image || "/images/dog-profile.png",
+        weight: petData.weight_kg,
+        lastCheck: petData.lastCheck || "N/A",
+      };
+
+      // ✅ Only update pet.image if there's no preview
+      setPet((prev) => ({
+        ...mappedPet,
+        image: previewImage ? prev.image : mappedPet.image,
+      }));
+
+      const mappedAppointments = (petData.appointments || []).map((appt) => ({
+        ...appt,
+        dateObj: new Date(appt.date),
+      }));
+      setAppointments(mappedAppointments);
+    } catch (err) {
+      console.error("❌ Failed to fetch pet details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPetData();
+  }, [id, previewImage]);
+
 
   const filteredAppointments = appointments.filter((appt) =>
     appointmentFilter === "All" ? true : appt.status === appointmentFilter
@@ -125,7 +134,10 @@ function PetDetails() {
               <div className="flex items-center gap-6">
                 <div className="relative">
                   <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#00B8D4] bg-gray-200 flex items-center justify-center">
-                    <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
+                    {
+                      console.log(pet.image)
+                    }
+                    <img src={previewImage || pet.image}/>
                   </div>
                 </div>
                 <div>
@@ -303,28 +315,50 @@ function PetDetails() {
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-[#00B8D4] bg-gray-200 flex items-center justify-center mb-3">
                     <img 
-                      src={pet.image} 
+                      src={previewImage || pet.image} 
                       alt={pet.name} 
                       className="w-full h-full object-cover"
                       id="pet-profile-image"
                     />
                   </div>
+
                   <input 
                     type="file" 
                     id="profile-upload"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                          document.getElementById('pet-profile-image').src = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                        const previewUrl = URL.createObjectURL(file);
+                        setPreviewImage(previewUrl); // ✅ show preview immediately
+
+                        const formData = new FormData();
+                        formData.append("petImage", file);
+
+                        try {
+                          const token = localStorage.getItem("token");
+                          const res = await api.post(`/pets/${pet.id}/upload`, formData, {
+                            headers: {
+                              "Content-Type": "multipart/form-data",
+                              Authorization: `Bearer ${token}`,
+                            },
+                          });
+
+                          setPet((prev) => ({ ...prev, image: res.data.imageUrl }));
+                          setPreviewImage(null); // ✅ clear preview after server confirms
+                          setToastMessage("Profile picture updated successfully!");
+                          setShowSuccessToast(true);
+                        } catch (err) {
+                          console.error("❌ Upload failed:", err);
+                          setToastMessage("Failed to upload image.");
+                          setShowSuccessToast(true);
+                        }
                       }
                     }}
                   />
+
+
                   <label 
                     htmlFor="profile-upload"
                     className="absolute bottom-1 right-0 bg-[#5EE6FE] text-white p-1.5 rounded-full shadow-lg hover:bg-[#3ecbe0] transition-all cursor-pointer"
