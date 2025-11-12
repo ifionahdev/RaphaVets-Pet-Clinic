@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 12, 2025 at 11:31 AM
+-- Generation Time: Nov 12, 2025 at 12:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,7 +49,7 @@ CREATE TABLE `account_tbl` (
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`) VALUES
 (2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-12 13:35:10', '2025-11-09 12:21:30', '2025-11-12 13:35:10', '2025-11-09 19:26:09', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-09 15:38:36', '2025-11-09 12:21:30', '2025-11-09 15:38:36', '2025-11-09 12:20:21', 0);
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-12 19:03:08', '2025-11-09 12:21:30', '2025-11-12 19:03:08', '2025-11-09 12:20:21', 0);
 
 -- --------------------------------------------------------
 
@@ -289,6 +289,47 @@ INSERT INTO `role_tbl` (`roleID`, `roleName`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `service_pricing_tbl`
+--
+
+CREATE TABLE `service_pricing_tbl` (
+  `priceID` int(11) NOT NULL,
+  `serviceID` int(11) NOT NULL,
+  `category` varchar(255) DEFAULT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `service_pricing_tbl`
+--
+
+INSERT INTO `service_pricing_tbl` (`priceID`, `serviceID`, `category`, `label`, `price`) VALUES
+(1, 1, NULL, 'Consultation (Price may vary depending on type of service)', NULL),
+(2, 6, 'For Dogs', '5-in-1 Vaccine', 500.00),
+(3, 6, 'For Dogs', '8-in-1 Vaccine', 600.00),
+(4, 6, 'For Dogs', 'Anti-Rabies Vaccine', 250.00),
+(5, 6, 'For Dogs', 'Kennel Cough Vaccine', 500.00),
+(6, 6, 'For Cats', '4-in-1 Vaccine', 850.00),
+(7, 2, NULL, 'Surgery (Cost may vary depending on case)', NULL),
+(8, 7, 'Price', 'Blood Chemistry Test', 2800.00),
+(9, 3, 'Price', 'CBC Test', 950.00),
+(10, 8, 'Price', 'Health Certificate', 750.00),
+(11, 4, NULL, 'Microchipping (Price may vary depending on microchip type)', NULL),
+(12, 9, NULL, 'Confinement (Depends on duration and care level)', NULL),
+(13, 10, 'Prices', '1–10 kg', 5000.00),
+(14, 10, 'Prices', '10.1–15 kg', 7000.00),
+(15, 5, 'Prices', '0.1–2 kg', 150.00),
+(16, 5, 'Prices', '2–5 kg', 250.00),
+(17, 5, 'Prices', '5.1–7 kg', 300.00),
+(18, 5, 'Prices', '7.1–10 kg', 350.00),
+(19, 5, 'Prices', '10.1–15 kg', 400.00),
+(20, 5, 'Prices', '15.1–20 kg', 450.00),
+(21, 5, 'Prices', '20–30 kg', 500.00);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `service_tbl`
 --
 
@@ -296,6 +337,8 @@ CREATE TABLE `service_tbl` (
   `serviceID` int(11) NOT NULL,
   `service` varchar(250) NOT NULL,
   `description` varchar(250) NOT NULL,
+  `long_description` text DEFAULT NULL,
+  `note` varchar(255) DEFAULT NULL,
   `duration` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -303,17 +346,17 @@ CREATE TABLE `service_tbl` (
 -- Dumping data for table `service_tbl`
 --
 
-INSERT INTO `service_tbl` (`serviceID`, `service`, `description`, `duration`) VALUES
-(1, 'Consultation', 'General check-up', '30-50 min'),
-(2, 'Basic Soft Tissue Surgery', 'Scheduled procedure', 'Varies'),
-(3, 'CBC', 'Complete blood count', 'Varies'),
-(4, 'Microchipping', 'Permanent ID implant', 'Varies'),
-(5, 'Deworming', 'Parasite control', 'Varies'),
-(6, 'Vaccination', 'Routine vaccines', 'Varies'),
-(7, 'Blood Chemistry Lab', 'Detailed panel', 'Varies'),
-(8, 'Veterinary Health Certificate', 'Travel & export docs', 'Varies'),
-(9, 'Confinement', 'Overnight observation', 'Varies'),
-(10, 'Dental Prophylaxis', 'Cleaning & check', 'Varies');
+INSERT INTO `service_tbl` (`serviceID`, `service`, `description`, `long_description`, `note`, `duration`) VALUES
+(1, 'Consultation', 'General check-up', 'Our veterinary consultations provide expert guidance to ensure your pets stay healthy and well-cared for. From routine check-ups to addressing specific health concerns, our dedicated vets take the time to understand your pet\'s needs and offer tailored advice for their overall well-being.', 'Consultation fees may vary depending on the type of service required.', '30-50 min'),
+(2, 'Basic Soft Tissue Surgery', 'Scheduled procedure', 'Our clinic provides safe and reliable soft tissue surgeries to address common health issues in pets, such as lump removals, wound repairs, or minor surgical needs. With modern facilities and experienced veterinarians, we ensure your pets receive gentle, expert care throughout the procedure.', 'Surgery costs may vary depending on the case and treatment required.', 'Varies'),
+(3, 'CBC', 'Complete blood count', 'A complete blood count is an essential test to evaluate your pet\'s overall health. It helps detect infections, anemia, immune system issues, and other conditions that may not be visible through routine check-ups. Regular CBC testing ensures early detection and timely care for your pets.', NULL, 'Varies'),
+(4, 'Microchipping', 'Permanent ID implant', 'Microchipping is a safe and permanent way to identify your pets and ensure they can always find their way back to you if lost. The tiny microchip is quickly implanted under your pet\'s skin and linked to your contact information, giving you peace of mind and added security for your beloved companion.', 'Pricing may vary depending on the type of microchip and registration requirements.', 'Varies'),
+(5, 'Deworming', 'Parasite control', 'Protect your pets from harmful internal parasites with our safe and effective deworming service. Regular deworming ensures your dogs and cats stay healthy, active, and free from intestinal worms.', NULL, 'Varies'),
+(6, 'Vaccination', 'Routine vaccines', 'Protect your pets from harmful diseases with our comprehensive vaccination services. We provide safe and effective vaccines tailored to your pet\'s needs, ensuring their long-term health and immunity.', NULL, 'Varies'),
+(7, 'Blood Chemistry Lab', 'Detailed panel', 'Our blood chemistry tests provide vital insights into your pet\'s overall health, including organ function, hydration, and possible underlying conditions. This service helps us detect issues early and create the right treatment plan for your dog or cat.', NULL, 'Varies'),
+(8, 'Veterinary Health Certificate', 'Travel & export docs', 'A veterinary health certificate provides official proof that your pet is healthy and fit for travel, adoption, or other requirements. Our licensed veterinarians will examine your dog or cat thoroughly to ensure they meet all health standards before issuing the certificate.', NULL, 'Varies'),
+(9, 'Confinement', 'Overnight observation', 'For pets requiring close monitoring and extended care, our clinic offers safe and comfortable confinement facilities. Whether your pet is recovering from surgery, illness, or needs observation, our veterinary team ensures they receive round-the-clock attention and proper medical support.', 'Pricing depends on the duration of stay and the level of care required.', 'Varies'),
+(10, 'Dental Prophylaxis', 'Cleaning & check', 'Good oral health is essential for your pet\'s overall well-being. Our dental prophylaxis service includes thorough cleaning to prevent plaque, tartar buildup, and gum disease, helping your pets maintain healthy teeth and fresh breath.', NULL, 'Varies');
 
 -- --------------------------------------------------------
 
@@ -463,6 +506,13 @@ ALTER TABLE `role_tbl`
   ADD PRIMARY KEY (`roleID`);
 
 --
+-- Indexes for table `service_pricing_tbl`
+--
+ALTER TABLE `service_pricing_tbl`
+  ADD PRIMARY KEY (`priceID`),
+  ADD KEY `serviceID` (`serviceID`);
+
+--
 -- Indexes for table `service_tbl`
 --
 ALTER TABLE `service_tbl`
@@ -553,6 +603,12 @@ ALTER TABLE `role_tbl`
   MODIFY `roleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `service_pricing_tbl`
+--
+ALTER TABLE `service_pricing_tbl`
+  MODIFY `priceID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+
+--
 -- AUTO_INCREMENT for table `service_tbl`
 --
 ALTER TABLE `service_tbl`
@@ -626,6 +682,12 @@ ALTER TABLE `pet_allergies_tbl`
 ALTER TABLE `pet_tbl`
   ADD CONSTRAINT `accID_pettbl` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `breedID_pet_fk` FOREIGN KEY (`breedID`) REFERENCES `breed_tbl` (`breedID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `service_pricing_tbl`
+--
+ALTER TABLE `service_pricing_tbl`
+  ADD CONSTRAINT `service_pricing_tbl_ibfk_1` FOREIGN KEY (`serviceID`) REFERENCES `service_tbl` (`serviceID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `userpreference_tbl`
