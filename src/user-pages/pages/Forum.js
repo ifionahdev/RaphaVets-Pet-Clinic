@@ -3,6 +3,7 @@ import Header from "../template/Header";
 import Sidebar from "../template/SideBar";
 import api from "../../api/axios";
 import { se } from "date-fns/locale";
+import { pre } from "framer-motion/client";
 
 function Forum() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
@@ -20,6 +21,7 @@ function Forum() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFoundConfirm, setShowFoundConfirm] = useState(false);
   const [postToMarkFound, setPostToMarkFound] = useState(null);
+  const [originalPost, setOriginalPost] = useState(null);
 
   const emptyPostTemplate = {
     user: "You",
@@ -96,20 +98,22 @@ function Forum() {
   const fetchedOnce = useRef(false);
 
   const fetchPosts = async () => {
-      try {
-        const res = await api.get("/forum"); // adjust the endpoint
-        const data = res.data.posts;
+    try {
+      const res = await api.get("/forum"); // adjust the endpoint
+      const data = res.data.posts;
 
-        setPosts(data);
-        const message = res.data.message || "✅ Forum posts fetched successfully.";
-        console.log(message);
-        alert(message);
-      } catch (err) {
-        const message = err.response?.data?.message || "❌ Error fetching forum posts.";
-        console.error(message);
-        alert(message);
-      }
-    };
+      setPosts(data);
+      const message =
+        res.data.message || "✅ Forum posts fetched successfully.";
+      console.log(message);
+      alert(message);
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "❌ Error fetching forum posts.";
+      console.error(message);
+      alert(message);
+    }
+  };
 
   useEffect(() => {
     if (fetchedOnce.current) return;
@@ -163,78 +167,192 @@ function Forum() {
   };
 
   const removeImageFromEditing = (imgId) => {
-    setNewPost((prev) => ({
-      ...prev,
+    setNewPost((prev) => {
+      const newImages = [];
+      const toRevoke = [];
+      
+      prev.images.forEach((i) => {
+        if (i.id === imgId) {
+          if (i.id.startsWith("img-") && i.url){
+            URL.revokeObjectURL(i.url);
+          } else {
+            removedImages.push(i.id);
+          }
+        } else {
+          newImages.push(i);
+        }
+      });
+
+      const updatedDeletedImages = [...(prev.deletedImages || []), ...toRevoke];
+
+      return {
+        ...prev,
+        images: newImages,
+        deletedImages: updatedDeletedImages,
+      };
+      /*
       images: prev.images.filter((i) => {
         if (i.id === imgId && i.id.startsWith("img-"))
           URL.revokeObjectURL(i.url);
         return i.id !== imgId;
       }),
-    }));
+      */
+    });
   };
 
   const handleCreateOrUpdatePost = () => {
-    if (!newPost.desc.trim()) return;
+    if (!newPost.desc.trim()){
+      alert("❌ Description is required.");
+      return; {/* No UI feedback for empty description */}
+    }
+
+    // Create new post
+    if(!newPost.id){
+      const formData = new FormData();
+      formData.append("postType", newPost.type);
+      formData.append("description", newPost.desc);
+      formData.append("contact", newPost.contact);
+      formData.append("email", newPost.email);
+      formData.append("isAnonymous", newPost.anonymous ? "1" : "0");
+
+      newPost.images.forEach((img) => {
+        if (img.file) {
+          formData.append("image", img.file);
+        }
+      });
+
+      api
+        .post("/forum", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        .then((res) => {
+          const createdPost = res.data;
+          console.log("✅ Post created:", createdPost);
+
+          fetchPosts();
+          setShowCreateModal(false);
+          setNewPost({ ...emptyPostTemplate, user: newPost.user });
+          setInputKey(Date.now());
+
+          setSuccessMessage("✅ Post created successfully!");
+          setShowSuccess(true);
+          setTimeout(() => {
+            setShowSuccess(false);
+            setSuccessMessage("");
+          }, 3000);
+        })
+        .catch((err) => {
+          const message =
+            err.response?.data?.message || "❌ Error creating post.";
+          console.error(message);
+          alert(message);
+        });
+      return;
+    }
+    // Update existing post
+    const updates = {};
+
+    if (newPost.desc !== originalPost.desc) updates.description = newPost.desc;
+    if (newPost.contact !== originalPost.contact) updates.contact = newPost.contact;
+    if (newPost.email !== originalPost.email) updates.email = newPost.email;
+    if ((newPost.anonymous || false) !== (originalPost.anonymous || false)) {
+      updates.isAnonymous = newPost.anonymous ? "1" : "0";
+    }
+    
+    const deletedImages = originalPost.images
+      .filter(orig => !newPost.images.some(newImg => newImg.id === orig.id))
+      .map(img => img.id);
+
+    const newImages = newPost.images.filter(img => img.file);
+
+    if (Object.keys(updates).length === 0 && deletedImages.length === 0 && newImages.length === 0) {
+      alert("No changes made to the post.");
+      return;
+    }
+    console.log("Updating post with changes:", updates, "Deleted Images:", deletedImages, "New Images:", newImages);
 
     const formData = new FormData();
-    formData.append("postType", newPost.type);
-    formData.append("description", newPost.desc);
-    formData.append("contact", newPost.contact);
-    formData.append("email", newPost.email);
-    formData.append("isAnonymous", newPost.anonymous ? "1" : "0");
-
-    newPost.images.forEach((img) => {
-      if (img.file) {
-        formData.append("image", img.file);
-      }
+    Object.entries(updates).forEach(([key, value]) => { 
+      formData.append(key, value);
     });
+    deletedImages.forEach(id => formData.append("deletedImages[]", id));
+    newImages.forEach(img => formData.append("image", img.file));
 
-    api
-      .post("/forum", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((res) => {
-        const createdPost = res.data;
-        console.log("✅ Post created:", createdPost);
-        
-        fetchPosts();
-        setShowCreateModal(false);
-        setNewPost({ ...emptyPostTemplate, user: newPost.user });
-        setInputKey(Date.now());
-      })
-      .catch((err) => {
-        const message =
-          err.response?.data?.message || "❌ Error creating post.";
-        console.error(message);
-        alert(message);
-      });
+    api.put(`/forum/${newPost.id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .then((res) => {
+      const updatedPost = res.data;
+      console.log("✅ Post updated:", updatedPost);
+
+      fetchPosts();
+      setShowCreateModal(false);
+      setNewPost({ ...emptyPostTemplate, user: newPost.user });
+      setOriginalPost(null);
+      setInputKey(Date.now());
+
+      setSuccessMessage("✅ Post updated successfully!");
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage("");
+      }, 3000);
+    })
+    .catch((err) => {
+      const message =
+        err.response?.data?.message || "❌ Error updating post.";
+      console.error(message);
+      alert(message);
+    });
   };
 
   const handleEditPost = (post) => {
     const clone = JSON.parse(JSON.stringify(post));
     setNewPost(clone);
+    setOriginalPost(clone);
     setInputKey(Date.now());
     setShowCreateModal(true);
   };
 
-  const handleMarkAsFound = (postId) => {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === postId ? { ...p, type: "Found" } : p))
-    );
-    setShowViewModal(false);
+  const handleMarkAsFound = async (postId) => {
+    try {
+      await api.put(`/forum/${postId}`, { postType: "Found" });
+      fetchPosts();
+      setShowViewModal(false);
 
-    setSuccessMessage("Post has been marked as found.");
-    setShowSuccess(true);
+      setSuccessMessage("✅ Post marked as Found!");
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err) {
+      const message = err.response?.data?.message || " Error updating post.";
+      console.error(message);
+      alert(message);
+    }
+  };
 
-    setTimeout(() => {
-      setShowSuccess(false);
-      setSuccessMessage("");
-    }, 3000);
+  const handleDeletePost = async () => {
+    try {
+      await api.delete(`/forum/${postToDelete}`);
+      fetchPosts();
+
+      setSuccessMessage("🗑️ Post deleted successfully!");
+      setShowSuccess(true);
+
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err) {
+      const message = err.response?.data?.message || "❌ Error deleting post.";
+      console.error(message);
+      alert(message);
+    }
   };
 
   const accID = localStorage.getItem("userId");
-  console.log("Logged in user accID:", accID);
-  console.log("All posts accountIDs:", posts.map(p => p.accID));
   const userPosts = posts.filter((p) => p.accID == accID);
 
   const closeLightbox = () => {
@@ -665,16 +783,8 @@ function Forum() {
 
               <button
                 onClick={() => {
-                  setPosts((prev) => prev.filter((p) => p.id !== postToDelete));
+                  handleDeletePost();
                   setShowDeleteConfirm(false);
-
-                  setSuccessMessage("🗑️ Post deleted successfully!");
-                  setShowSuccess(true);
-
-                  setTimeout(() => {
-                    setShowSuccess(false);
-                    setSuccessMessage("");
-                  }, 3000);
                 }}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold transition-all"
               >
