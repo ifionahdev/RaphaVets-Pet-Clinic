@@ -6,6 +6,7 @@ import forumRoutes from "./routes/forumRoutes.js";
 import userRoute from "./routes/userRoute.js"; 
 import appointmentRoute from "./routes/appointmentRoute.js";
 import petRoute from "./routes/petRoute.js";
+import clientRoute from "./routes/admin_routes/ownerAndPetRoute.js"
 const app = express();
 
 app.use(cors());
@@ -25,6 +26,10 @@ app.use("/api/pets", petRoute);
 
 // Serve uploaded pet images
 app.use("/uploads", express.static("uploads"));
+
+//ADMIN SIDE
+
+app.use("/api", clientRoute);
 
 
 // Test route to verify server

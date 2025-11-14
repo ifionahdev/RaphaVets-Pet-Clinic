@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 12, 2025 at 12:59 PM
+-- Generation Time: Nov 14, 2025 at 12:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,9 +47,9 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`) VALUES
-(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '0000-00-00 00:00:00', '2025-11-12 13:35:10', '2025-11-09 12:21:30', '2025-11-12 13:35:10', '2025-11-09 19:26:09', 0),
+(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-14 19:01:16', '2025-11-09 12:21:30', '2025-11-14 18:26:28', '2025-11-09 19:26:09', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-12 19:03:08', '2025-11-09 12:21:30', '2025-11-12 19:03:08', '2025-11-09 12:20:21', 0);
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-14 18:34:33', '2025-11-09 12:21:30', '2025-11-14 18:34:33', '2025-11-09 12:20:21', 0);
 
 -- --------------------------------------------------------
 
@@ -138,6 +138,8 @@ INSERT INTO `breed_tbl` (`breedID`, `breedName`, `species`) VALUES
 CREATE TABLE `clientinfo_tbl` (
   `cliendInfoId` int(11) NOT NULL,
   `accId` int(11) NOT NULL,
+  `gender` enum('Male','Female') NOT NULL,
+  `dateOfBIrth` date NOT NULL,
   `address` varchar(250) NOT NULL,
   `contactNo` varchar(13) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -146,8 +148,8 @@ CREATE TABLE `clientinfo_tbl` (
 -- Dumping data for table `clientinfo_tbl`
 --
 
-INSERT INTO `clientinfo_tbl` (`cliendInfoId`, `accId`, `address`, `contactNo`) VALUES
-(1, 2, '141-I 16th Avenue East Rembo', '321452142');
+INSERT INTO `clientinfo_tbl` (`cliendInfoId`, `accId`, `gender`, `dateOfBIrth`, `address`, `contactNo`) VALUES
+(1, 2, 'Male', '2004-09-29', '141-I 16th Avenue East Rembo', '321452142');
 
 -- --------------------------------------------------------
 
@@ -252,6 +254,8 @@ CREATE TABLE `pet_tbl` (
   `breedID` int(11) NOT NULL,
   `dateOfBirth` date NOT NULL,
   `weight_kg` decimal(5,2) NOT NULL,
+  `color` varchar(250) NOT NULL,
+  `note` varchar(250) DEFAULT NULL,
   `imageName` varchar(255) NOT NULL,
   `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
   `lastUpdatedAt` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -262,9 +266,9 @@ CREATE TABLE `pet_tbl` (
 -- Dumping data for table `pet_tbl`
 --
 
-INSERT INTO `pet_tbl` (`petID`, `accID`, `petName`, `petGender`, `breedID`, `dateOfBirth`, `weight_kg`, `imageName`, `createdAt`, `lastUpdatedAt`, `isDeleted`) VALUES
-(1, 2, 'Mark', 'Male', 1, '2025-11-04', 14.00, 'dsad', '2025-11-09 15:58:25', '2025-11-11 15:22:28', 0),
-(2, 2, 'gaga', 'Male', 1, '2025-11-04', 13.00, 'petImage-1762919509884-349785887.png', '2025-11-09 18:22:51', '2025-11-12 11:51:49', 0);
+INSERT INTO `pet_tbl` (`petID`, `accID`, `petName`, `petGender`, `breedID`, `dateOfBirth`, `weight_kg`, `color`, `note`, `imageName`, `createdAt`, `lastUpdatedAt`, `isDeleted`) VALUES
+(1, 2, 'Mark', 'Male', 1, '2025-11-04', 14.00, 'white', 'hi', 'petImage-1762919509884-349785887.png\r\n', '2025-11-09 15:58:25', '2025-11-14 19:32:42', 0),
+(2, 2, 'gaga', 'Male', 1, '2025-11-04', 13.00, 'black', NULL, 'petImage-1762919509884-349785887.png', '2025-11-09 18:22:51', '2025-11-14 19:17:22', 0);
 
 -- --------------------------------------------------------
 

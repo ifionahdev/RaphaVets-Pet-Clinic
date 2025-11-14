@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import api from "../../api/axios"; 
 import { PlusCircle, Edit2, Trash2 } from "lucide-react";
 import Header from "../template/Header";
 import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
@@ -50,6 +51,75 @@ const PetPatientManagement = () => {
     { id: 2, petName: "Tan tan", owner: "Miguel Rojero", type: "Medical History", uploadedOn: "2025-09-25", fileName: "matrix-operation.pdf" },
     { id: 3, petName: "Ming", owner: "Jordan Frando", type: "Lab Record", uploadedOn: "2025-09-28", fileName: "xray.pdf" },
   ]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric"
+    });
+  };
+  
+  const calculateAge = (dob) => {
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return `${age} yrs`;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get("/owners-with-pets");
+        const data = res.data;
+
+        setPetOwners(
+          data.map(o => ({
+            id: o.accId,
+            name: o.name,
+            gender: o.gender,
+            dateOfBirth: formatDate(o.dateOfBirth),
+            email: o.email,
+            phone: o.contactNo,
+            address: o.address,
+            createdAt: formatDate(o.createdAt),
+            pets: o.pets
+          }))
+        );
+
+        setPets(
+          data.flatMap(owner =>
+            (owner.pets || []).map(p => ({
+              id: p.petID,
+              name: p.petName,
+              type: p.species,
+              gender: p.petGender,
+              breed: p.breedName,
+              age: calculateAge(p.dateOfBirth),
+              petDateOfBirth: formatDate(p.dateOfBirth),
+              weight: p.weight_kg + " kg",
+              color: p.color,
+              note: p.note,
+              owner: owner.name,
+              image: p.imageName 
+                ? `http://localhost:5000/api/pets/images/${p.imageName}`
+                : "/images/sad-dog.png"
+            }))
+          )
+        );
+
+
+      } catch (error) {
+        console.error("Fetch owners failed:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   const handleEditRecord = (record) => {
     setEditingItem({ ...record, type: "record" });
@@ -359,19 +429,23 @@ const PetPatientManagement = () => {
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Address</span>
-                  <span className="text-gray-800 dark:text-gray-200">123 Main St, City</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedOwner.address}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Sex</span>
-                  <span className="text-gray-800 dark:text-gray-200">Male</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedOwner.gender}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Date of Birth</span>
-                  <span className="text-gray-800 dark:text-gray-200">Jan 1, 1990</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedOwner.dateOfBirth}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Pets</span>
-                  <span className="text-gray-800 dark:text-gray-200">Vanerie, Mark</span>
+                  <span className="text-gray-800 dark:text-gray-200">
+                    {selectedOwner?.pets?.length
+                      ? selectedOwner.pets.map(p => p.petName).join(", ")
+                      : "No pets"}
+                  </span>
                 </div>
                 <div className="flex justify-between pt-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Account Created</span>
@@ -386,7 +460,7 @@ const PetPatientManagement = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <img
-                  src="/images/sad-dog.png"
+                  src={selectedPet.image || "/images/sad-dog.png"}
                   alt={selectedPet.name}
                   className="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
                 />
@@ -403,31 +477,31 @@ const PetPatientManagement = () => {
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Breed</span>
-                  <span className="text-gray-800 dark:text-gray-200">Labrador</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.breed}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Age</span>
-                  <span className="text-gray-800 dark:text-gray-200">1 year</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.age}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Sex</span>
-                  <span className="text-gray-800 dark:text-gray-200">Female</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.gender}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Weight</span>
-                  <span className="text-gray-800 dark:text-gray-200">12 kg</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.weight}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Color</span>
-                  <span className="text-gray-800 dark:text-gray-200">Golden</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.color}</span>
                 </div>
                 <div className="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Date of Birth</span>
-                  <span className="text-gray-800 dark:text-gray-200">Mar 3, 2021</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.petDateOfBirth}</span>
                 </div>
                 <div className="flex justify-between pt-1">
                   <span className="font-medium text-gray-600 dark:text-gray-400">Notes</span>
-                  <span className="text-gray-800 dark:text-gray-200">Allergy to teokbokki</span>
+                  <span className="text-gray-800 dark:text-gray-200">{selectedPet.note}</span>
                 </div>
               </div>
             </div>

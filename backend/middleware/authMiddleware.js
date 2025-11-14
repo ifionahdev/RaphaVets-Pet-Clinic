@@ -23,8 +23,14 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id }; // Set user object with id
-    console.log("✅ Token verified for user:", decoded.id);
+
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,     // NEW (does not break old controllers)
+      email: decoded.email,   // optional but useful
+    };
+
+    console.log("✅ Token verified for user:", req.user);
     next();
   } catch (error) {
     console.error("❌ Token verification failed:", error);
@@ -43,3 +49,4 @@ export const verifyToken = (req, res, next) => {
     });
   }
 };
+
