@@ -327,14 +327,14 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                         />
                       </div>
                       <div className="space-y-1.5">
-  <label className="text-xs font-medium text-gray-700">Date of Birth</label>
-  <input 
-    type="date" 
-    value={petData.dob} 
-    onChange={(e) => handlePetChange("dob", e.target.value)}
-    className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-  />
-</div>
+                        <label className="text-xs font-medium text-gray-700">Date of Birth</label>
+                        <input 
+                          type="date" 
+                          value={petData.dob} 
+                          onChange={(e) => handlePetChange("dob", e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
                     
                     <div className="space-y-1.5">
