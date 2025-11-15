@@ -22,6 +22,8 @@ function Forum() {
   const [showFoundConfirm, setShowFoundConfirm] = useState(false);
   const [postToMarkFound, setPostToMarkFound] = useState(null);
   const [originalPost, setOriginalPost] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const emptyPostTemplate = {
     user: "You",
@@ -99,19 +101,14 @@ function Forum() {
 
   const fetchPosts = async () => {
     try {
-      const res = await api.get("/forum"); // adjust the endpoint
+      const res = await api.get("/forum");
       const data = res.data.posts;
-
       setPosts(data);
-      const message =
-        res.data.message || "✅ Forum posts fetched successfully.";
+      const message = res.data.message || "✅ Forum posts fetched successfully.";
       console.log(message);
-      alert(message);
     } catch (err) {
-      const message =
-        err.response?.data?.message || "❌ Error fetching forum posts.";
+      const message = err.response?.data?.message || "❌ Error fetching forum posts.";
       console.error(message);
-      alert(message);
     }
   };
 
@@ -157,6 +154,8 @@ function Forum() {
         url: URL.createObjectURL(f),
         name: f.name || "image",
         file: f,
+        // Only add removed property when editing
+        ...(prev.id && { removed: false })
       }));
 
       return { ...prev, images: [...(prev.images || []), ...created] };
@@ -168,42 +167,31 @@ function Forum() {
 
   const removeImageFromEditing = (imgId) => {
     setNewPost((prev) => {
-      const newImages = [];
-      const toRevoke = [];
-      
-      prev.images.forEach((i) => {
-        if (i.id === imgId) {
-          if (i.id.startsWith("img-") && i.url){
-            URL.revokeObjectURL(i.url);
-          } else {
-            //removedImages.push(i.id);
-          }
-        } else {
-          newImages.push(i);
-        }
-      });
+      const updatedImages = prev.images.map(img => 
+        img.id === imgId 
+          ? { ...img, removed: true } 
+          : img
+      );
+      return { ...prev, images: updatedImages };
+    });
+  };
 
-      const updatedDeletedImages = [...(prev.deletedImages || []), ...toRevoke];
-
-      return {
-        ...prev,
-        images: newImages,
-        deletedImages: updatedDeletedImages,
-      };
-      /*
-      images: prev.images.filter((i) => {
-        if (i.id === imgId && i.id.startsWith("img-"))
-          URL.revokeObjectURL(i.url);
-        return i.id !== imgId;
-      }),
-      */
+  const undoRemoveImage = (imgId) => {
+    setNewPost((prev) => {
+      const updatedImages = prev.images.map(img => 
+        img.id === imgId 
+          ? { ...img, removed: false } 
+          : img
+      );
+      return { ...prev, images: updatedImages };
     });
   };
 
   const handleCreateOrUpdatePost = () => {
     if (!newPost.desc.trim()){
-      alert("❌ Description is required.");
-      return; {/* No UI feedback for empty description */}
+      setErrorMessage("❌ Description is required.");
+      setShowErrorModal(true);
+      return;
     }
 
     // Create new post
@@ -227,14 +215,14 @@ function Forum() {
         })
         .then((res) => {
           const createdPost = res.data;
-          console.log("✅ Post created:", createdPost);
+          console.log("Post created:", createdPost);
 
           fetchPosts();
           setShowCreateModal(false);
           setNewPost({ ...emptyPostTemplate, user: newPost.user });
           setInputKey(Date.now());
 
-          setSuccessMessage("✅ Post created successfully!");
+          setSuccessMessage("Post created successfully!");
           setShowSuccess(true);
           setTimeout(() => {
             setShowSuccess(false);
@@ -242,10 +230,10 @@ function Forum() {
           }, 3000);
         })
         .catch((err) => {
-          const message =
-            err.response?.data?.message || "❌ Error creating post.";
+          const message = err.response?.data?.message || "❌ Error creating post.";
           console.error(message);
-          alert(message);
+          setErrorMessage(message);
+          setShowErrorModal(true);
         });
       return;
     }
@@ -260,16 +248,16 @@ function Forum() {
     }
     
     const deletedImages = originalPost.images
-      .filter(orig => !newPost.images.some(newImg => newImg.id === orig.id))
+      .filter(orig => newPost.images.some(newImg => newImg.id === orig.id && newImg.removed))
       .map(img => img.id);
 
-    const newImages = newPost.images.filter(img => img.file);
+    const newImages = newPost.images.filter(img => img.file && !img.removed);
 
     if (Object.keys(updates).length === 0 && deletedImages.length === 0 && newImages.length === 0) {
-      alert("No changes made to the post.");
+      setErrorMessage("No changes made to the post.");
+      setShowErrorModal(true);
       return;
     }
-    console.log("Updating post with changes:", updates, "Deleted Images:", deletedImages, "New Images:", newImages);
 
     const formData = new FormData();
     Object.entries(updates).forEach(([key, value]) => { 
@@ -283,7 +271,7 @@ function Forum() {
     })
     .then((res) => {
       const updatedPost = res.data;
-      console.log("✅ Post updated:", updatedPost);
+      console.log("Post updated:", updatedPost);
 
       fetchPosts();
       setShowCreateModal(false);
@@ -291,7 +279,7 @@ function Forum() {
       setOriginalPost(null);
       setInputKey(Date.now());
 
-      setSuccessMessage("✅ Post updated successfully!");
+      setSuccessMessage("Post updated successfully!");
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -299,15 +287,22 @@ function Forum() {
       }, 3000);
     })
     .catch((err) => {
-      const message =
-        err.response?.data?.message || "❌ Error updating post.";
+      const message = err.response?.data?.message || "❌ Error updating post.";
       console.error(message);
-      alert(message);
+      setErrorMessage(message);
+      setShowErrorModal(true);
     });
   };
 
   const handleEditPost = (post) => {
     const clone = JSON.parse(JSON.stringify(post));
+    if (clone.images) {
+      clone.images = clone.images.map(img => ({
+        ...img,
+        id: img.id || genId("img-"), 
+        removed: false 
+      }));
+    }
     setNewPost(clone);
     setOriginalPost(clone);
     setInputKey(Date.now());
@@ -320,7 +315,7 @@ function Forum() {
       fetchPosts();
       setShowViewModal(false);
 
-      setSuccessMessage("✅ Post marked as Found!");
+      setSuccessMessage("Post marked as Found!");
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -329,7 +324,8 @@ function Forum() {
     } catch (err) {
       const message = err.response?.data?.message || " Error updating post.";
       console.error(message);
-      alert(message);
+      setErrorMessage(message);
+      setShowErrorModal(true);
     }
   };
 
@@ -338,7 +334,7 @@ function Forum() {
       await api.delete(`/forum/${postToDelete}`);
       fetchPosts();
 
-      setSuccessMessage("🗑️ Post deleted successfully!");
+      setSuccessMessage("Post deleted successfully!");
       setShowSuccess(true);
 
       setTimeout(() => {
@@ -348,7 +344,8 @@ function Forum() {
     } catch (err) {
       const message = err.response?.data?.message || "❌ Error deleting post.";
       console.error(message);
-      alert(message);
+      setErrorMessage(message);
+      setShowErrorModal(true);
     }
   };
 
@@ -677,34 +674,73 @@ function Forum() {
                     Images (up to 5)
                   </h4>
                   <span className="text-xs text-gray-500">
-                    {newPost.images.length}/5
+                    {newPost.images.filter(img => !img.removed).length}/5
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  {newPost.images.map((img) => (
-                    <div key={img.id} className="relative w-full aspect-square">
+                  {newPost.images.map((img, index) => (
+                    <div 
+                      key={`${img.id}-${index}`}
+                      className={`relative w-full aspect-square transition-all duration-300 ${
+                        newPost.id && img.removed ? 'opacity-50 grayscale' : ''
+                      }`}
+                    >
                       <img
-                        src={img.url || img}
+                        src={img.url}
                         alt={img.name || "preview"}
                         className="w-full h-full object-cover rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90"
                         onClick={() =>
                           setLightbox({
                             open: true,
-                            src: img.url || img,
+                            src: img.url,
                             alt: img.name || "preview",
                           })
                         }
                       />
-                      <button
-                        onClick={() => removeImageFromEditing(img.id)}
-                        className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                      >
-                        ×
-                      </button>
+                      
+                      {newPost.id ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (img.removed) {
+                              undoRemoveImage(img.id);
+                            } else {
+                              removeImageFromEditing(img.id);
+                            }
+                          }}
+                          className={`absolute top-1 right-1 rounded-full w-5 h-5 text-xs flex items-center justify-center transition-all ${
+                            img.removed 
+                              ? 'bg-green-500 text-white hover:bg-green-600' 
+                              : 'bg-black/50 text-white hover:bg-black/70'
+                          }`}
+                        >
+                          {img.removed ? '↶' : '×'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setNewPost(prev => ({
+                              ...prev,
+                              images: prev.images.filter(image => image.id !== img.id)
+                            }));
+                          }}
+                          className="absolute top-1 right-1 rounded-full w-5 h-5 text-xs flex items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-all"
+                        >
+                          ×
+                        </button>
+                      )}
+                      
+                      {newPost.id && img.removed && (
+                        <div className="absolute inset-0 bg-red-100/20 border-2 border-red-300 rounded-lg flex items-center justify-center">
+                          <span className="text-red-500 text-xs font-medium">Removed</span>
+                        </div>
+                      )}
                     </div>
                   ))}
-                  {newPost.images.length < 5 && (
+                  
+                  {newPost.images.filter(img => !img.removed).length < 5 && (
                     <div className="relative w-full aspect-square">
                       <label
                         htmlFor="multiImageInput"
@@ -726,6 +762,28 @@ function Forum() {
                     </div>
                   )}
                 </div>
+
+                {newPost.id && newPost.images.filter(img => img.removed).length > 0 && (
+                  <div className="flex items-center justify-between mt-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <span className="text-xs text-yellow-700">
+                      {newPost.images.filter(img => img.removed).length} image(s) removed
+                    </span>
+                    <button
+                      onClick={() => {
+                        setNewPost(prev => ({
+                          ...prev,
+                          images: prev.images.map(img => ({
+                            ...img,
+                            removed: false
+                          }))
+                        }));
+                      }}
+                      className="text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
+                    >
+                      Restore All
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -834,6 +892,36 @@ function Forum() {
                 className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-semibold transition-all"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4"
+          onClick={() => setShowErrorModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-popUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Error
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-6">
+              {errorMessage}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold transition-all"
+              >
+                OK
               </button>
             </div>
           </div>

@@ -645,7 +645,7 @@ const AddAppointment = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date *</label>
                           <input
-                            type="month"
+                            type="date"
                             value={newPet.birthDate}
                             onChange={(e) => setNewPet(prev => ({ ...prev, birthDate: e.target.value }))}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
