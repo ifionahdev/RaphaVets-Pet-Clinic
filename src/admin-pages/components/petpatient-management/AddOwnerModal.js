@@ -86,6 +86,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
         });
         setStep("form");
         setGeneratedCredentials(null);
+        setCopiedField(null);
         setErrors({});
         setApiError("");
       }
@@ -541,7 +542,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                             <input
                               type="radio"
                               name="pet-sex"
-                              name="petSex"
                               value="Male"
                               checked={petData.sex === "Male"}
                               onChange={(e) => handlePetChange("sex", e.target.value)}
@@ -601,14 +601,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                           type="date" 
                           value={petData.dob} 
                           onChange={(e) => handlePetChange("dob", e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        />
-                      </div>
-                        <label className="text-xs font-medium text-gray-700">Date of Birth</label>
-                        <input 
-                          type="date" 
-                          value={petData.dob} 
-                          onChange={(e) => handlePetChange("dob", e.target.value)}
                           className={`w-full px-2.5 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                             errors.petDob ? 'border-red-300' : 'border-gray-300'
                           }`}
@@ -638,7 +630,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
             </div>
           )}
 
-                    {step === "review" && (
+          {step === "review" && (
             <div className="h-full flex flex-col">
               <div className="text-center mb-2">
                 <h3 className="text-md font-semibold text-gray-800">Review Information</h3>
