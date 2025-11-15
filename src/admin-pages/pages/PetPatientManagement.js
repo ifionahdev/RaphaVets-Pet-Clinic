@@ -200,7 +200,7 @@ const PetPatientManagement = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#FBFBFB] dark:bg-[#101010] p-4 gap-4 relative">
-      <Header title="Pet & Patient Management" />
+      <Header title="Customer & Pet Management" />
 
       {/* Toasts */}
       {successMessage && (

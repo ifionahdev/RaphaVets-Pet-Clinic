@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { format, isSameDay, parseISO, addMonths, subMonths } from "date-fns";
 import Header from "../template/Header";
-import { PlusCircle, Edit2, Trash2, Eye, Search } from "lucide-react";
+import { PlusCircle, Edit2, Trash2, Eye, Search, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import AppointmentRequestModal from "../components/appointments/AppointmentRequestModal";
 import AppointmentDetailsModal from "../components/appointments/AppointmentDetailsModal";
@@ -53,10 +54,11 @@ const Appointments = () => {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const navigate = useNavigate();
 
   const filteredAppointments = appointments.filter(app => {
-    if (activeTab === "Appointment List" && app.status === "Pending") return false;
-    if (activeTab === "Appointment List" && statusFilter !== "All" && app.status !== statusFilter)
+    if (activeTab === "Appointments" && app.status === "Pending") return false;
+    if (activeTab === "Appointments" && statusFilter !== "All" && app.status !== statusFilter)
       return false;
     return (
       app.petName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -229,12 +231,12 @@ const Appointments = () => {
   const dayAppointments = appointments.filter(a => isSameDay(parseISO(a.date), selectedDate));
 
   return (
-    <div className="flex flex-col h-screen bg-[#FBFBFB] p-6 gap-2 font-sans">
-      <Header title="Appointments" />
+    <div className="flex flex-col h-screen bg-[#FBFBFB] p-6 font-sans">
+      <Header title="Appointments & Visits" />
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-2 relative">
-        {["Calendar", "Appointment List", "Requests"].map(tab => (
+        {["Calendar", "Visits", "Appointments", "Requests"].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -385,7 +387,7 @@ const Appointments = () => {
         </div>
       )}
 
-      {activeTab === "Appointment List" && (
+      {activeTab === "Appointments" && (
         <div className="mt-">
           {/* Search & Filter with New Select Controls */}
           <div className="flex gap-2 mb-4 flex-wrap items-center justify-between">
@@ -414,6 +416,13 @@ const Appointments = () => {
                 <option value="Completed">Completed</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
+              <button
+                onClick={() => navigate("/admin-pages/appointments/add")}
+                className="flex flex-row gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-3xl hover:bg-[#4AD4EC] transition"
+              >
+                <Plus size={18} />
+                Appointment
+              </button>
             </div>
 
             {/* Selection Controls */}

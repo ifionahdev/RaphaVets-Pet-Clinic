@@ -9,9 +9,9 @@ const Sidebar = () => {
 
   const menuItems = [
     { name: "Dashboard", icon: <Home size={18} />, path: "/admin-pages/dashboard" },
-    { name: "Diagnostic Tool", icon: <Brain size={18} />, path: "/admin-pages/tools" },
-    { name: "Client & Pet Management", icon: <Users size={18} />, path: "/admin-pages/pet-management" },
-    { name: "Appointments", icon: <Calendar size={18} />, path: "/admin-pages/appointments" },
+    // { name: "Diagnostic Tool", icon: <Brain size={18} />, path: "/admin-pages/tools" },
+    { name: "Customer & Pet Management", icon: <Users size={18} />, path: "/admin-pages/pet-management" },
+    { name: "Appointments & Visits", icon: <Calendar size={18} />, path: "/admin-pages/appointments" },
     { name: "Content Management", icon: <Edit size={18} />, path: "/admin-pages/content-manager" },
     { name: "Reports", icon: <FileBarChart size={18} />, path: "/admin-pages/reports" },
     { name: "Admin Settings", icon: <Settings size={18} />, path: "/admin-pages/settings" },
