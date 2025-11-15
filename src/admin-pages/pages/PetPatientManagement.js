@@ -70,6 +70,51 @@ const PetPatientManagement = () => {
     return `${age} yrs`;
   };
 
+  const fetchOwnersAndPets = async () => {
+    try {
+      const res = await api.get("/owners-with-pets");
+      const data = res.data;
+
+      setPetOwners(
+        data.map(o => ({
+          id: o.accId,
+          name: o.name,
+          gender: o.gender,
+          dateOfBirth: formatDate(o.dateOfBirth),
+          email: o.email,
+          phone: o.contactNo,
+          address: o.address,
+          createdAt: formatDate(o.createdAt),
+          pets: o.pets
+        }))
+      );
+
+      setPets(
+        data.flatMap(owner =>
+          (owner.pets || []).map(p => ({
+            id: p.petID,
+            name: p.petName,
+            type: p.species,
+            gender: p.petGender,
+            breed: p.breedName,
+            age: calculateAge(p.dateOfBirth),
+            petDateOfBirth: formatDate(p.dateOfBirth),
+            weight: p.weight_kg + " kg",
+            color: p.color,
+            note: p.note,
+            owner: owner.name,
+            image: p.imageName ? `http://localhost:5000/api/pets/images/${p.imageName}` : "/images/sad-dog.png"
+          }))
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+
+  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -132,11 +177,13 @@ const PetPatientManagement = () => {
   };
 
   const filteredOwners = petOwners.filter(o =>
-    o.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const filteredPets = pets.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  o.name?.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
+const filteredPets = pets.filter(p =>
+  p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
 
   const handleDelete = (id, type) => {
     try {
@@ -182,21 +229,23 @@ const PetPatientManagement = () => {
     }
   };
 
-  const handleSavePet = (newData) => {
+  const handleSavePet = (savedPet) => {
     try {
       if (editingItem) {
-        setPets(prev => prev.map(p => (p.id === editingItem.id ? { ...p, ...newData } : p)));
+        setPets(prev =>
+          prev.map(p => (p.id === editingItem.id ? { ...p, ...savedPet } : p))
+        );
         setEditingItem(null);
         setSuccessMessage("Pet updated successfully!");
       } else {
-        const nextId = pets.length ? Math.max(...pets.map(p => p.id)) + 1 : 1;
-        setPets([...pets, { id: nextId, ...newData }]);
+        setPets(prev => [...prev, savedPet]);
         setSuccessMessage("Pet added successfully!");
       }
     } catch {
       setErrorMessage("Failed to save pet!");
     }
   };
+
 
   return (
     <div className="flex flex-col h-screen bg-[#FBFBFB] dark:bg-[#101010] p-4 gap-4 relative">
@@ -567,6 +616,7 @@ const PetPatientManagement = () => {
         onSave={handleSavePet}
         owners={petOwners}
         initialData={editingItem?.type === "pet" ? editingItem : null}
+        refreshPets={fetchOwnersAndPets}
       />
 
       {/* Delete Confirmation Modal */}

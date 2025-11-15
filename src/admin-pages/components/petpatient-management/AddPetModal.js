@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, Search } from "lucide-react";
+import api from "../../../api/axios"; 
 
-const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
+const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets }) => {
   const [petData, setPetData] = useState({
     ownerId: "",
     type: "",
@@ -15,26 +16,52 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
     notes: "",
   });
 
+  const [speciesOptions, setSpeciesOptions] = useState([]);
+  const [breeds, setBreeds] = useState([]);
   const [ownerSearch, setOwnerSearch] = useState("");
-  const dogBreeds = ["Labrador", "Golden Retriever", "Bulldog", "Poodle", "Beagle"];
-  const catBreeds = ["Persian", "Siamese", "Maine Coon", "Sphynx", "Ragdoll"];
+  //const  = ["Labrador", "Golden Retriever", "Bulldog", "Poodle", "Beagle"];
+  //const  = ["Persian", "Siamese", "Maine Coon", "Sphynx", "Ragdoll"];
 
+   // Fetch species (Type)
   useEffect(() => {
-    if (initialData) {
-      setPetData({
-        ownerId: initialData.ownerId || "",
-        type: initialData.type || "",
-        breed: initialData.breed || "",
-        name: initialData.name || "",
-        age: initialData.age || "",
-        sex: initialData.sex || "",
-        weight: initialData.weight || "",
-        color: initialData.color || "",
-        dob: initialData.dob || "",
-        notes: initialData.notes || "",
-      });
+    const fetchSpecies = async () => {
+      try {
+        const res = await api.get("/species");
+        setSpeciesOptions(res.data); // e.g., ['Canine', 'Feline']
+      } catch (err) {
+        console.error("Failed to fetch species:", err);
+        setSpeciesOptions([]);
+      }
+    };
+    fetchSpecies();
+  }, []);
+
+  // Fetch breeds based on selected type
+  useEffect(() => {
+  const fetchBreeds = async () => {
+    if (!petData.type) return;
+
+    try {
+      const res = await api.get(`/breeds?species=${petData.type}`);
+      // API already returns an array of strings
+      setBreeds(res.data); 
+      console.log("Breed options:", res.data);
+    } catch (error) {
+      console.error("Failed to fetch breeds:", error);
+      setBreeds([]);
     }
+  };
+  fetchBreeds();
+}, [petData.type]);
+
+
+
+
+  // Set initial data if editing
+  useEffect(() => {
+    if (initialData) setPetData({ ...initialData });
   }, [initialData]);
+
 
   const handleChange = (field, value) => {
     const updated = { ...petData, [field]: value };
@@ -42,9 +69,17 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
     setPetData(updated);
   };
 
-  const handleSave = () => {
-    if (!petData.ownerId) return alert("Please select an owner.");
-    onSave({ ...petData });
+  const handleSave = async () => {
+  if (!petData.ownerId) return alert("Please select an owner.");
+
+  try {
+    const res = await api.post("/add-pets", { ...petData });
+    console.log("Pet saved:", res.data);
+
+    // Pass the saved pet data back to parent
+    onSave(res.data);
+
+    // Reset form
     setPetData({
       ownerId: "",
       type: "",
@@ -57,12 +92,18 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
       dob: "",
       notes: "",
     });
+
+    refreshPets();
     onClose();
-  };
+  } catch (err) {
+    console.error("Error saving pet:", err);
+    alert("Failed to save pet.");
+  }
+};
 
   if (!isOpen) return null;
 
-  const breedOptions = petData.type === "Dog" ? dogBreeds : petData.type === "Cat" ? catBreeds : [];
+  const breedOptions = breeds;
   const filteredOwners = owners.filter(
     (o) =>
       o.name.toLowerCase().includes(ownerSearch.toLowerCase()) ||
@@ -127,14 +168,15 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData }) => {
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <label className="block mb-1">Type</label>
-                <select
+                 <select
                   value={petData.type}
-                  onChange={(e) => handleChange("type", e.target.value)}
+                  onChange={e => handleChange("type", e.target.value)}
                   className="w-full p-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#252525] text-gray-800 dark:text-gray-200 focus:border-[#5EE6FE] focus:ring-1 focus:ring-[#5EE6FE] transition"
                 >
                   <option value="">Select Type</option>
-                  <option value="Dog">Dog</option>
-                  <option value="Cat">Cat</option>
+                  {speciesOptions.map((s, i) => (
+                    <option key={i} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
 
