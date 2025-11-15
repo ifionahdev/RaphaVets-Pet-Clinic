@@ -59,7 +59,7 @@ export const getBookedSlots = async (req, res) => {
       `SELECT startTime 
        FROM appointment_tbl 
        WHERE appointmentDate = ? 
-       AND statusID != 3`
+       AND statusID != 3`,
       [date]
     );
 
