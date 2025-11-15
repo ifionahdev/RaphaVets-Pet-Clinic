@@ -224,7 +224,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="radio"
-                              name="sex"
+                              name="owner-sex"
                               value="Male"
                               checked={ownerData.sex === "Male"}
                               onChange={(e) => handleOwnerChange("sex", e.target.value)}
@@ -235,7 +235,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="radio"
-                              name="sex"
+                              name="owner-sex"
                               value="Female"
                               checked={ownerData.sex === "Female"}
                               onChange={(e) => handleOwnerChange("sex", e.target.value)}
@@ -325,7 +325,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="radio"
-                              name="sex"
+                              name="pet-sex"
                               value="Male"
                               checked={petData.sex === "Male"}
                               onChange={(e) => handlePetChange("sex", e.target.value)}
@@ -336,7 +336,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="radio"
-                              name="sex"
+                              name="pet-sex"
                               value="Female"
                               checked={petData.sex === "Female"}
                               onChange={(e) => handlePetChange("sex", e.target.value)}
