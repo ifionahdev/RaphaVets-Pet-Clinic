@@ -546,25 +546,25 @@ const AppointmentsVisits = () => {
 
               {/* Add Button */}
               {activeTab === "Appointments" && (
-    <button
-      onClick={() => navigate("/admin-pages/appointments/add")}
-      className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
-    >
-      <Plus className="h-4 w-4" />
-      Appointment
-    </button>
-  )}
+                <button
+                  onClick={() => navigate("/admin-pages/appointments/add")}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  Appointment
+                </button>
+              )}
 
-  {/* Add Visit Button */}
-  {activeTab === "Visits" && (
-    <button
-      onClick={() => navigate("/admin-pages/visits/add")}
-      className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
-    >
-      <Plus className="h-4 w-4" />
-      Visit
-    </button>
-  )}
+              {/* Add Visit Button */}
+              {activeTab === "Visits" && (
+                <button
+                  onClick={() => navigate("/admin-pages/visits/add")}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  Visit
+                </button>
+              )}
             </div>
 
             {/* Selection Controls */}

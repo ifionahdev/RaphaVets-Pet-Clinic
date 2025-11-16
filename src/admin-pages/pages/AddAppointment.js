@@ -18,6 +18,7 @@ import {
 } from 'date-fns';
 import SuccessToast from "../../template/SuccessToast";
 import api from "../../api/axios";
+import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
 
 // Sample existing users data
 const sampleUsers = [
@@ -75,15 +76,7 @@ const AddAppointment = () => {
   const [timeSlots, setTimeSlots] = useState([]);
   const [bookedSlots, setBookedSlots] = useState([]);
 
-  // New client form state
-  const [newClient, setNewClient] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: ""
-  });
-
-  // New pet form state
+  // New pet form state (keeping this separate since AddOwnerModal handles client + pet creation)
   const [newPet, setNewPet] = useState({
     name: "",
     type: "",
@@ -191,37 +184,79 @@ const AddAppointment = () => {
     setCurrentStep(1);
   };
 
-  const handleNewClientSubmit = () => {
-    if (!newClient.firstName || !newClient.lastName || !newClient.email || !newClient.phone) {
-      alert("Please fill all required fields");
-      return;
-    }
-
+  // Handle new client creation from AddOwnerModal
+  const handleNewClientSave = (ownerData) => {
     // Generate random password
     const generatedPassword = Math.random().toString(36).slice(-8);
     
-    // Create new user
+    // Create new user from the modal data
     const newUser = {
       id: sampleUsers.length + 1,
-      ...newClient,
-      name: `${newClient.firstName} ${newClient.lastName}`,
+      firstName: ownerData.firstName,
+      lastName: ownerData.lastName,
+      email: ownerData.email,
+      phone: ownerData.phone,
+      name: `${ownerData.firstName} ${ownerData.lastName}`,
       password: generatedPassword,
     };
 
+    // Create new pet from the modal data (if provided)
+    let newPetData = null;
+    if (ownerData.pets && ownerData.pets.length > 0) {
+      const pet = ownerData.pets[0];
+      newPetData = {
+        id: samplePets.length + 1,
+        userId: newUser.id,
+        name: pet.name,
+        type: pet.type,
+        breed: pet.breed,
+        sex: pet.sex,
+        weight: pet.weight,
+        color: pet.color,
+        birthDate: pet.dob,
+        notes: pet.notes,
+        age: pet.dob ? calculateAge(pet.dob) : "Unknown"
+      };
+    }
+
     // In real app, you would send this to backend
     console.log("New client created:", newUser);
-    console.log("Password sent to:", newUser.phone, "and", newUser.email);
+    if (newPetData) {
+      console.log("New pet created:", newPetData);
+    }
 
-    setAppointmentData(prev => ({ ...prev, user: newUser }));
+    setAppointmentData(prev => ({ 
+      ...prev, 
+      user: newUser,
+      pet: newPetData 
+    }));
     setSelectedClientId(newUser.id);
     setShowNewClientForm(false);
-    setNewClient({ firstName: "", lastName: "", email: "", phone: "" });
-    setCurrentStep(1);
+    
+    // If pet was created, go to service selection, otherwise go to pet selection
+    if (newPetData) {
+      setCurrentStep(2); // Go to service selection
+    } else {
+      setCurrentStep(1); // Go to pet selection
+    }
     
     setToast({ 
       type: "success", 
       message: `New client created! Password sent to ${newUser.phone} and ${newUser.email}` 
     });
+  };
+
+  // Helper function to calculate age from birth date
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age.toString();
   };
 
   const handlePetSelect = (pet) => {
@@ -415,86 +450,13 @@ const AddAppointment = () => {
               )}
             </div>
 
-            {/* New Client Form Modal */}
-            {showNewClientForm && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl">
-                  <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-800">Add New Client</h3>
-                  </div>
-                  
-                  <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          First Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={newClient.firstName}
-                          onChange={(e) => setNewClient(prev => ({ ...prev, firstName: e.target.value }))}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
-                          placeholder="First name"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Last Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={newClient.lastName}
-                          onChange={(e) => setNewClient(prev => ({ ...prev, lastName: e.target.value }))}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
-                          placeholder="Last name"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email *
-                      </label>
-                      <input
-                        type="email"
-                        value={newClient.email}
-                        onChange={(e) => setNewClient(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        value={newClient.phone}
-                        onChange={(e) => setNewClient(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
-                    <button
-                      onClick={() => setShowNewClientForm(false)}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition font-medium"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleNewClientSubmit}
-                      className="px-6 py-2 bg-[#5EE6FE] text-white rounded-lg hover:bg-[#4AD4EC] transition font-medium"
-                    >
-                      Create Client
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Reuse AddOwnerModal Component */}
+            <AddOwnerModal
+              isOpen={showNewClientForm}
+              onClose={() => setShowNewClientForm(false)}
+              onSave={handleNewClientSave}
+              initialData={null} // No initial data for new client
+            />
           </div>
         )}
 
@@ -532,7 +494,7 @@ const AddAppointment = () => {
               Add New Pet
             </button>
 
-            {/* New Pet Form Modal */}
+            {/* New Pet Form Modal - Keeping this separate since it's for adding pets to existing clients */}
             {showNewPetForm && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
                 <div className="w-full max-w-md bg-white rounded-xl shadow-2xl">
@@ -825,19 +787,6 @@ const AddAppointment = () => {
                     })
                   )}
                 </div>
-
-                {/* <div className="flex gap-3">
-                  <input
-                    type="date"
-                    value={appointmentData.date}
-                    onChange={(e) => setAppointmentData(prev => ({ 
-                      ...prev, 
-                      date: e.target.value,
-                      time: "" 
-                    }))}
-                    className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
-                  />
-                </div> */}
               </div>
 
               {/* Time Slots Section */}
