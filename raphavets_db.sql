@@ -50,6 +50,7 @@ INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, 
 (2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-16 21:55:39', '2025-11-09 12:21:30', '2025-11-16 21:55:39', '2025-11-09 19:26:09', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
 (5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-16 16:12:58', '2025-11-09 12:21:30', '2025-11-16 16:12:58', '2025-11-09 12:20:21', 0),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-16 16:12:58', '2025-11-09 12:21:30', '2025-11-16 16:12:58', '2025-11-09 12:20:21', 0),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 0),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1),
 (9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0),
@@ -284,6 +285,8 @@ INSERT INTO `pet_tbl` (`petID`, `accID`, `petName`, `petGender`, `breedID`, `dat
 (55, 14, 'MOSHI', 'Male', 2, '2025-11-03', 0.00, NULL, 'mamamama', '', '2025-11-16 14:17:14', '2025-11-16 14:17:44', 0),
 (56, 2, 'Marcy', 'Male', 1, '2025-11-13', NULL, NULL, NULL, '', '2025-11-16 15:08:17', '2025-11-16 15:08:17', 0),
 (57, 2, 'BEBE', 'Female', 1, '2025-11-05', 1.00, 'black', NULL, '', '2025-11-16 16:38:51', '2025-11-16 16:38:51', 0);
+(56, 2, 'Marcy', 'Male', 1, '2025-11-13', NULL, NULL, NULL, '', '2025-11-16 15:08:17', '2025-11-16 15:08:17', 0),
+(57, 2, 'BEBE', 'Female', 1, '2025-11-05', 1.00, 'black', NULL, '', '2025-11-16 16:38:51', '2025-11-16 16:38:51', 0);
 
 -- --------------------------------------------------------
 
@@ -453,6 +456,7 @@ CREATE TABLE `vet_table` (
 ALTER TABLE `account_tbl`
   ADD PRIMARY KEY (`accId`),
   ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `email` (`email`),
   ADD KEY `roleID_account_fk` (`roleID`);
 
 --
@@ -568,6 +572,7 @@ ALTER TABLE `vet_table`
 --
 ALTER TABLE `account_tbl`
   MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `allergen_tbl`
@@ -598,6 +603,7 @@ ALTER TABLE `breed_tbl`
 --
 ALTER TABLE `clientinfo_tbl`
   MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `forum_images_tbl`
@@ -615,6 +621,7 @@ ALTER TABLE `forum_posts_tbl`
 -- AUTO_INCREMENT for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
+  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
   MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
