@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 14, 2025 at 12:42 PM
+-- Generation Time: Nov 16, 2025 at 07:55 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,9 +47,14 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`) VALUES
-(2, 1, 'Mark', 'Mapiliiiiiiiiiiiii', 'markmapili28@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-14 19:01:16', '2025-11-09 12:21:30', '2025-11-14 18:26:28', '2025-11-09 19:26:09', 0),
+(2, 1, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-16 00:58:46', '2025-11-09 12:21:30', '2025-11-15 10:40:42', '2025-11-09 19:26:09', 0),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-14 18:34:33', '2025-11-09 12:21:30', '2025-11-14 18:34:33', '2025-11-09 12:20:21', 0);
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-16 13:39:13', '2025-11-09 12:21:30', '2025-11-16 13:39:13', '2025-11-09 12:20:21', 0),
+(6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 0),
+(8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1),
+(9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0),
+(14, 1, 'Markee', 'MWEHEHEH', 'markmapili2004@gmail.com', '$2b$10$eLEuf0mmdz4C8j54brMNK.tfY1yE9Vx2hCGgV1KAB.WP7wWywJ6l6', '2025-11-16 01:12:32', '2025-11-16 01:13:18', '2025-11-16 01:12:32', '2025-11-16 01:12:32', '2025-11-16 01:12:32', 0),
+(15, 1, 'Mark', 'Mapili', 'markmam@gmail.com', '$2b$10$HtvFEFf/H6rlr5R109DxCu5UXMYAcoVnnkCRZZckloDTavRFUmh62', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 0);
 
 -- --------------------------------------------------------
 
@@ -103,13 +108,6 @@ CREATE TABLE `appointment_tbl` (
   `lastUpdatedAt` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `appointment_tbl`
---
-
-INSERT INTO `appointment_tbl` (`appointmentID`, `accID`, `petID`, `serviceID`, `appointmentDate`, `startTime`, `statusID`, `createdAt`, `lastUpdatedAt`) VALUES
-(1, 2, 1, 6, '2025-11-15', '11:00:00', 1, '2025-11-11 15:44:48', '2025-11-11 15:44:48');
-
 -- --------------------------------------------------------
 
 --
@@ -119,7 +117,7 @@ INSERT INTO `appointment_tbl` (`appointmentID`, `accID`, `petID`, `serviceID`, `
 CREATE TABLE `breed_tbl` (
   `breedID` int(11) NOT NULL,
   `breedName` varchar(255) NOT NULL,
-  `species` enum('Feline','Canine') NOT NULL
+  `species` enum('Cat','Dog') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -127,7 +125,8 @@ CREATE TABLE `breed_tbl` (
 --
 
 INSERT INTO `breed_tbl` (`breedID`, `breedName`, `species`) VALUES
-(1, 'Persian', 'Feline');
+(1, 'Persian', 'Cat'),
+(2, 'Labrador', 'Dog');
 
 -- --------------------------------------------------------
 
@@ -140,7 +139,7 @@ CREATE TABLE `clientinfo_tbl` (
   `accId` int(11) NOT NULL,
   `gender` enum('Male','Female') NOT NULL,
   `dateOfBIrth` date NOT NULL,
-  `address` varchar(250) NOT NULL,
+  `address` varchar(250) DEFAULT NULL,
   `contactNo` varchar(13) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -149,7 +148,11 @@ CREATE TABLE `clientinfo_tbl` (
 --
 
 INSERT INTO `clientinfo_tbl` (`cliendInfoId`, `accId`, `gender`, `dateOfBIrth`, `address`, `contactNo`) VALUES
-(1, 2, 'Male', '2004-09-29', '141-I 16th Avenue East Rembo', '321452142');
+(1, 2, 'Male', '0000-00-00', '141-I 16th Avenue East Rembo', '09123456789'),
+(2, 8, 'Female', '2025-11-08', NULL, '09888888888'),
+(3, 9, 'Female', '0000-00-00', NULL, '09123456789'),
+(8, 14, 'Male', '0000-00-00', NULL, '09123456789'),
+(9, 15, 'Male', '2025-11-12', NULL, '09123456789');
 
 -- --------------------------------------------------------
 
@@ -187,7 +190,8 @@ INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`, `isDelet
 (16, 14, 'image-1762890268841-638899812.jpeg', 1),
 (17, 15, 'image-1762918604217-159052591.jpeg', 0),
 (18, 15, 'image-1762920116768-235807608.png', 0),
-(19, 15, 'image-1762920189690-705852010.png', 0);
+(19, 15, 'image-1762920189690-705852010.png', 0),
+(20, 16, 'image-1763126286418-934497497.jpg', 0);
 
 -- --------------------------------------------------------
 
@@ -226,7 +230,8 @@ INSERT INTO `forum_posts_tbl` (`forumID`, `accID`, `postType`, `description`, `c
 (12, 2, 'Lost', 'Descriptive yarn', '', 'c@t.meow', '2025-11-12 01:49:03', '2025-11-12 01:49:15', 0, 1),
 (13, 2, 'Lost', 'Louvre', '09021920987', 'contact@me.com', '2025-11-12 03:10:35', '2025-11-12 03:43:43', 1, 1),
 (14, 2, 'Lost', 'Ihh ang bangis', '', 'cont@ct.me', '2025-11-12 03:44:17', '2025-11-12 11:35:31', 0, 1),
-(15, 2, 'Lost', 'bin', '', 'cont@ct.me', '2025-11-12 11:36:44', '2025-11-12 12:03:09', 1, 0);
+(15, 2, 'Lost', 'bin', '', 'cont@ct.me', '2025-11-12 11:36:44', '2025-11-12 12:03:09', 1, 0),
+(16, 2, 'Lost', 'yes', '09123456789', 'markmapili28@gmail.com', '2025-11-14 21:18:06', '2025-11-14 21:18:32', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -253,8 +258,8 @@ CREATE TABLE `pet_tbl` (
   `petGender` enum('Male','Female') NOT NULL,
   `breedID` int(11) NOT NULL,
   `dateOfBirth` date NOT NULL,
-  `weight_kg` decimal(5,2) NOT NULL,
-  `color` varchar(250) NOT NULL,
+  `weight_kg` decimal(5,2) DEFAULT NULL,
+  `color` varchar(250) DEFAULT NULL,
   `note` varchar(250) DEFAULT NULL,
   `imageName` varchar(255) NOT NULL,
   `createdAt` datetime NOT NULL DEFAULT current_timestamp(),
@@ -267,8 +272,9 @@ CREATE TABLE `pet_tbl` (
 --
 
 INSERT INTO `pet_tbl` (`petID`, `accID`, `petName`, `petGender`, `breedID`, `dateOfBirth`, `weight_kg`, `color`, `note`, `imageName`, `createdAt`, `lastUpdatedAt`, `isDeleted`) VALUES
-(1, 2, 'Mark', 'Male', 1, '2025-11-04', 14.00, 'white', 'hi', 'petImage-1762919509884-349785887.png\r\n', '2025-11-09 15:58:25', '2025-11-14 19:32:42', 0),
-(2, 2, 'gaga', 'Male', 1, '2025-11-04', 13.00, 'black', NULL, 'petImage-1762919509884-349785887.png', '2025-11-09 18:22:51', '2025-11-14 19:17:22', 0);
+(53, 6, 'Carpenter', 'Female', 2, '2025-11-23', 1.00, 'dsada', 'dsadsa', '', '2025-11-15 23:53:43', '2025-11-16 14:50:36', 1),
+(54, 15, 'HAHA', 'Male', 1, '2025-11-05', 2.00, 'das', NULL, '', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 0),
+(55, 14, 'MOSHI', 'Male', 2, '2025-11-03', 0.00, NULL, 'mamamama', '', '2025-11-16 14:17:14', '2025-11-16 14:17:44', 0);
 
 -- --------------------------------------------------------
 
@@ -550,7 +556,7 @@ ALTER TABLE `vet_table`
 -- AUTO_INCREMENT for table `account_tbl`
 --
 ALTER TABLE `account_tbl`
-  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `allergen_tbl`
@@ -568,37 +574,37 @@ ALTER TABLE `appointment_status_tbl`
 -- AUTO_INCREMENT for table `appointment_tbl`
 --
 ALTER TABLE `appointment_tbl`
-  MODIFY `appointmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `appointmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `breed_tbl`
 --
 ALTER TABLE `breed_tbl`
-  MODIFY `breedID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `breedID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `clientinfo_tbl`
 --
 ALTER TABLE `clientinfo_tbl`
-  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `forum_images_tbl`
 --
 ALTER TABLE `forum_images_tbl`
-  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `forum_posts_tbl`
 --
 ALTER TABLE `forum_posts_tbl`
-  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
-  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `role_tbl`
