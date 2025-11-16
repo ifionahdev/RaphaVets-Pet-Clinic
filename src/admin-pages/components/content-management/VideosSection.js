@@ -92,7 +92,6 @@ const VideosSection = ({ videos, onAdd, onEdit, onDelete }) => {
           <thead className="bg-gray-50">
             <tr>
               <th className="p-3 text-sm text-gray-600 font-semibold">Video</th>
-              <th className="p-3 text-sm text-gray-600 font-semibold">Description</th>
               <th className="p-3 text-sm text-gray-600 font-semibold">Category</th>
               <th className="p-3 text-sm text-gray-600 font-semibold">Status</th>
               <th className="p-3 text-sm text-gray-600 font-semibold">Last Updated</th>
@@ -119,9 +118,6 @@ const VideosSection = ({ videos, onAdd, onEdit, onDelete }) => {
                       </div>
                       <div className="font-medium text-gray-900">{video.title}</div>
                     </div>
-                  </td>
-                  <td className="p-3 text-sm text-gray-600 max-w-xs">
-                    <div className="line-clamp-2">{video.shortDescription}</div>
                   </td>
                   <td className="p-3 text-sm">
                     <span className="inline-block px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">

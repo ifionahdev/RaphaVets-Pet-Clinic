@@ -23,6 +23,7 @@ import ContentManager from "./admin-pages/pages/ContentManagement";
 import Reports from "./admin-pages/pages/Reports";
 import AdminSettings from "./admin-pages/pages/AdminSetting";
 import AddAppointment from "./admin-pages/pages/AddAppointment";
+import AddVisit from "./admin-pages/pages/AddVisit";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
           <Route path="pet-management" element={<PetPatientManagement />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="appointments/add" element={<AddAppointment />} />
+          <Route path="visits/add" element={<AddVisit />} />
           <Route path="tools" element={<Tools />} />
           <Route path="content-manager" element={<ContentManager />} />
           <Route path="reports" element={<Reports />} />

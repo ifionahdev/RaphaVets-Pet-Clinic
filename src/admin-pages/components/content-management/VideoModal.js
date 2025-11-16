@@ -6,7 +6,6 @@ const VideoModal = ({ item, categories, onClose, onSave }) => {
     category: item?.category || "",
     newCategory: "",
     title: item?.title || "",
-    shortDescription: item?.shortDescription || "",
     youtubeUrl: item?.youtubeUrl || "",
     status: item?.status || "Draft"
   });
@@ -188,19 +187,6 @@ const VideoModal = ({ item, categories, onClose, onSave }) => {
                 </div>
               </div>
 
-              {/* Short Description */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Description *</label>
-                <textarea
-                  value={formData.shortDescription}
-                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                  rows={6}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  placeholder="Describe what this video is about..."
-                  required
-                />
-              </div>
-
               {/* Preview Section */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Preview</label>
@@ -216,9 +202,6 @@ const VideoModal = ({ item, categories, onClose, onSave }) => {
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    {formData.shortDescription || "Video description will appear here"}
-                  </p>
                 </div>
               </div>
             </div>
