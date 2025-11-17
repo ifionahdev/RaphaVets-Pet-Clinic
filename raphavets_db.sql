@@ -51,6 +51,8 @@ INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, 
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0),
 (5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-17 10:09:31', '2025-11-09 12:21:30', '2025-11-17 10:09:31', '2025-11-09 12:20:21', 0),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-17 10:09:31', '2025-11-09 12:21:30', '2025-11-17 10:09:31', '2025-11-09 12:20:21', 0),
+(6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1),
 (9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0),
 (14, 1, 'Markee', 'MWEHEHEH', 'markmapili2004@gmail.com', '$2b$10$eLEuf0mmdz4C8j54brMNK.tfY1yE9Vx2hCGgV1KAB.WP7wWywJ6l6', '2025-11-16 01:12:32', '2025-11-16 01:13:18', '2025-11-16 01:12:32', '2025-11-16 01:12:32', '2025-11-16 01:12:32', 0),
@@ -380,6 +382,22 @@ CREATE TABLE `publication_status_tbl` (
   `pubStatusIcon` varchar(250) NOT NULL,
   `description` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(56, 2, 'Marcy', 'Male', 1, '2025-11-13', NULL, NULL, NULL, 'petImage-1763304525120-946292901.jpg', '2025-11-16 15:08:17', '2025-11-16 22:48:45', 0),
+(57, 2, 'BEBE', 'Female', 1, '2025-11-05', 1.00, 'black', NULL, 'petImage-1763302372637-418073190.jpg', '2025-11-16 16:38:51', '2025-11-16 22:12:52', 0),
+(59, 9, 'Tobi', 'Male', 1, '2025-11-04', 12.00, 'black', NULL, '', '2025-11-17 10:11:43', '2025-11-17 10:11:43', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `publication_status_tbl`
+--
+
+CREATE TABLE `publication_status_tbl` (
+  `pubStatsID` int(11) NOT NULL,
+  `pubStatus` varchar(250) NOT NULL,
+  `pubStatusIcon` varchar(250) NOT NULL,
+  `description` varchar(250) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -659,11 +677,32 @@ ALTER TABLE `icon_tbl`
   ADD PRIMARY KEY (`iconID`);
 
 --
+-- Indexes for table `icon_tbl`
+--
+ALTER TABLE `icon_tbl`
+  ADD PRIMARY KEY (`iconID`);
+
+--
 -- Indexes for table `pet_allergies_tbl`
 --
 ALTER TABLE `pet_allergies_tbl`
   ADD PRIMARY KEY (`petID`,`allergenID`),
   ADD KEY `allergenID_pet_allergies_fk` (`allergenID`);
+
+--
+-- Indexes for table `pet_care_category_tbl`
+--
+ALTER TABLE `pet_care_category_tbl`
+  ADD PRIMARY KEY (`petCareCategoryID`);
+
+--
+-- Indexes for table `pet_care_tips_content_tbl`
+--
+ALTER TABLE `pet_care_tips_content_tbl`
+  ADD PRIMARY KEY (`petCareID`),
+  ADD KEY `petContent_accID_FK` (`accID`),
+  ADD KEY `iconID_FK` (`iconID`),
+  ADD KEY `petCareCategoryID_FK` (`petCareCategoryID`);
 
 --
 -- Indexes for table `pet_care_category_tbl`
@@ -687,6 +726,12 @@ ALTER TABLE `pet_tbl`
   ADD PRIMARY KEY (`petID`),
   ADD KEY `breedID_pet_fk` (`breedID`),
   ADD KEY `accID_pettbl` (`accID`);
+
+--
+-- Indexes for table `publication_status_tbl`
+--
+ALTER TABLE `publication_status_tbl`
+  ADD PRIMARY KEY (`pubStatsID`);
 
 --
 -- Indexes for table `publication_status_tbl`
@@ -732,6 +777,20 @@ ALTER TABLE `userpreference_tbl`
 ALTER TABLE `vet_table`
   ADD PRIMARY KEY (`vetId`),
   ADD KEY `accIdVet` (`accId`);
+
+--
+-- Indexes for table `video_category_tbl`
+--
+ALTER TABLE `video_category_tbl`
+  ADD PRIMARY KEY (`videoCategoryID`);
+
+--
+-- Indexes for table `video_content_tbl`
+--
+ALTER TABLE `video_content_tbl`
+  ADD PRIMARY KEY (`videoID`),
+  ADD KEY `accID_videoContentFK` (`accID`),
+  ADD KEY `videoCategoryID_videoContentFK` (`videoCategoryID`);
 
 --
 -- Indexes for table `video_category_tbl`
@@ -815,6 +874,13 @@ ALTER TABLE `pet_care_category_tbl`
 -- AUTO_INCREMENT for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
+  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+
+--
+-- AUTO_INCREMENT for table `publication_status_tbl`
+--
+ALTER TABLE `publication_status_tbl`
+  MODIFY `pubStatsID` int(11) NOT NULL AUTO_INCREMENT;
   MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
@@ -925,6 +991,14 @@ ALTER TABLE `pet_care_tips_content_tbl`
   ADD CONSTRAINT `petContent_accID_FK` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `pet_care_tips_content_tbl`
+--
+ALTER TABLE `pet_care_tips_content_tbl`
+  ADD CONSTRAINT `iconID_FK` FOREIGN KEY (`iconID`) REFERENCES `icon_tbl` (`iconID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `petCareCategoryID_FK` FOREIGN KEY (`petCareCategoryID`) REFERENCES `pet_care_category_tbl` (`petCareCategoryID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `petContent_accID_FK` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
@@ -948,6 +1022,13 @@ ALTER TABLE `userpreference_tbl`
 --
 ALTER TABLE `vet_table`
   ADD CONSTRAINT `accIdVet` FOREIGN KEY (`accId`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `video_content_tbl`
+--
+ALTER TABLE `video_content_tbl`
+  ADD CONSTRAINT `accID_videoContentFK` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `videoCategoryID_videoContentFK` FOREIGN KEY (`videoCategoryID`) REFERENCES `video_category_tbl` (`videoCategoryID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `video_content_tbl`
