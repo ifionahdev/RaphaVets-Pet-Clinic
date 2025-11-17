@@ -274,9 +274,64 @@ function PetDetails() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        Loading pet details...
-      </div>
+      <ClientLayout>
+        <div className="flex flex-col gap-6">
+          {/* Pet Header Skeleton */}
+          <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100 flex flex-col sm:flex-row items-center justify-between px-6 py-5 animate-pulse">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 bg-gray-200 flex items-center justify-center"></div>
+              </div>
+              <div>
+                <div className="h-7 w-48 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-sm mt-4 sm:mt-0">
+              <div className="px-4 py-2 bg-gray-200 rounded-xl shadow-sm h-9 w-40"></div>
+            </div>
+          </div>
+
+          {/* Tabs Section Skeleton */}
+          <div className="px-6 py-4 rounded-2xl bg-white shadow-lg flex flex-col h-[350px] animate-pulse">
+            {/* Tab Headers */}
+            <div className="font-semibold flex gap-6 border-b pb-3 mb-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="h-6 w-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+              {/* Filters Skeleton */}
+              <div className="flex gap-3 mb-3">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="h-7 w-16 bg-gray-200 rounded-full"></div>
+                ))}
+              </div>
+
+              {/* Appointment Cards Skeleton */}
+              <div className="space-y-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="bg-gray-100 border border-gray-200 p-4 rounded-xl flex justify-between items-center">
+                    <div className="flex flex-col items-center justify-center w-16 text-center bg-gray-200 rounded-lg py-2">
+                      <div className="h-3 w-8 bg-gray-300 rounded mb-1"></div>
+                      <div className="h-5 w-6 bg-gray-300 rounded mb-1"></div>
+                      <div className="h-2 w-10 bg-gray-300 rounded"></div>
+                    </div>
+                    <div className="flex justify-between items-center flex-1 ml-4">
+                      <div>
+                        <div className="h-4 w-48 bg-gray-300 rounded mb-2"></div>
+                        <div className="h-3 w-32 bg-gray-300 rounded"></div>
+                      </div>
+                      <div className="h-8 w-20 bg-gray-300 rounded-lg"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ClientLayout>
     );
 
   if (!pet)

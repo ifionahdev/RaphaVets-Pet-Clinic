@@ -62,8 +62,51 @@ export default function Videos() {
   if (loading) {
     return (
       <ClientLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl text-[#2FA394]">Loading videos...</div>
+        <div className="max-w-6xl mx-auto w-full bg-white rounded-3xl p-6 mt-6 shadow-lg border border-gray-100">
+          {/* Header + search skeleton */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <div className="h-8 w-64 bg-gray-200 rounded-lg animate-pulse mb-2"></div>
+              <div className="h-4 w-80 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="h-10 w-64 bg-gray-200 rounded-full animate-pulse mt-3 sm:mt-0"></div>
+          </div>
+
+          {/* Filters skeleton */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div
+                key={item}
+                className="h-8 w-20 bg-gray-200 rounded-full animate-pulse"
+                style={{ animationDelay: `${item * 0.1}s` }}
+              ></div>
+            ))}
+          </div>
+
+          {/* Video grid skeleton */}
+          <div className="rounded-2xl border border-gray-100 bg-white p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-lg overflow-hidden border border-gray-100 shadow-sm bg-white animate-pulse"
+                  style={{ animationDelay: `${item * 0.1}s` }}
+                >
+                  {/* Thumbnail skeleton */}
+                  <div className="w-full aspect-video bg-gray-300"></div>
+                  
+                  <div className="p-3">
+                    <div className="h-4 w-3/4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 w-16 bg-gray-200 rounded mb-3"></div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-3 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-12 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </ClientLayout>
     );
@@ -127,7 +170,7 @@ export default function Videos() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-6xl mx-auto w-full"
+        className="max-w-6xl mx-auto w-full overflow-y-auto max-h-[calc(120vh-250px)]"
       >
         <motion.div 
           variants={itemVariants}
@@ -137,7 +180,6 @@ export default function Videos() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#2FA394]">Pet Video Library</h1>
-              <p className="text-sm text-gray-600">Curated videos for pet care, training, grooming, and nutrition.</p>
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
   const navigate = useNavigate();
@@ -138,12 +139,15 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
     <div className="pt-5 pb-2 px-4 sm:px-6 md:px-10 flex flex-row justify-between items-center relative z-40 fixed top-0 left-0 right-0 bg-transparent">
       {/* Left side - Menu, Logo */}
       <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
-        <button
+        <motion.button
           onClick={() => setIsMenuOpen((prev) => !prev)}
           className="text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
           ☰
-        </button>
+        </motion.button>
         <img
           src="/images/logo.png"
           className="w-[30px] sm:w-[40px] md:w-[60px] lg:w-[80px] flex-shrink-0"

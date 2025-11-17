@@ -70,8 +70,40 @@ export default function PetTips() {
   if (loading) {
     return (
       <ClientLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-xl text-[#2FA394]">Loading pet care tips...</div>
+        <div className="max-w-6xl mx-auto w-full bg-white shadow-md rounded-xl p-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5">
+            <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-64 bg-gray-200 rounded-full animate-pulse mt-3 sm:mt-0"></div>
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-9 w-20 bg-gray-200 rounded-full animate-pulse"
+                style={{ animationDelay: `${item * 0.1}s` }}
+              ></div>
+            ))}
+          </div>
+
+          {/* Tips Grid Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div
+                key={item}
+                className="p-5 rounded-xl shadow-sm bg-gray-100 animate-pulse"
+                style={{ animationDelay: `${item * 0.1}s` }}
+              >
+                <div className="h-8 w-8 bg-gray-300 rounded-lg mb-3"></div>
+                <div className="h-5 w-3/4 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 w-full bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 w-2/3 bg-gray-300 rounded"></div>
+                <div className="h-6 w-20 bg-gray-300 rounded-full mt-3"></div>
+              </div>
+            ))}
+          </div>
         </div>
       </ClientLayout>
     );
@@ -146,7 +178,7 @@ export default function PetTips() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-6xl mx-auto w-full bg-white shadow-md rounded-xl p-6 relative"
+        className="max-w-6xl mx-auto w-full bg-white shadow-md rounded-xl p-6 relative overflow-y-auto max-h-[calc(120vh-250px)]"
       >
         {/* Header Section */}
         <motion.div 
