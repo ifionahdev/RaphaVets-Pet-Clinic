@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
-import { motion } from "framer-motion";
-import Header from "../template/Header";
-import SideBar from "../template/SideBar";
+import ClientLayout from "../ClientLayout";
 import ViewDetailsModal from "../components/home/ViewDetailsModal"; 
 import SuccessToast from "../../template/SuccessToast";
+
+// Import the tab components
+import AppointmentTab from "../components/home/AppointmentTab";
+import MedicalReportsTab from "../components/home/MedicalReportsTab";
+import LabRecordsTab from "../components/home/LabRecordsTab";
 
 function PetDetails() {
   const { id } = useParams();
@@ -14,7 +18,6 @@ function PetDetails() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appointmentFilter, setAppointmentFilter] = useState("Upcoming");
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [activeTab, setActiveTab] = useState("Appointments");
   const [showEditModal, setShowEditModal] = useState(false);
   
@@ -128,34 +131,56 @@ function PetDetails() {
       formData.append("petImage", file);
 
       const token = localStorage.getItem("token");
-      const res = await api.post(`/pets/${pet.id}/upload`, formData, {
+      const res = await api.post(`/pets/${id}/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("📤 Upload Response:", res.data); // Debug log
+      console.log("📤 Upload Response:", res.data);
 
-      // The API already returns the full URL, so use it directly
-      setPet(prev => ({ 
-        ...prev, 
-        image: res.data.imageUrl // Use the URL directly from API response
+      // Update local pet state
+      setPet(prev => ({
+        ...prev,
+        image: res.data.imageUrl
       }));
-      
+
       setPreviewImage(null);
+
+      // Clear the pets cache to force sidebar refresh
+      localStorage.removeItem('cachedPets');
+      localStorage.removeItem('petsCacheTimestamp');
+
+      // Trigger sidebar refresh through multiple methods:
       
-      // Trigger sidebar refresh
+      // Method 1: Trigger custom event
+      window.dispatchEvent(new Event('petImageUpdated'));
+      
+      // Method 2: Use the refresh trigger
       setRefreshTrigger(prev => prev + 1);
-      
+
       setToastMessage("Profile picture updated successfully!");
       setShowSuccessToast(true);
-      
+
     } catch (err) {
       console.error("❌ Upload failed:", err);
       setToastMessage("Failed to upload image.");
       setShowSuccessToast(true);
     }
+  };
+
+  // Handle appointment cancellation
+  const handleCancelAppointment = (appointment) => {
+    console.log("Cancelling appointment:", appointment.id);
+    // Add your cancellation logic here
+    // This will trigger the success toast from the AppointmentTab component
+  };
+
+  // Handle view details
+  const handleViewDetails = (appt) => {
+    setSelectedAppointment(appt);
+    setShowDetailsModal(true);
   };
 
   useEffect(() => {
@@ -166,14 +191,12 @@ function PetDetails() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        console.log("📊 Full API Response:", res.data);
-
         const petData = res.data;
+        console.log("📊 Pet Data from API:", petData); // Debug log
 
-        // Map the pet data with proper field names from your database
         const mappedPet = {
           id: petData.petID || petData.id,
-          name: petData.petName || petData.name || "Unknown Name",
+          name: petData.name || "Unknown Name",
           breed: petData.breed || "Unknown Breed",
           gender: petData.petGender || petData.gender || "N/A",
           age: calculateAge(petData.dateOfBirth),
@@ -184,19 +207,28 @@ function PetDetails() {
           color: petData.color,
           note: petData.note
         };
+        
+        console.log("🔄 Mapped Pet:", mappedPet); // Debug log
+        
+        // FIX: Only set pet once, don't overwrite it
+        if (previewImage) {
+          // If we have a preview image, keep it but update other fields
+          setPet(prev => ({
+            ...mappedPet,
+            image: prev?.image || mappedPet.image // Keep existing image if available
+          }));
+        } else {
+          // Otherwise set the complete mapped pet
+          setPet(mappedPet);
+        }
 
-        console.log("🐾 Mapped Pet Data:", mappedPet);
-
-        setPet(mappedPet);
-
-        // Process appointments with proper date handling
         const mappedAppointments = (petData.appointments || []).map((appt) => ({
           ...appt,
           dateObj: parseAppointmentDate(appt),
           formattedDate: formatAppointmentDate(appt),
           displayDate: formatAppointmentDate(appt)
         }));
-        
+       
         console.log("📅 Mapped Appointments:", mappedAppointments);
         setAppointments(mappedAppointments);
       } catch (err) {
@@ -207,16 +239,11 @@ function PetDetails() {
     };
 
     fetchPetData();
-  }, [id]);
+  }, [id, refreshTrigger]); // Removed previewImage from dependencies to prevent infinite loops
 
   const filteredAppointments = appointments.filter((appt) =>
     appointmentFilter === "All" ? true : appt.status === appointmentFilter
   );
-
-  const handleViewDetails = (appt) => {
-    setSelectedAppointment(appt);
-    setShowDetailsModal(true);
-  };
 
   const closeModal = () => {
     setShowDetailsModal(false);
@@ -229,11 +256,120 @@ function PetDetails() {
     setShowSuccessToast(true);
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    },
+    hover: {
+      scale: 1.02,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const tabContentVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    }
+  };
+
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        Loading pet details...
-      </div>
+      <ClientLayout>
+        <div className="flex flex-col gap-6">
+          {/* Pet Header Skeleton */}
+          <div className="relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100 flex flex-col sm:flex-row items-center justify-between px-6 py-5 animate-pulse">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-gray-300 bg-gray-200 flex items-center justify-center"></div>
+              </div>
+              <div>
+                <div className="h-7 w-48 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-sm mt-4 sm:mt-0">
+              <div className="px-4 py-2 bg-gray-200 rounded-xl shadow-sm h-9 w-40"></div>
+            </div>
+          </div>
+
+          {/* Tabs Section Skeleton */}
+          <div className="px-6 py-4 rounded-2xl bg-white shadow-lg flex flex-col h-[350px] animate-pulse">
+            {/* Tab Headers */}
+            <div className="font-semibold flex gap-6 border-b pb-3 mb-4">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="h-6 w-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+              {/* Filters Skeleton */}
+              <div className="flex gap-3 mb-3">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="h-7 w-16 bg-gray-200 rounded-full"></div>
+                ))}
+              </div>
+
+              {/* Appointment Cards Skeleton */}
+              <div className="space-y-4">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="bg-gray-100 border border-gray-200 p-4 rounded-xl flex justify-between items-center">
+                    <div className="flex flex-col items-center justify-center w-16 text-center bg-gray-200 rounded-lg py-2">
+                      <div className="h-3 w-8 bg-gray-300 rounded mb-1"></div>
+                      <div className="h-5 w-6 bg-gray-300 rounded mb-1"></div>
+                      <div className="h-2 w-10 bg-gray-300 rounded"></div>
+                    </div>
+                    <div className="flex justify-between items-center flex-1 ml-4">
+                      <div>
+                        <div className="h-4 w-48 bg-gray-300 rounded mb-2"></div>
+                        <div className="h-3 w-32 bg-gray-300 rounded"></div>
+                      </div>
+                      <div className="h-8 w-20 bg-gray-300 rounded-lg"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </ClientLayout>
     );
 
   if (!pet)
@@ -244,265 +380,416 @@ function PetDetails() {
     );
 
   return (
-    <div className={`font-sansation min-h-screen bg-[#FBFBFB] relative ${(showEditModal || showDetailsModal) ? 'overflow-hidden' : ''}`}>
-      <div className={`${(showEditModal || showDetailsModal) ? 'blur-sm' : ''}`}>
-        <Header setIsMenuOpen={setIsMenuOpen} />
-        <div className="flex flex-row gap-5 px-5 sm:px-12 animate-fadeSlideUp">
-          {/* Pass refreshTrigger to SideBar */}
-          <SideBar 
-            isMenuOpen={isMenuOpen} 
-            setIsMenuOpen={setIsMenuOpen} 
-            refreshTrigger={refreshTrigger}
-          />
-
-          <div
-            className={`transition-all duration-500 ease-in-out flex flex-col gap-6 rounded-xl p-5 w-full ${
-              !isMenuOpen ? "md:w-full" : "md:w-[calc(100%-250px)]"
-            }`}
+    <ClientLayout refreshTrigger={refreshTrigger}>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-col gap-6"
+      >
+        {/* Pet Header */}
+        <motion.div
+          variants={itemVariants}
+          className="relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100 flex flex-col sm:flex-row items-center justify-between px-6 py-5"
+        >
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#00B8D4] bg-gray-200 flex items-center justify-center">
+                <img
+                  src={previewImage || `http://localhost:5000${pet.image}`}
+                  alt={pet.name || "Pet"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = "/images/dog-profile.png";
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                {pet.name || "Unnamed Pet"}
+                <motion.button 
+                  onClick={() => setShowEditModal(true)} 
+                  className="text-gray-400 hover:text-[#00B8D4]"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <i className="fa-solid fa-pen text-base"></i>
+                </motion.button>
+              </h2>
+              <p className="text-gray-500 text-sm">
+                {pet.breed || "Unknown breed"} • {pet.gender || "Unknown"} • {pet.age || "Unknown age"}
+              </p>
+            </div>
+          </div>
+          <motion.div 
+            variants={itemVariants}
+            className="flex flex-wrap justify-center sm:justify-end gap-4 text-sm mt-4 sm:mt-0"
           >
-            {/* Pet Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-100 flex flex-col sm:flex-row items-center justify-between px-6 py-5"
-            >
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-[#00B8D4] bg-gray-200 flex items-center justify-center">
-                    <img 
-                      src={previewImage || `http://localhost:5000${pet.image}`} 
-                      alt={pet.name} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                    {pet.name}
-                    <button onClick={() => setShowEditModal(true)} className="text-gray-400 hover:text-[#00B8D4] transition-all">
-                      <i className="fa-solid fa-pen text-base"></i>
-                    </button>
-                  </h2>
-                  <p className="text-gray-500 text-sm">
-                    {pet.breed} • {pet.gender} • {pet.age}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap justify-center sm:justify-end gap-4 text-sm mt-4 sm:mt-0">
-                <div className="px-4 py-2 bg-[#FFF7E6] rounded-xl shadow-sm text-gray-700">
-                  <i className="fa-solid fa-calendar-check text-[#00B8D4] mr-2"></i>
-                  Last Check: {pet.lastCheck}
-                </div>
-              </div>
-            </motion.div>
+            <div className="px-4 py-2 bg-[#FFF7E6] rounded-xl shadow-sm text-gray-700">
+              <i className="fa-solid fa-calendar-check text-[#00B8D4] mr-2"></i>
+              Last Check: {pet.lastCheck || "N/A"}
+            </div>
+          </motion.div>
+        </motion.div>
 
-            {/* Tabs Section */}
-            <div className="px-6 py-4 rounded-2xl bg-white shadow-lg flex flex-col h-[350px]">
-              {/* Tab Headers */}
-              <div className="font-semibold flex gap-6 border-b pb-3 mb-4">
-                {tabs.map((tab) => (
-                  <span
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`cursor-pointer transition-colors duration-300 ${
-                      activeTab === tab 
-                        ? "text-[#5EE6FE] border-b-2 border-[#5EE6FE] pb-1" 
-                        : "text-gray-400 hover:text-[#5EE6FE]"
-                    }`}
-                  >
-                    {tab}
-                  </span>
-                ))}
-              </div>
+        {/* Tabs Section */}
+        <motion.div 
+          variants={itemVariants}
+          className="px-6 py-4 rounded-2xl bg-white shadow-lg flex flex-col h-[350px]"
+        >
+          {/* Tab Headers */}
+          <div className="font-semibold flex gap-6 border-b pb-3 mb-4">
+            {tabs.map((tab) => (
+              <motion.span
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`cursor-pointer relative ${
+                  activeTab === tab ? "text-[#5EE6FE]" : "text-gray-400"
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {tab}
+                {activeTab === tab && (
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5EE6FE]"
+                    layoutId="activeTab"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </motion.span>
+            ))}
+          </div>
 
-              <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto flex flex-col gap-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                variants={tabContentVariants}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                transition={{ duration: 0.2 }}
+                className="h-full"
+              >
+                {activeTab === "Appointments" && (
+                  <AppointmentTab
+                    appointments={appointments}
+                    appointmentFilter={appointmentFilter}
+                    setAppointmentFilter={setAppointmentFilter}
+                    handleViewDetails={handleViewDetails}
+                    handleCancelAppointment={handleCancelAppointment}
+                  />
+                )}
+
+                {activeTab === "Medical Reports" && (
+                  <MedicalReportsTab />
+                )}
+
+                {activeTab === "Lab Records" && (
+                  <LabRecordsTab />
+                )}
+
+                {/*
                 {activeTab === "Appointments" && (
                   <>
-                    {/* Filters */}
-                    <div className="flex gap-3 mb-3">
-                      {["Upcoming", "Pending", "Done", "All"].map((status) => (
-                        <button
+                    
+                    <motion.div 
+                      variants={containerVariants}
+                      className="flex gap-3 mb-3"
+                    >
+                      {["Upcoming", "Pending", "Done", "All"].map((status, index) => (
+                        <motion.button
                           key={status}
+                          variants={itemVariants}
                           onClick={() => setAppointmentFilter(status)}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
                             appointmentFilter === status
                               ? "bg-[#5EE6FE] text-white shadow"
                               : "bg-gray-100 text-gray-600 hover:bg-[#d3f2fa]"
                           }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          transition={{ delay: index * 0.1 }}
                         >
                           {status}
-                        </button>
+                        </motion.button>
                       ))}
-                    </div>
+                    </motion.div>
 
-                    {/* Appointment Cards */}
+                    
                     {filteredAppointments.length > 0 ? (
-                      filteredAppointments.map((appt) => (
-                        <div
-                          key={appt.id}
-                          className="bg-white/70 backdrop-blur-md border border-[#5EE6FE]/30 p-4 rounded-xl flex justify-between items-center shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 transition-all cursor-pointer"
-                        >
-                          <div className="flex flex-col items-center justify-center w-16 text-center bg-[#EFFFFF] rounded-lg py-2 border border-[#5EE6FE]/20 shadow-sm">
-                            <span className="text-xs font-semibold text-[#5EE6FE] uppercase tracking-wide">
-                              {appt.dateObj?.toLocaleString("default", { month: "short" })}
-                            </span>
-                            <span className="text-xl font-bold text-gray-800 leading-tight">
-                              {appt.dateObj?.getDate()}
-                            </span>
-                            <span className="text-[10px] text-gray-500 capitalize">
-                              {appt.dateObj?.toLocaleString("default", { weekday: "short" })}
-                            </span>
-                          </div>
-
-                          <div className="flex justify-between items-center flex-1 ml-4">
-                            <div>
-                              <p className="font-semibold text-gray-800">
-                                {pet.name} — {appt.type}
-                              </p>
-                              <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                                <i className="fa-solid fa-clock text-[#5EE6FE]"></i>
-                                {getAppointmentTime(appt)} • {appt.status}
-                              </p>
+                      <motion.div
+                        variants={containerVariants}
+                        className="space-y-4"
+                      >
+                        {filteredAppointments.map((appt, index) => (
+                          <motion.div
+                            key={appt.id}
+                            variants={cardVariants}
+                            className="bg-white/70 backdrop-blur-md border border-[#5EE6FE]/30 p-4 rounded-xl flex justify-between items-center shadow-md hover:shadow-lg hover:bg-[#EFFFFF]/60 cursor-pointer"
+                            whileHover="hover"
+                            transition={{ delay: index * 0.05 }}
+                            onClick={() => handleViewDetails(appt)}
+                          >
+                            <div className="flex flex-col items-center justify-center w-16 text-center bg-[#EFFFFF] rounded-lg py-2 border border-[#5EE6FE]/20 shadow-sm">
+                              <span className="text-xs font-semibold text-[#5EE6FE] uppercase tracking-wide">
+                                {appt.dateObj?.toLocaleString("default", { month: "short" })}
+                              </span>
+                              <span className="text-xl font-bold text-gray-800 leading-tight">
+                                {appt.dateObj?.getDate()}
+                              </span>
+                              <span className="text-[10px] text-gray-500 capitalize">
+                                {appt.dateObj?.toLocaleString("default", { weekday: "short" })}
+                              </span>
                             </div>
-                            <button
-                              onClick={() => handleViewDetails(appt)}
-                              className="bg-[#5EE6FE] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#3ecbe0] transition-all"
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </div>
-                      ))
+
+                            <div className="flex justify-between items-center flex-1 ml-4">
+                              <div>
+                                <p className="font-semibold text-gray-800">
+                                  {pet.name || "Pet"} — {appt.type}
+                                </p>
+                                <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                                  <i className="fa-solid fa-clock text-[#5EE6FE]"></i>
+                                  {formatAppointmentDate(appt)} • {appt.status}
+                                </p>
+                              </div>
+                              <motion.button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewDetails(appt);
+                                }}
+                                className="bg-[#5EE6FE] text-white px-4 py-2 rounded-lg text-xs font-semibold"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                View Details
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
                     ) : (
-                      <p className="text-center text-gray-500 mt-6">No appointments found.</p>
+                      <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center text-gray-500 mt-6"
+                      >
+                        No appointments found.
+                      </motion.p>
                     )}
                   </>
                 )}
 
                 {activeTab === "Medical Reports" && (
-                  <div className="text-center text-gray-500 mt-6">
-                    No medical reports available.
-                  </div>
+                  <motion.div
+                    variants={containerVariants}
+                    className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    {(pet.medicalReports || []).map((report, index) => (
+                      <motion.div
+                        key={index}
+                        variants={cardVariants}
+                        className="rounded-2xl bg-[#FFF8F9] p-5 shadow-sm border border-[#F3D6D8] flex flex-col justify-between"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-700">{report.title}</h3>
+                          <p className="text-gray-500 text-sm mt-1">{report.date}</p>
+                        </div>
+                        <motion.button 
+                          className="mt-4 bg-[#FFB6C1] text-white px-3 py-2 rounded-lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Download PDF
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 )}
 
                 {activeTab === "Lab Records" && (
-                  <div className="text-center text-gray-500 mt-6">
-                    No lab records available.
-                  </div>
+                  <motion.div
+                    variants={containerVariants}
+                    className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    {(pet.labRecords || []).map((record, index) => (
+                      <motion.div
+                        key={index}
+                        variants={cardVariants}
+                        className="rounded-2xl bg-[#E3FAF7] p-5 shadow-sm border border-[#A6E3E9] flex flex-col justify-between"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-700">{record.title}</h3>
+                          <p className="text-gray-500 text-sm mt-1">{record.date}</p>
+                        </div>
+                        <motion.button 
+                          className="mt-4 bg-[#5EE6FE] text-white px-3 py-2 rounded-lg"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          View Report
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 )}
-              </div>
-            </div>
+                */}
+              </motion.div>
+            </AnimatePresence>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Modals */}
-      {showDetailsModal && selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-          <div className="relative z-50 mx-4">
-            <ViewDetailsModal appointment={selectedAppointment} closeModal={closeModal} />
+      <AnimatePresence>
+        {showDetailsModal && selectedAppointment && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeModal}
+            />
+            <motion.div
+              className="relative z-50 mx-4"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <ViewDetailsModal appointment={selectedAppointment} closeModal={closeModal} />
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-          <div className="relative z-50 mx-4 w-full max-w-sm">
-            <div className="bg-white rounded-xl p-5 w-full shadow-2xl max-h-[80vh] overflow-y-auto">
-              <button 
-                onClick={() => setShowEditModal(false)} 
-                className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-lg"
-              >
-                ✕
-              </button>
-              
-              <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Edit Pet Profile</h3>
-              
-              {/* Profile Picture Section */}
-              <div className="flex flex-col items-center mb-4">
-                <div className="relative">
-                  <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-[#00B8D4] bg-gray-200 flex items-center justify-center mb-3">
-                    <img 
-                      src={previewImage || `http://localhost:5000${pet.image}`} 
-                      alt={pet.name} 
-                      className="w-full h-full object-cover"
+        {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditModal(false)}
+            />
+            <motion.div
+              className="relative z-50 mx-4 w-full max-w-sm"
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="bg-white rounded-xl p-5 w-full shadow-2xl max-h-[80vh] overflow-y-auto">
+                <motion.button 
+                  onClick={() => setShowEditModal(false)} 
+                  className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-lg"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  ✕
+                </motion.button>
+                
+                <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">Edit Pet Profile</h3>
+                
+                {/* Profile Picture Section */}
+                <div className="flex flex-col items-center mb-4">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-[#00B8D4] bg-gray-200 flex items-center justify-center mb-3">
+                      <img
+                        src={previewImage || `http://localhost:5000${pet.image}`}
+                        alt={pet.name || "Pet"}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "/images/dog-profile.png";
+                        }}
+                      />
+                    </div>
+
+                    <input 
+                      type="file" 
+                      id="profile-upload"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const previewUrl = URL.createObjectURL(file);
+                          setPreviewImage(previewUrl);
+                          await handleImageUpload(file);
+                        }
+                      }}
                     />
+
+                    <motion.label 
+                      htmlFor="profile-upload"
+                      className="absolute bottom-1 right-0 bg-[#5EE6FE] text-white p-1.5 rounded-full shadow-lg cursor-pointer"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <i className="fa-solid fa-camera text-xs"></i>
+                    </motion.label>
                   </div>
-
-                  <input 
-                    type="file" 
-                    id="profile-upload"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const previewUrl = URL.createObjectURL(file);
-                        setPreviewImage(previewUrl);
-                        await handleImageUpload(file);
-                      }
-                    }}
-                  />
-
-                  <label 
-                    htmlFor="profile-upload"
-                    className="absolute bottom-1 right-0 bg-[#5EE6FE] text-white p-1.5 rounded-full shadow-lg hover:bg-[#3ecbe0] transition-all cursor-pointer"
-                  >
-                    <i className="fa-solid fa-camera text-xs"></i>
-                  </label>
+                  <p className="text-xs text-gray-500">Click camera to change photo</p>
                 </div>
-                <p className="text-xs text-gray-500">Click camera to change photo</p>
-              </div>
 
-              {/* Read-only Information */}
-              <div className="space-y-3 mb-4">
-                <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                  <label className="text-xs text-gray-500 block mb-1">Pet Name</label>
-                  <p className="text-sm text-gray-800 font-medium">{pet.name}</p>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                  <label className="text-xs text-gray-500 block mb-1">Breed</label>
-                  <p className="text-sm text-gray-800 font-medium">{pet.breed}</p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
+                {/* Read-only Information */}
+                <div className="space-y-3 mb-4">
                   <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                    <label className="text-xs text-gray-500 block mb-1">Age</label>
-                    <p className="text-sm text-gray-800 font-medium">{pet.age}</p>
+                    <label className="text-xs text-gray-500 block mb-1">Pet Name</label>
+                    <p className="text-sm text-gray-800 font-medium">{pet.name || "Unnamed Pet"}</p>
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                    <label className="text-xs text-gray-500 block mb-1">Gender</label>
-                    <p className="text-sm text-gray-800 font-medium">{pet.gender}</p>
+                    <label className="text-xs text-gray-500 block mb-1">Breed</label>
+                    <p className="text-sm text-gray-800 font-medium">{pet.breed || "Unknown breed"}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                      <label className="text-xs text-gray-500 block mb-1">Age</label>
+                      <p className="text-sm text-gray-800 font-medium">{pet.age || "Unknown age"}</p>
+                    </div>
+                    
+                    <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                      <label className="text-xs text-gray-500 block mb-1">Gender</label>
+                      <p className="text-sm text-gray-800 font-medium">{pet.gender || "Unknown"}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setShowEditModal(false)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleSaveChanges}
-                  className="flex-1 bg-[#5EE6FE] text-white py-2 rounded-lg hover:bg-[#3ecbe0] transition-all text-sm font-medium"
-                >
-                  Save Changes
-                </button>
-              </div>
+                <div className="flex gap-2">
+                  <motion.button 
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button 
+                    onClick={handleSaveChanges}
+                    className="flex-1 bg-[#5EE6FE] text-white py-2 rounded-lg text-sm font-medium"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Save Changes
+                  </motion.button>
+                </div>
 
-              <p className="text-xs text-gray-400 text-center mt-3">
-                Contact support to update pet information
-              </p>
-            </div>
+                <p className="text-xs text-gray-400 text-center mt-3">
+                  Contact support to update pet information
+                </p>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {showSuccessToast && (
         <SuccessToast 
@@ -510,7 +797,7 @@ function PetDetails() {
           onClose={() => setShowSuccessToast(false)} 
         />
       )}
-    </div>
+    </ClientLayout>
   );
 }
 
