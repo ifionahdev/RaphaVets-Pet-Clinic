@@ -6,6 +6,11 @@ import ClientLayout from "../ClientLayout";
 import ViewDetailsModal from "../components/home/ViewDetailsModal"; 
 import SuccessToast from "../../template/SuccessToast";
 
+// Import the tab components
+import AppointmentTab from "../components/home/AppointmentTab";
+import MedicalReportsTab from "../components/home/MedicalReportsTab";
+import LabRecordsTab from "../components/home/LabRecordsTab";
+
 function PetDetails() {
   const { id } = useParams();
 
@@ -165,6 +170,19 @@ function PetDetails() {
     }
   };
 
+  // Handle appointment cancellation
+  const handleCancelAppointment = (appointment) => {
+    console.log("Cancelling appointment:", appointment.id);
+    // Add your cancellation logic here
+    // This will trigger the success toast from the AppointmentTab component
+  };
+
+  // Handle view details
+  const handleViewDetails = (appt) => {
+    setSelectedAppointment(appt);
+    setShowDetailsModal(true);
+  };
+
   useEffect(() => {
     const fetchPetData = async () => {
       try {
@@ -226,11 +244,6 @@ function PetDetails() {
   const filteredAppointments = appointments.filter((appt) =>
     appointmentFilter === "All" ? true : appt.status === appointmentFilter
   );
-
-  const handleViewDetails = (appt) => {
-    setSelectedAppointment(appt);
-    setShowDetailsModal(true);
-  };
 
   const closeModal = () => {
     setShowDetailsModal(false);
@@ -461,8 +474,27 @@ function PetDetails() {
                 className="h-full"
               >
                 {activeTab === "Appointments" && (
+                  <AppointmentTab
+                    appointments={appointments}
+                    appointmentFilter={appointmentFilter}
+                    setAppointmentFilter={setAppointmentFilter}
+                    handleViewDetails={handleViewDetails}
+                    handleCancelAppointment={handleCancelAppointment}
+                  />
+                )}
+
+                {activeTab === "Medical Reports" && (
+                  <MedicalReportsTab />
+                )}
+
+                {activeTab === "Lab Records" && (
+                  <LabRecordsTab />
+                )}
+
+                {/*
+                {activeTab === "Appointments" && (
                   <>
-                    {/* Filters */}
+                    
                     <motion.div 
                       variants={containerVariants}
                       className="flex gap-3 mb-3"
@@ -486,7 +518,7 @@ function PetDetails() {
                       ))}
                     </motion.div>
 
-                    {/* Appointment Cards */}
+                    
                     {filteredAppointments.length > 0 ? (
                       <motion.div
                         variants={containerVariants}
@@ -607,6 +639,7 @@ function PetDetails() {
                     ))}
                   </motion.div>
                 )}
+                */}
               </motion.div>
             </AnimatePresence>
           </div>
