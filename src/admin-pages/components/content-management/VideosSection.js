@@ -142,7 +142,6 @@ const VideosSection = ({ videos, onAdd, onEdit, onDelete, loading, allCategories
 
       {/* Results Info */}
       <div className="mb-4 text-sm text-gray-600">
-        Showing {filteredVideos.length} of {videos.length} videos
         {categoryFilter !== "All" && ` in "${categoryFilter}"`}
         {statusFilter !== "All" && ` with status "${statusFilter}"`}
         {searchQuery && ` matching "${searchQuery}"`}

@@ -1,98 +1,140 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import {
-  Calendar,
-  Stethoscope,
-  FileText,
+  LayoutDashboard,
+  Brain,
   Users,
-  Settings,
+  Calendar,
   LogOut,
-  Menu,
-  X
 } from 'lucide-react';
+import api from "../../api/axios";
 
 const Sidebar = ({ 
   activeTab, 
-  setActiveTab, 
-  sidebarOpen, 
-  setSidebarOpen 
+  setActiveTab,
 }) => {
+  const navigate = useNavigate();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const navItems = [
-    { id: "appointments", label: "Appointments", icon: Calendar },
-    { id: "diagnostic", label: "Diagnostic Tool", icon: Stethoscope },
-    { id: "records", label: "Medical Records", icon: FileText },
-    { id: "patients", label: "Patients", icon: Users },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "diagnostic", label: "Diagnostic Tool", icon: Brain },
+    { id: "customers-pets", label: "Customers & Pets", icon: Users },
+    { id: "appointments", label: "Appointments & Visits", icon: Calendar },
   ];
 
+  const handleLogout = async () => {
+    setShowLogoutModal(false);
+
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await api.post(
+          "/auth/logout",
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (err) {
+        console.error("❌ Logout error:", err);
+      }
+    }
+
+    // REMOVE ALL THESE ITEMS:
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("user");
+    localStorage.removeItem("petsCacheTimestamp");
+    localStorage.removeItem("selectedPet");
+    localStorage.removeItem("cachedPets");
+
+    navigate("/");
+  };
+
   return (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-[#1E3A8A] to-[#1E40AF] shadow-xl transition-all duration-300 flex flex-col relative`}>
-      {/* Sidebar Header */}
-      <div className="p-6 border-b border-blue-600 flex items-center justify-between">
-        {sidebarOpen && (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-              <Stethoscope size={24} className="text-[#5EE6FE]" />
-            </div>
-            <div>
-              <span className="font-bold text-white text-lg">VetCare</span>
-              <span className="font-light text-blue-200 text-sm block">Professional</span>
-            </div>
-          </div>
-        )}
-        <button 
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg bg-blue-700 hover:bg-blue-600 transition-colors text-white"
-        >
-          {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+    <aside className="w-64 h-screen bg-white shadow-[4px_0_12px_rgba(0,0,0,0.05)] flex flex-col justify-between py-6 rounded-r-2xl">
+      {/* Logo */}
+      <div className="flex flex-col items-center mb-6">
+        <img src="/images/rapha-logo.png" alt="Rapha Logo" className="w-24 mb-4 select-none" />
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-6 px-3">
+      <ul className="space-y-1 px-4 flex-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           
           return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-4 text-left transition-all rounded-xl mb-2 ${
-                isActive 
-                  ? 'bg-white shadow-lg text-[#1E40AF]' 
-                  : 'text-blue-100 hover:bg-blue-600 hover:text-white hover:shadow-md'
-              }`}
-            >
-              <Icon size={22} className={isActive ? "text-[#5EE6FE]" : ""} />
-              {sidebarOpen && (
-                <span className={`font-medium ${isActive ? "text-gray-800" : "text-blue-100"}`}>
-                  {item.label}
-                </span>
-              )}
-            </button>
+            <li key={item.id}>
+              <button
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left
+                  ${isActive
+                    ? "bg-[#F5FCFF] text-[#00BFFF]"
+                    : "text-gray-600 hover:bg-[#F5FCFF] hover:text-[#00BFFF] dark:text-gray-300 dark:hover:bg-[#222]"
+                  }`}
+              >
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       {/* User Section */}
-      <div className="p-4 border-t border-blue-600 bg-blue-800/50 m-3 rounded-xl">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-[#5EE6FE] to-[#4CD4EC] rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-sm">DR</span>
+      <div className="px-4 mb-4">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#5EE6FE] to-[#4CD4EC] rounded-full flex items-center justify-center">
+            <span className="text-white font-medium text-xs">DR</span>
           </div>
-          {sidebarOpen && (
-            <div className="flex-1">
-              <p className="text-white font-semibold text-sm">Dr. Veterinarian</p>
-              <p className="text-blue-200 text-xs">Veterinarian</p>
-            </div>
-          )}
+          <div>
+            <p className="text-gray-800 font-medium text-sm">Dr. Eric</p>
+            <p className="text-gray-500 text-xs">Veterinarian</p>
+          </div>
         </div>
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-blue-200 hover:text-white hover:bg-blue-700 rounded-lg transition-colors">
-          <LogOut size={18} />
-          {sidebarOpen && <span className="text-sm font-medium">Logout</span>}
-        </button>
       </div>
-    </div>
+
+      {/* Logout */}
+      <div className="px-4">
+        <div 
+          onClick={() => setShowLogoutModal(true)}
+          className="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-500 hover:bg-[#FFF4F4] hover:text-[#FF6B6B] cursor-pointer transition-all duration-150">
+          <LogOut size={18} />
+          <span className="text-sm font-medium">Logout</span>
+        </div>
+      </div>
+
+      {/* LOGOUT MODAL */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl p-6 w-[320px] shadow-lg text-center animate-popUp">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              Confirm Logout
+            </h2>
+            <p className="text-gray-600 text-sm mb-5">
+              Are you sure you want to log out of your account?
+            </p>
+
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-all duration-300"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="bg-[#5EE6FE] text-white py-2 px-4 rounded-lg hover:bg-[#3ecbe0] transition-all duration-300"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </aside>
   );
 };
 

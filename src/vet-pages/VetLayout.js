@@ -2,54 +2,39 @@ import React, { useState } from "react";
 import Sidebar from "./template/Sidebar";
 import Header from "./template/Header";
 
-// Import pages
-import AppointmentsPage from "./pages/Appointments";
+// Import the new pages
+import Dashboard from "./pages/Dashboard";
 import DiagnosticTool from "./pages/DiagnosticTools";
-import RecordsPage from "./pages/Records";
-import PatientsPage from "./pages/Patients";
-import SettingsPage from "./pages/Settings";
+import CustomerPets from "./pages/CustomerPets";
+import VetAppointmentsVisits from "./pages/VetAppointmentsVisits";
 
 const VetLayout = () => {
-  const [activeTab, setActiveTab] = useState("appointments");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const renderContent = () => {
     switch (activeTab) {
-      case "appointments":
-        return <AppointmentsPage />;
+      case "dashboard":
+        return <Dashboard />;
       case "diagnostic":
         return <DiagnosticTool />;
-      case "records":
-        return <RecordsPage />;
-      case "patients":
-        return <PatientsPage />;
-      case "settings":
-        return <SettingsPage />;
+      case "customers-pets":
+        return <CustomerPets />;
+      case "appointments":
+        return <VetAppointmentsVisits />;
       default:
-        return <AppointmentsPage />;
+        return <Dashboard />;
     }
   };
 
   const getPageTitle = () => {
     const titles = {
-      appointments: "Appointments & Schedule",
+      dashboard: "Dashboard",
       diagnostic: "Diagnostic Tool", 
-      records: "Medical Records",
-      patients: "Patient Management",
-      settings: "Settings"
+      "customers-pets": "Customers & Pets",
+      appointments: "Appointments & Visits"
     };
-    return titles[activeTab] || "Veterinarian Dashboard";
-  };
-
-  const getPageSubtitle = () => {
-    const subtitles = {
-      appointments: "Manage appointments and patient visits",
-      diagnostic: "AI-powered symptom analysis and diagnosis",
-      records: "Access and manage medical records", 
-      patients: "View and manage patient information",
-      settings: "System preferences and configuration"
-    };
-    return subtitles[activeTab] || "Professional veterinary management system";
+    return titles[activeTab] || "VetAI Dashboard";
   };
 
   return (
@@ -65,16 +50,11 @@ const VetLayout = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <Header 
-          title={getPageTitle()}
-          subtitle={getPageSubtitle()}
-        />
+        {/* <Header title={getPageTitle()} /> */}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50">
-          <div className="max-w-7xl mx-auto">
-            {renderContent()}
-          </div>
+        <main className="flex-1 overflow-auto">
+          {renderContent()}
         </main>
       </div>
     </div>
