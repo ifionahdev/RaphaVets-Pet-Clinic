@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 19, 2025 at 08:33 AM
+-- Generation Time: Nov 22, 2025 at 05:52 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,14 +49,14 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`, `resetToken`, `resetTokenExpiry`) VALUES
-(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-18 15:36:36', '2025-11-09 12:21:30', '2025-11-18 15:36:36', '2025-11-09 19:26:09', 0, NULL, NULL),
+(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-22 12:28:18', '2025-11-09 12:21:30', '2025-11-22 12:28:18', '2025-11-09 19:26:09', 0, NULL, NULL),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0, NULL, NULL),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-18 13:18:51', '2025-11-09 12:21:30', '2025-11-18 13:18:51', '2025-11-09 12:20:21', 0, NULL, NULL),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-22 12:34:17', '2025-11-09 12:21:30', '2025-11-22 12:34:17', '2025-11-09 12:20:21', 0, NULL, NULL),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1, NULL, NULL),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1, NULL, NULL),
 (9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0, NULL, NULL),
 (15, 1, 'Mark', 'Mapili', 'markmam@gmail.com', '$2b$10$HtvFEFf/H6rlr5R109DxCu5UXMYAcoVnnkCRZZckloDTavRFUmh62', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 0, NULL, NULL),
-(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$ipLkMu7MfW0j9EUAC7VGjOJJ2JwXcYQ84JsCdMY9Eq.UTf2.o7NMS', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', 0, NULL, NULL);
+(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$ipLkMu7MfW0j9EUAC7VGjOJJ2JwXcYQ84JsCdMY9Eq.UTf2.o7NMS', '2025-11-18 09:28:29', '2025-11-22 12:51:25', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', 0, 'e23c99ed264495cc62659097ed8abf350154fb68e857c8296ce04c22a358bfc0', '2025-11-22 13:51:25');
 
 -- --------------------------------------------------------
 
@@ -86,8 +86,8 @@ CREATE TABLE `appointment_status_tbl` (
 
 INSERT INTO `appointment_status_tbl` (`statusID`, `statusName`) VALUES
 (1, 'Pending'),
-(2, 'Confirmed'),
-(3, 'On Hold'),
+(2, 'Upcoming'),
+(3, 'Rejected'),
 (4, 'Cancelled'),
 (5, 'No Show'),
 (6, 'Completed');
