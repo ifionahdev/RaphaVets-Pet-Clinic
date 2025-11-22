@@ -53,6 +53,7 @@ const SERVICE_TYPES = [
   { id: "dental", label: "Dental Prophylaxis", note: "Cleaning & check" },
 ];
 
+const token = localStorage.getItem("token");
 
 
 const AddAppointment = () => {
@@ -74,6 +75,7 @@ const AddAppointment = () => {
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [owners, setOwners] = useState([]);
   const [pets, setPets] = useState([]);
+  const [serviceTypes, setServiceTypes] = useState([]);
 
   // Calendar state
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -181,9 +183,8 @@ const AddAppointment = () => {
         setOwners(
           data.map(o => ({
             id: o.accId,
-            name: o.name,
-            gender: o.gender,
-            dateOfBirth: formatDate(o.dateOfBirth),
+            firstName: o.firstName,
+            lastName: o.lastName,
             email: o.email,
             phone: o.contactNo,
             address: o.address,
@@ -196,17 +197,17 @@ const AddAppointment = () => {
           data.flatMap(owner =>
             (owner.pets || []).map(p => ({
               id: p.petID,
+              userId: p.accID,
               name: p.petName,
-              petType: p.petType,
+              type: p.petType,
               gender: p.petGender,
               breed: p.breedName,
               age: calculateAge(p.dateOfBirth),
-              petDateOfBirth: formatDate(p.dateOfBirth),
+              birthDate: formatDate(p.dateOfBirth),
+              sex: p.petGender,
               weight: (p.weight_kg ?? 0) + " kg",
               color: p.color,
-              note: p.note,
-              owner: owner.name,
-              image: p.imageName ? `http://localhost:5000/api/pets/images/${p.imageName}` : "/images/sad-dog.png"
+              notes: p.note,
             }))
           )
         );
@@ -219,10 +220,33 @@ const AddAppointment = () => {
     };
 
     fetchOwnersAndPets();
-  }, [])
+  }, []);
 
   useEffect(() => console.log("Owners updated: ", owners),[owners]);
   useEffect(() => console.log("pets updated: ", pets), [pets]);
+
+  useEffect(() => {
+    if (currentStep !== 2) return;
+
+    const fetchServices = async () => {
+      try{
+        const res = await api.get("/appointment/services");
+        const data = res.data;
+
+        setServiceTypes(
+          data.map(s => ({
+            id: s.serviceID,
+            label: s.service,
+            note: s.shortDescription,
+          }))
+        )
+      }catch(err){
+        console.error(`Failed to fetch services: ${err.messages}`)
+      }
+    };
+
+    fetchServices();
+  }, [currentStep]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -235,14 +259,14 @@ const AddAppointment = () => {
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return sampleUsers;
+    if (!searchQuery) return owners;
     const query = searchQuery.toLowerCase();
-    return sampleUsers.filter(user => 
+    return owners.filter(user => 
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(query) ||
       user.email.toLowerCase().includes(query) ||
       user.phone.includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, owners]);
 
   const handleUserSelect = (user) => {
     setAppointmentData(prev => ({ ...prev, user, pet: null }));
@@ -358,7 +382,31 @@ const AddAppointment = () => {
     setCurrentStep(3); // Go to step 3 (Date & Time)
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
+    try{
+      
+      const serviceSelected = serviceTypes.find(
+        s => s.label === appointmentData.serviceType
+      );
+
+      console.log("Service selected: ", serviceSelected);
+
+      const payload = {
+        userID: appointmentData.user.id,
+        petID: appointmentData.pet.id,
+        serviceID: serviceSelected.id,
+        date: appointmentData.date,
+        time: appointmentData.time,
+      }
+
+      await api.post("/admin/appointments/assign", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      });
+    }catch(err){
+      console.error("Booking error: ", err.message);
+    }
     // In real app, you would send this to backend
     console.log("Final appointment data:", appointmentData);
     
@@ -366,7 +414,7 @@ const AddAppointment = () => {
     setCurrentStep(5); // Go to success page
   };
 
-  const userPets = samplePets.filter(pet => pet.userId === appointmentData.user?.id);
+  const userPets = pets.filter(pet => pet.userId === appointmentData.user?.id);
 
   const steps = [
     { title: "Select Client", number: 0, icon: User },
@@ -467,7 +515,7 @@ const AddAppointment = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredUsers.map(user => {
-                      const userPetCount = samplePets.filter(pet => pet.userId === user.id).length;
+                      const userPetCount = pets.filter(pet => pet.userId === user.id).length;
                       return (
                         <tr 
                           key={user.id}
@@ -749,7 +797,7 @@ const AddAppointment = () => {
             <p className="text-gray-600 mb-6">Choose the type of service needed</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SERVICE_TYPES.map(service => (
+              {serviceTypes.map(service => (
                 <div
                   key={service.id}
                   onClick={() => handleServiceSelect(service.label)}

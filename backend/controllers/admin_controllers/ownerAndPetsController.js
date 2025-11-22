@@ -9,6 +9,8 @@
       SELECT 
         a.accId,
         CONCAT(a.firstName, ' ', a.lastName) AS name,
+        a.firstName,
+        a.lastName,
         a.email,
         c.gender,
         c.dateOfBirth,

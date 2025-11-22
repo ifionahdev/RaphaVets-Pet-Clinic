@@ -92,7 +92,7 @@ const AppointmentsVisits = () => {
       setVisits(visits);
 
     }catch(err){
-
+      console.log(err.message)
     }
   }
 
@@ -124,14 +124,22 @@ const AppointmentsVisits = () => {
     setIsModalOpen(true);
   };
 
-  const handleUpdateStatus = (appointmentId, newStatus) => {
+  const handleUpdateStatus = async (appointmentId, newStatus) => {
     try {
+
+      await api.patch("/admin/appointments/status", {
+        status: newStatus,
+        idsToUpdate: [appointmentId],
+      });
+
       setAppointments(prev => prev.map(app => 
         app.id === appointmentId ? { 
           ...app, 
           status: newStatus
         } : app
       ));
+      fetchAppointmentData();
+      
       return true;
     } catch (error) {
       console.error("Error updating status:", error);
@@ -226,20 +234,31 @@ const AppointmentsVisits = () => {
     }
   };
 
-  const updateAppointmentsStatus = (newStatus) => {
-    setAppointments(prev => prev.map(app => 
-      selectedAppointments.includes(app.id) 
-        ? { ...app, status: newStatus } 
-        : app
-    ));
+  const updateAppointmentsStatus = async (newStatus) => {
+    try{
+      await api.patch("/admin/appointments/status", {
+        status: newStatus,
+        idsToUpdate: selectedAppointments,
+      });
 
-    const message = selectedAppointments.length === 1 
-      ? `Appointment status updated to ${newStatus}!`
-      : `${selectedAppointments.length} appointments updated to ${newStatus}!`;
+      setAppointments(prev => prev.map(app => 
+        selectedAppointments.includes(app.id) 
+          ? { ...app, status: newStatus } 
+          : app
+      ));
 
-    setToast({ type: "success", message });
-    setSelectedAppointments([]);
-    setIsSelectMode(false);
+      const message = selectedAppointments.length === 1 
+        ? `Appointment status updated to ${newStatus}!`
+        : `${selectedAppointments.length} appointments updated to ${newStatus}!`;
+
+      setToast({ type: "success", message });
+      setSelectedAppointments([]);
+      setIsSelectMode(false);
+      fetchAppointmentData();
+    }catch(err){
+      console.log(err.message);
+    }
+    
   };
 
   const [pendingBulkStatus, setPendingBulkStatus] = useState(null);
@@ -264,23 +283,33 @@ const AppointmentsVisits = () => {
     setAppointmentToCancel(null);
     setSelectedAppointments([]);
     setIsSelectMode(false);
+    fetchAppointmentData();
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (appointmentToDelete) {
       const idsToDelete = Array.isArray(appointmentToDelete) 
         ? appointmentToDelete.map(app => app.id)
         : [appointmentToDelete.id];
       
+      try{
+        api.delete("/admin/appointments/", {
+          data: { idsToDelete: idsToDelete},
+        })
+      }catch(err){
+        console.log(err.message);
+      }
+
       setAppointments(prev => prev.filter(app => !idsToDelete.includes(app.id)));
       
       const message = idsToDelete.length === 1 
         ? "Appointment deleted successfully!"
         : `${idsToDelete.length} appointments deleted successfully!`;
-      
+
       setToast({ type: "success", message });
       setSelectedAppointments([]);
       setIsSelectMode(false);
+      fetchAppointmentData();
     }
     
     if (visitToDelete) {
@@ -358,6 +387,7 @@ const AppointmentsVisits = () => {
             setIsDetailsModalOpen={setIsDetailsModalOpen}
             handleSingleDelete={handleSingleDelete}
             handleCancelAppointment={handleCancelAppointment}
+            handleUpdateStatus={handleUpdateStatus}
             statusColors={statusColors}
           />
         );
