@@ -60,7 +60,7 @@ export const getBookedSlots = async (req, res) => {
     const [rows] = await db.query(
       `SELECT st.scheduleTime 
        FROM appointment_tbl a
-       JOIN scheduleTIme_tbl st ON a.scheduledTimeID = st.scheduledTimeID
+       JOIN scheduletime_tbl st ON a.scheduledTimeID = st.scheduledTimeID
        WHERE a.appointmentDate = ? 
        AND a.statusID != 4`, // statusID 4 is 'Cancelled'
       [date]
@@ -68,7 +68,7 @@ export const getBookedSlots = async (req, res) => {
 
     // Convert database times to frontend format
     const bookedSlots = rows.map(row => {
-      const [hours, minutes] = row.startTime.split(':');
+      const [hours, minutes] = row.scheduleTime.split(':');
       const hour = parseInt(hours, 10);
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const displayHour = hour % 12 || 12;
@@ -164,7 +164,7 @@ export const bookAppointment = async (req, res) => {
 
     console.log("🔍 Looking up time slot:", dbTimeFormat);
     const [timeRows] = await db.query(
-      "SELECT scheduledTimeID FROM scheduleTIme_tbl WHERE scheduleTime = ?",
+      "SELECT scheduledTimeID FROM scheduletime_tbl WHERE scheduleTime = ?",
       [dbTimeFormat]
     );
 
