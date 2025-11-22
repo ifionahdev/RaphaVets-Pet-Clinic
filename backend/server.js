@@ -11,6 +11,8 @@ import dashboardRoute from "./routes/admin_routes/dashboardRoute.js"
 import petCareTipsRoutes from './routes/petCareTipsRoute.js';
 import videoRoutes from './routes/videoRoute.js';
 import contentManagementRoute from './routes/admin_routes/contentManagementRoute.js';
+import labRecordRoute from './routes/admin_routes/labRecordRoute.js';
+
 
 const app = express();
 
@@ -37,6 +39,8 @@ app.use("/api/admin", clientRoute);
 app.use("/api/admin/dashboard", dashboardRoute);
 //content management route
 app.use('/api/admin/content', contentManagementRoute);
+//lab/medical records
+app.use('/api/admin/pet-records', labRecordRoute);
 
 
 // Serve uploaded pet images
