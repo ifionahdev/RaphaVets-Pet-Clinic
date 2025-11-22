@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 19, 2025 at 08:33 AM
+-- Generation Time: Nov 22, 2025 at 06:48 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -49,14 +49,15 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`, `resetToken`, `resetTokenExpiry`) VALUES
-(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-18 15:36:36', '2025-11-09 12:21:30', '2025-11-18 15:36:36', '2025-11-09 19:26:09', 0, NULL, NULL),
-(3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2025-11-09 12:21:30', '2025-11-09 12:20:21', '2025-11-09 12:20:21', 0, NULL, NULL),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-18 13:18:51', '2025-11-09 12:21:30', '2025-11-18 13:18:51', '2025-11-09 12:20:21', 0, NULL, NULL),
+(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2025-11-22 12:28:18', '2025-11-09 12:21:30', '2025-11-22 12:28:18', '2025-11-09 19:26:09', 0, NULL, NULL),
+(3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '2025-11-22 12:57:36', '2025-11-09 12:21:30', '2025-11-22 12:57:36', '2025-11-09 12:20:21', 0, NULL, NULL),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2025-11-22 12:34:17', '2025-11-09 12:21:30', '2025-11-22 12:34:17', '2025-11-09 12:20:21', 0, NULL, NULL),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1, NULL, NULL),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1, NULL, NULL),
 (9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0, NULL, NULL),
 (15, 1, 'Mark', 'Mapili', 'markmam@gmail.com', '$2b$10$HtvFEFf/H6rlr5R109DxCu5UXMYAcoVnnkCRZZckloDTavRFUmh62', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 0, NULL, NULL),
-(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$ipLkMu7MfW0j9EUAC7VGjOJJ2JwXcYQ84JsCdMY9Eq.UTf2.o7NMS', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', 0, NULL, NULL);
+(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$ipLkMu7MfW0j9EUAC7VGjOJJ2JwXcYQ84JsCdMY9Eq.UTf2.o7NMS', '2025-11-18 09:28:29', '2025-11-22 12:51:25', '2025-11-18 09:28:29', '2025-11-19 15:29:16', '2025-11-18 09:28:29', 0, 'e23c99ed264495cc62659097ed8abf350154fb68e857c8296ce04c22a358bfc0', '2025-11-22 13:51:25'),
+(18, 1, 'Fionah Irish ', 'Beltran', 'beltran.fionahirish@gmail.com', '$2b$10$7jPfNY9j1xAcyTepUT1.pOGUPDrAWQuKdxboD6kzYpU7ppvBAv6mS', '2025-11-22 12:58:29', '2025-11-22 13:47:19', '2025-11-22 12:58:29', '2025-11-22 13:47:19', '2025-11-22 12:58:29', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -86,8 +87,8 @@ CREATE TABLE `appointment_status_tbl` (
 
 INSERT INTO `appointment_status_tbl` (`statusID`, `statusName`) VALUES
 (1, 'Pending'),
-(2, 'Confirmed'),
-(3, 'On Hold'),
+(2, 'Upcoming'),
+(3, 'Rejected'),
 (4, 'Cancelled'),
 (5, 'No Show'),
 (6, 'Completed');
@@ -164,7 +165,8 @@ INSERT INTO `clientinfo_tbl` (`cliendInfoId`, `accId`, `gender`, `dateOfBIrth`, 
 (2, 8, 'Female', '2025-11-08', NULL, '09888888888'),
 (3, 9, 'Female', '0000-00-00', NULL, '09123456789'),
 (9, 15, 'Male', '2025-11-12', NULL, '09123456789'),
-(11, 17, 'Male', '2025-11-13', NULL, '09123456789');
+(11, 17, 'Male', '2025-11-13', NULL, '09123456789'),
+(12, 18, 'Female', '2025-11-20', NULL, '096660481838');
 
 -- --------------------------------------------------------
 
@@ -375,7 +377,8 @@ INSERT INTO `pet_tbl` (`petID`, `accID`, `petName`, `petGender`, `breedID`, `dat
 (56, 2, 'Marcy', 'Male', 1, '2025-11-13', NULL, NULL, NULL, 'petImage-1763304525120-946292901.jpg', '2025-11-16 15:08:17', '2025-11-16 22:48:45', 0),
 (57, 2, 'BEBE', 'Female', 1, '2025-11-05', 1.00, 'black', NULL, 'petImage-1763302372637-418073190.jpg', '2025-11-16 16:38:51', '2025-11-16 22:12:52', 0),
 (59, 9, 'Tobi', 'Male', 1, '2025-11-04', 12.00, 'black', NULL, '', '2025-11-17 10:11:43', '2025-11-17 10:11:43', 0),
-(60, 17, 'Markei', 'Male', 2, '2025-11-13', 12.00, 'Black', NULL, 'petImage-1763432387512-270847559.jpg', '2025-11-18 09:28:29', '2025-11-18 10:19:47', 0);
+(60, 17, 'Markei', 'Male', 2, '2025-11-13', 12.00, 'Black', NULL, 'petImage-1763432387512-270847559.jpg', '2025-11-18 09:28:29', '2025-11-18 10:19:47', 0),
+(61, 18, 'Mark Angel Mapili', 'Male', 1, '2025-11-13', 45.00, 'Brown', NULL, '', '2025-11-22 12:58:29', '2025-11-22 12:58:29', 0);
 
 -- --------------------------------------------------------
 
@@ -777,7 +780,7 @@ ALTER TABLE `video_content_tbl`
 -- AUTO_INCREMENT for table `account_tbl`
 --
 ALTER TABLE `account_tbl`
-  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `accId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `allergen_tbl`
@@ -807,7 +810,7 @@ ALTER TABLE `breed_tbl`
 -- AUTO_INCREMENT for table `clientinfo_tbl`
 --
 ALTER TABLE `clientinfo_tbl`
-  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `cliendInfoId` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `forum_images_tbl`
@@ -843,7 +846,7 @@ ALTER TABLE `pet_care_tips_content_tbl`
 -- AUTO_INCREMENT for table `pet_tbl`
 --
 ALTER TABLE `pet_tbl`
-  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `petID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `publication_status_tbl`

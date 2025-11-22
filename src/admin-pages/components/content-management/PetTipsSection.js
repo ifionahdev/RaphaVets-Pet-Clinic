@@ -143,7 +143,6 @@ const PetTipsSection = ({ petTips, onAdd, onEdit, onDelete, loading, allCategori
 
       {/* Results Info */}
       <div className="mb-4 text-sm text-gray-600">
-        Showing {filteredTips.length} of {petTips.length} tips
         {categoryFilter !== "All" && ` in "${categoryFilter}"`}
         {statusFilter !== "All" && ` with status "${statusFilter}"`}
         {searchQuery && ` matching "${searchQuery}"`}
