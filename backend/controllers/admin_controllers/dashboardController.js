@@ -2,7 +2,6 @@ import db from "../../config/db.js";
 
 export const getDashboardStats = async (req, res) => {
   try {
-    // Get the logged-in admin's ID from the token (set by authMiddleware)
     const adminId = req.user.id;
 
     if (!adminId) {
