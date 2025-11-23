@@ -197,6 +197,7 @@ export const updatePost = async (req, res) => {
     let setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = Object.values(updates);
     values.push(req.params.id); // forumID for WHERE clause
+    
     try {
       await dbConn.beginTransaction();
 

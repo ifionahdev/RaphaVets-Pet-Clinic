@@ -77,7 +77,7 @@ export const assignAppointment = async (req, res) => {
       [userID, petID, serviceID, date, scheduledTimeID]
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Appointment booked successfully",
       appointmentId: result.insertId,
     });
@@ -89,6 +89,7 @@ export const assignAppointment = async (req, res) => {
     });
   }
 };
+
 export const getAppointmentAndVisits = async (req, res) => {
   try {
     const [appointments] = await db.execute(`
@@ -104,7 +105,6 @@ export const getAppointmentAndVisits = async (req, res) => {
          JOIN account_tbl ac ON ac.accID = a.accID
          JOIN scheduletime_tbl sc on sc.scheduledTimeID = a.scheduledTimeID
          WHERE a.visitType = "Scheduled"
-            AND a.visitDateTime IS NULL
             AND a.isDeleted = FALSE
          ORDER BY a.appointmentDate ASC, a.scheduledTimeID ASC
          `);
@@ -164,12 +164,113 @@ export const getAppointmentAndVisits = async (req, res) => {
       status: vst.status,
     }));
 
-    res.status(200).json({ cleanedAppointments, cleanedVisits });
+    return res.status(200).json({ cleanedAppointments, cleanedVisits });
   } catch (err) {
     console.error("DB error: ", err);
     res.status(500).json({ error: "Server error: " + err.message });
   }
 };
+
+export const getOwnerDetails = async (req, res) => {
+   try{
+      const [owners] = await db.execute(`
+         SELECT
+            a.*,
+            c.contactNo
+         FROM account_tbl a
+         JOIN clientinfo_tbl c ON c.accID = a.accID
+         WHERE a.isDeleted = FALSE
+            AND a.roleID = 1
+      `);
+
+      if(owners.length === 0)
+         return res.status(200).json({
+            message: "No owners found",
+            owners: [],
+            pets: [],
+            appointments: []
+         });
+
+      const ownerIDs = owners.map(o => o.accId);
+      const ownersPlaceHolder = owners.map(() => "?").join(",");
+
+      const [pets] = await db.execute(`
+         SELECT
+            p.*,
+            CONCAT(
+               TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURDATE()),
+               'y'
+            ) AS age,
+            b.species,
+            b.breedName
+         FROM pet_tbl p
+         JOIN breed_tbl b ON b.breedID = p.breedID
+         WHERE p.isDeleted = FALSE
+            AND p.accID IN (${ownersPlaceHolder})
+      `, ownerIDs);
+
+      const [appointments] = await db.execute(`
+         SELECT
+            a.*,
+            DATE_FORMAT(a.appointmentDate, '%Y-%m-%d') AS date,
+            p.petName,
+            DATE_FORMAT(
+               STR_TO_DATE(st.scheduleTime, '%H:%i:%s'), 
+               '%l:%i %p') AS time,
+            s.statusName,
+            sv.service
+         FROM appointment_tbl a
+         JOIN pet_tbl p ON p.petID = a.petID
+         JOIN appointment_status_tbl s ON s.statusID = a.statusID
+         JOIN scheduletime_tbl st ON st.scheduledTimeID = a.scheduledTimeID
+         JOIN service_tbl sv ON sv.serviceID = a.serviceID
+         WHERE a.isDeleted = FALSE
+            AND a.accID IN (${ownersPlaceHolder})
+            AND statusName = "Upcoming"
+      `, ownerIDs);
+
+      const cleanedOwners = owners.map(o => ({
+         id: o.accId,
+         firstName: o.firstName,
+         lastName: o.lastName,
+         email: o.email,
+         phone: o.contactNo,
+      }));
+
+      const cleanedPets = pets.map(p => ({
+         id: p.petID,
+         userId: p.accID,
+         name: p.petName,
+         type: p.species,
+         breed: p.breedName,
+         age: p.age,
+         sex: p.petGender,
+         weight: p.weight_kg,
+         color: p.color,
+      }));
+
+      const cleanedAppointments = appointments.map(a => ({
+         id: a.appointmentID,
+         userId: a.accID,
+         petId: a.petID,
+         petName: a.petName,
+         serviceType: a.service,
+         date: a.date,
+         time: a.time,
+         status: a.statusName,
+      }));
+
+      return res.status(200).json({
+         message: "Owner details fetched",
+         owners: cleanedOwners,
+         pets: cleanedPets,
+         appointments: cleanedAppointments,
+      });
+
+   }catch(err){
+      console.error("Server Error: ", err)
+   }
+}
 
 export const updateStatus = async (req, res) => {
   const { status, idsToUpdate } = req.body;
@@ -178,10 +279,9 @@ export const updateStatus = async (req, res) => {
   console.log("IDs raw: ", ids);
   ids = ids.filter((id) => id !== undefined && id !== null);
   console.log("IDs filtered: ", ids);
-  if (ids.length === 0) {
-    console.log("Twink");
+  if (ids.length === 0) 
     return res.status(400).json({ message: "No IDs provided for update" });
-  }
+  
   try {
     console.log(status);
     const [statusRow] = await db.execute(
@@ -217,6 +317,44 @@ export const updateStatus = async (req, res) => {
   }
 };
 
+export const completeAppointment = async (req, res) => {
+   const appointmentID = req.params.id;
+
+   try{
+
+      const [[{statusID}]] = await db.execute(`
+         SELECT statusID
+         FROM appointment_status_tbl
+         WHERE statusName = "Completed"
+      `);
+      
+      console.log("Appointment ID: ", appointmentID);
+      console.log("Status ID: ", statusID);
+
+      await db.execute(`
+         UPDATE appointment_tbl
+         SET
+            visitDateTime = NOW(),
+            statusID = ?
+         WHERE appointmentID = ?
+      `, [statusID, appointmentID]);
+
+      const [[{visitTime}]] = await db.execute(`
+         SELECT 
+            DATE_FORMAT(visitDateTime, '%l:%i %p') AS visitTime
+         FROM appointment_tbl
+         WHERE appointmentID = ?
+      `, [appointmentID]);
+
+      return res.status(200).json({
+         message: "Appointment marked as complete",
+         time: visitTime
+      })
+   }catch(err){
+      console.error("Error marking appointment as complete: ", err)
+   }
+}
+
 export const deleteAppointment = async (req, res) => {
   const { idsToDelete } = req.body;
 
@@ -241,7 +379,7 @@ export const deleteAppointment = async (req, res) => {
       [...ids]
     );
 
-    res.status(200).json({ message: "Successfully deleted appointments." });
+    return res.status(200).json({ message: "Successfully deleted appointments." });
   } catch (err) {
     console.error(`DB error in deleting appointments: ${err}`);
     res.status(500).json({ error: `Server error: ${err.message}` });

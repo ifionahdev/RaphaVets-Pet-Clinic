@@ -62,9 +62,10 @@ const AddVisit = () => {
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState(null);
-  const [owners, setOweners] = useState([]);
+  const [owners, setOwners] = useState([]);
   const [pets, setPets] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [serviceTypes, setServiceTypes] = useState([]);
 
   useEffect(() => console.log("Fetched owners: ", owners), [owners]);
   useEffect(() => console.log("Fetched pets: ", pets), [pets]);
@@ -73,23 +74,49 @@ const AddVisit = () => {
   useEffect(() => {
     const fetchOwnerDetails = async () => {
       try{
-        const res = await api.get("/admin/appointments/owners");
-        const { cleanedOwners, cleanedPets, cleanedAppointments} = res.data;
+      const res = await api.get("/admin/appointments/owners");
 
+        setOwners(res.data.owners);
+        setPets(res.data.pets);
+        setAppointments(res.data.appointments);
 
       }catch(err){
         console.error("Error fetching owner details: ", err.message);
       }
     };
+
     fetchOwnerDetails();
   }, []);
+
+  useEffect(() => {
+    if (currentStep !== 2) return;
+
+    const fetchServices = async () => {
+      try{
+        const res = await api.get("/appointment/services");
+        const data = res.data;
+
+        setServiceTypes(
+          data.map(s => ({
+            id: s.serviceID,
+            label: s.service,
+            note: s.shortDescription,
+          }))
+        )
+      }catch(err){
+        console.error(`Failed to fetch services: ${err.messages}`)
+      }
+    };
+
+    fetchServices();
+  }, [currentStep]);
 
   const handleUserSelect = (user) => {
     setVisitData(prev => ({ ...prev, user, appointment: null, pet: null }));
     setSelectedClientId(user.id);
     
     // Check if user has appointments for today
-    const userAppointments = sampleAppointments.filter(
+    const userAppointments = appointments.filter(
       app => app.userId === user.id && app.status === "Upcoming"
     );
     
@@ -171,7 +198,9 @@ const AddVisit = () => {
   };
 
   const handleAppointmentSelect = (appointment) => {
-    const selectedPet = samplePets.find(pet => pet.id === appointment.petId);
+    console.log("APPOINTMENT petId:", appointment.petId, typeof appointment.petId);
+    pets.forEach(p => console.log("PET id:", p.id, typeof p.id));
+    const selectedPet = pets.find(pet => pet.id === appointment.petId);
     setVisitData(prev => ({ 
       ...prev, 
       appointment,
@@ -181,15 +210,25 @@ const AddVisit = () => {
     setCurrentStep(3); // Go to mark as complete step
   };
 
-  const handleMarkAppointmentComplete = () => {
+  const handleMarkAppointmentComplete = async () => {
     // Update appointment status to completed
-    const updatedAppointments = sampleAppointments.map(app =>
+    const updatedAppointments = appointments.map(app =>
       app.id === visitData.appointment.id ? { ...app, status: "Completed" } : app
     );
-    
+
+    const res = await api.patch(`admin/appointments/mark-complete/${visitData.appointment.id}`);
+    const visitTime = res.data.time;
+
+    setVisitData(prev => ({
+      ...prev,          
+      visitType: "Scheduled",
+      id: visitData.appointment.id,
+      time: visitTime,
+    }));  
     console.log("Appointment marked as completed:", visitData.appointment.id);
     
     // Show success page
+    
     setCurrentStep(5); // Go to success page
     setToast({ type: "success", message: "Appointment marked as completed and visit recorded!" });
   };
@@ -207,22 +246,22 @@ const AddVisit = () => {
     setCurrentStep(5); // Go to success page
   };
 
-  const userAppointments = sampleAppointments.filter(
+  const userAppointments = appointments.filter(
     app => app.userId === visitData.user?.id && app.status === "Upcoming"
   );
 
-  const userPets = samplePets.filter(pet => pet.userId === visitData.user?.id);
+  const userPets = pets.filter(pet => pet.userId === visitData.user?.id);
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return sampleUsers;
+    if (!searchQuery) return owners;
     const query = searchQuery.toLowerCase();
-    return sampleUsers.filter(user => 
+    return owners.filter(user => 
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(query) ||
       user.email.toLowerCase().includes(query) ||
       user.phone.includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, owners]);
 
   // Updated steps - removed "Select Pet" step
   const steps = [
@@ -328,10 +367,11 @@ const AddVisit = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {filteredUsers.map(user => {
-                      const userPetCount = samplePets.filter(pet => pet.userId === user.id).length;
-                      const todayAppointments = sampleAppointments.filter(
+                      const todayStr = new Date().toLocaleDateString('en-CA');                 
+                      const userPetCount = pets.filter(pet => pet.userId === user.id).length;
+                      const todayAppointments = appointments.filter(
                         app => app.userId === user.id && 
-                        app.date === new Date().toISOString().split('T')[0] &&
+                        app.date === todayStr &&
                         app.status === "Upcoming"
                       ).length;
                       
@@ -345,7 +385,7 @@ const AddVisit = () => {
                           <td className="px-6 py-4">
                             <div>
                               <div className="font-semibold text-gray-900">{user.firstName} {user.lastName}</div>
-                              <div className="text-sm text-gray-500">ID: {user.id.toString().padStart(4, '0')}</div>
+                              <div className="text-sm text-gray-500">ID: {user.id?.toString().padStart(4, '0')}</div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -460,7 +500,7 @@ const AddVisit = () => {
             <p className="text-gray-600 mb-6">Choose the type of service needed for this walk-in visit</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SERVICE_TYPES.map(service => (
+              {serviceTypes.map(service => (
                 <div
                   key={service.id}
                   onClick={() => handleServiceSelect(service.label)}
@@ -612,9 +652,9 @@ const AddVisit = () => {
                 <p><strong>Client:</strong> {visitData.user?.firstName} {visitData.user?.lastName}</p>
                 {visitData.pet && <p><strong>Pet:</strong> {visitData.pet?.name}</p>}
                 <p><strong>Service:</strong> {visitData.serviceType}</p>
-                <p><strong>Visit Type:</strong> Walk-in</p>
-                <p><strong>When:</strong> {visitData.date} at {format(new Date(`2000-01-01T${visitData.time}`), 'h:mm a')}</p>
-                <p><strong>ID:</strong> VISIT-{Date.now().toString().slice(-6)}</p>
+                <p><strong>Visit Type:</strong> {visitData.visitType}</p>
+                <p><strong>When:</strong> {visitData.date} at {visitData.time}</p>
+                <p><strong>ID:</strong> {visitData.id}</p>
               </div>
             </div>
 
