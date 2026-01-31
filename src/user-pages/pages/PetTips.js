@@ -351,7 +351,7 @@ export default function PetTips() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <p className="text-gray-700 mb-4">
-                You are about to leave RaphaVet Pets Clinic and visit an external website. Do you want to continue?
+                You are about to leave RVCare and visit an external website. Do you want to continue?
               </p>
 
               <div className="flex justify-center gap-4">

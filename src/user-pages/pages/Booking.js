@@ -159,7 +159,7 @@ function Booking() {
         >
           <div className="flex items-center gap-3">
             <img src="./images/logo.png" alt="Sortify Logo" className="w-8 h-8 object-contain" />
-            <h1 className="text-xl font-bold text-gray-800">RaphaVets Pet Clinic</h1>
+            <h1 className="text-xl font-bold text-gray-800">RVCare</h1>
           </div>
           <div className="hidden sm:block text-center">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-700">Book an Appointment</h2>

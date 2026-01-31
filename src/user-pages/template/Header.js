@@ -155,15 +155,15 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
         />
         <div className="flex flex-col flex-shrink-0">
           <div className="font-baloo text-lg sm:text-xl md:text-2xl leading-none">
-            <span className="text-[#000000]">Rapha</span>
-            <span className="text-[#5EE6FE]">Vets</span>
+            <span className="text-[#000000]">RV</span>
+            <span className="text-[#5EE6FE]">Care</span>
           </div>
-          <span className="font-sansation text-xs sm:text-sm">Pet Clinic</span>
+          {/*<span className="font-sansation text-xs sm:text-sm">Pet Clinic</span>*/}
         </div>
       </div>
 
       {/* RIGHT SIDE - NOTIF + FORUM + MODE TOGGLE */}
-      <div className="flex flex-row justify-end items-center gap-3 sm:gap-5 md:gap-8 text-gray-700 flex-shrink-0">
+      <div className="flex flex-row justify-end items-center gap-3 sm:gap-5 md:gap-8 text-g y-700 flex-shrink-0">
         {/* Notification */}
         <div className="relative" ref={notificationRef}>
           <div

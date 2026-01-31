@@ -68,7 +68,7 @@ function LandingAnimation({ userType, userName, onAnimationComplete }) {
       };
     } else {
       return {
-        title: "Welcome to RaphaVets",
+        title: "Welcome to RVCare",
         subtitle: "Your pet's health hub is ready",
         redirectText: "Redirecting to your account"
       };
@@ -109,8 +109,8 @@ function LandingAnimation({ userType, userName, onAnimationComplete }) {
                 />
                 <div className="text-left">
                   <div className="font-baloo text-3xl font-bold">
-                    <span className="text-gray-900">Rapha</span>
-                    <span className="text-[#5EE6FE]">Vets</span>
+                    <span className="text-gray-900">RV</span>
+                    <span className="text-[#5EE6FE]">Care</span>
                   </div>
                   <div className="font-sansation text-sm text-gray-500 -mt-1">
                     Pet Clinic
