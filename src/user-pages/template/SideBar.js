@@ -104,7 +104,7 @@ function SideBar({ isMenuOpen, setIsMenuOpen, refreshTrigger }) {
   ];
 
   const infoItems = [
-    { label: "FAQs", path: "#", icon: "fa-circle-question" },
+    { label: "FAQs", path: "/faqs", icon: "fa-circle-question" },
     { label: "Support", path: "#", icon: "fa-headset" },
   ];
 
@@ -201,7 +201,12 @@ function SideBar({ isMenuOpen, setIsMenuOpen, refreshTrigger }) {
                 {infoItems.map((item) => (
                   <div
                     key={item.label}
-                    className="text-[15px] flex items-center gap-2 text-gray-700 cursor-pointer"
+                    onClick={() => navigate(item.path)}
+                    className={`text-[15px] flex items-center gap-2 cursor-pointer ${
+                      location.pathname === item.path
+                        ? "text-[#5EE6FE] font-semibold"
+                        : "text-gray-700"
+                    }`}
                   >
                     <i className={`fa-solid ${item.icon}`}></i>
                     <span>{item.label}</span>
