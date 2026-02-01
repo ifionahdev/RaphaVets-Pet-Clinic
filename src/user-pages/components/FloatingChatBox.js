@@ -5,7 +5,7 @@ function FloatingChatBox({ type, onClose }) {
   const [messages, setMessages] = useState([
     { 
       from: "system", 
-      text: "👋 Hello! I'm your RaphaVets AI Assistant. I can help you with pet care advice, appointment scheduling, medical questions, and general pet health information. How can I assist you today?",
+      text: "👋 Hello! I'm Rapha. I can help you with pet care advice, appointment scheduling, medical questions, and general pet health information. How can I assist you today?",
       timestamp: new Date()
     },
   ]);
@@ -22,7 +22,6 @@ function FloatingChatBox({ type, onClose }) {
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
     setTimeout(() => {
       const responses = [
         "I understand your concern about your pet. Based on general veterinary knowledge, I recommend monitoring the symptoms and consulting with your veterinarian for personalized advice.",
@@ -54,7 +53,7 @@ function FloatingChatBox({ type, onClose }) {
 
   return (
     <AnimatePresence>
-      {/* Backdrop for expanded mode */}
+      {/* backdrop for expanded mode */}
       {isExpanded && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -77,14 +76,14 @@ function FloatingChatBox({ type, onClose }) {
             : "bottom-2 right-4 w-[380px] h-[500px]"
         }`}
       >
-        {/* HEADER - Solid RaphaVets Color */}
+        {/* HEADER*/}
         <div className="bg-[#5EE6FE] text-white py-4 px-6 flex justify-between items-center rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <i className="fa-solid fa-robot text-lg"></i>
             </div>
             <div>
-              <h3 className="font-semibold text-base">RaphaVets AI Assistant</h3>
+              <h3 className="font-semibold text-base">Rapha</h3>
               <p className="text-xs text-white/80">Online • Always available</p>
             </div>
           </div>
@@ -149,7 +148,7 @@ function FloatingChatBox({ type, onClose }) {
                   </div>
                 </div>
                 <div className="flex justify-start mt-1">
-                  <span className="text-xs text-gray-500 px-2">AI is typing...</span>
+                  <span className="text-xs text-gray-500 px-2">Rapha is typing...</span>
                 </div>
               </div>
             </div>
