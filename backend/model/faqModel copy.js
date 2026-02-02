@@ -2,7 +2,7 @@ import db from "../config/db.js";
 
 // Fetch all FAQs
 export const getAllFAQs = async () => {
-  const [rows] = await db.execute("SELECT * FROM faqs");
+  const [rows] = await pool.execute("SELECT * FROM faqs");
   return rows.map(f => ({
     ...f,
     embedding: JSON.parse(f.embedding) // convert JSON back to array
@@ -11,7 +11,7 @@ export const getAllFAQs = async () => {
 
 // Update embedding
 export const updateFAQEmbedding = async (id, embedding) => {
-  await db.execute(
+  await pool.execute(
     "UPDATE faqs SET embedding = ? WHERE id = ?",
     [JSON.stringify(embedding), id]
   );

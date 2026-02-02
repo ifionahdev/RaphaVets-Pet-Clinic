@@ -50,7 +50,7 @@ app.use('/api/admin/pet-records', labRecordRoute);
 app.use('/api/medical-records', medicalRecordsRoute);
 
 // Chatbot route
-app.use("/api/chat", chatRoutes);
+app.use("/api/chatbot", chatRoutes);
 
 
 // Serve uploaded pet images

@@ -1,76 +1,168 @@
 import OpenAI from "openai";
-import { getAllFAQs } from "../model/faqModel.js";
 import dotenv from "dotenv";
+import { getAllFAQs } from "../model/faqModel.js";
+import { saveMessage, getRecentMessages } from "../model/chatModel.js";
+import { getMemory, updateMemory } from "../model/memoryModel.js";
+
 dotenv.config();
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Cosine similarity for embedding
+// Cosine similarity for embeddings
 function cosineSimilarity(a, b) {
+  if (!a || !b) return 0;
   let dot = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
-    dot += a[i]*b[i];
-    normA += a[i]*a[i];
-    normB += b[i]*b[i];
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
   }
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// Summarize conversation for memory
+const summarizeConversation = async (messages) => {
+  const summaryPrompt = `
+Summarize this conversation into LONG-TERM MEMORY.
+Keep only important facts: pet type, age, health concerns, owner preferences.
+Remove small talk.
+
+Conversation:
+${messages.map(m => `${m.role}: ${m.content}`).join("\n")}
+`;
+  const response = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [{ role: "system", content: summaryPrompt }],
+    temperature: 0.2,
+    max_tokens: 150,
+  });
+
+  return response.choices[0]?.message?.content || "";
+};
+
 export const chatWithGPT = async (req, res) => {
   const { message } = req.body;
-  if (!message) return res.status(400).json({ error: "Message is required" });
+  const userId = req.user?.id;
+
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!message || !message.trim()) return res.status(400).json({ error: "Message is required" });
 
   try {
-    // 1️⃣ Fetch FAQs from DB
+    // 1️⃣ Save user message
+    await saveMessage(userId, "user", message);
+
+    // 2️⃣ Fetch recent chat history (last 6 messages)
+    const historyRaw = await getRecentMessages(userId, 6);
+
+    // Sanitize roles for OpenAI
+    const history = historyRaw
+      .filter(m => m.role && m.content)
+      .map(m => ({
+        role: ["user", "assistant"].includes(m.role) ? m.role : "assistant",
+        content: m.content
+      }));
+
+    // 3️⃣ Fetch FAQs from DB
     const faqs = await getAllFAQs();
 
-    // 2️⃣ Generate embedding for user question
+    // 4️⃣ Generate embedding for user question
     const userEmbRes = await openai.embeddings.create({
       model: "text-embedding-3-small",
-      input: message
+      input: message,
     });
-    const userVector = userEmbRes.data[0].embedding;
+    const userVector = userEmbRes.data[0]?.embedding || [];
 
-    // 3️⃣ Find top 3 similar FAQs
+    // 5️⃣ Find top 3 similar FAQs
     const topFAQs = faqs
+      .filter(f => f.embedding)
       .map(f => ({ ...f, score: cosineSimilarity(userVector, f.embedding) }))
-      .sort((a,b) => b.score - a.score)
-      .slice(0,3);
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
 
-    const faqText = topFAQs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join("\n");
+    const faqText = topFAQs.length
+      ? topFAQs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")
+      : "No relevant FAQ found.";
 
-    // 4️⃣ Call GPT
-    const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are "Rapha", a pet care assistant for RaphaVets Clinic. Use the following FAQs and general pet care knowledge:
+    // 6️⃣ Load user memory
+    let memory = await getMemory(userId);
+
+    // Summarize conversation if too long
+    if (history.length >= 20) {
+      const summary = await summarizeConversation(history);
+      memory = memory ? memory + "\n" + summary : summary;
+      await updateMemory(userId, memory);
+    }
+
+    // 7️⃣ Build GPT system message
+    const systemPrompt = `
+You are "Rapha", the official AI assistant of RaphaVets Clinic.
+
+LONG TERM USER MEMORY:
+${memory || "No stored memory."}
+
+Use this memory and the FAQ data below when relevant:
 ${faqText}
 
-Rules:
-1. Only answer questions related to pet care tips or clinic FAQs.
-2. Never provide medical diagnoses or advice for serious conditions.
-3. If unsure, politely say: "I'm not allowed to provide a diagnosis. Please consult a veterinarian by booking an appointment."
-4. Keep answers factual, concise, and professional.
-5. Do not answer unrelated questions. Reply: "Sorry, I can only answer questions about pet care and our clinic."
-6. Reply in the same language as the user's question.
-7. Limit your answers to 100 letters.
-          `
-        },
-        { role: "user", content: message }
-      ],
+RULES:
+• Only answer pet care tips or clinic FAQs.
+• Never provide medical diagnoses.
+• If unsure, reply:
+"I'm not allowed to provide a diagnosis. Please consult a veterinarian."
+• Do not expose other clients' data.
+• Reject unrelated questions:
+"Sorry, I can only answer questions about pet care and our clinic."
+• Match the user's language automatically.
+• Keep answers short (2–4 sentences max).
+`;
+
+    // 8️⃣ Build messages for GPT
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...history,
+      { role: "user", content: message },
+    ];
+
+    // 9️⃣ Call GPT
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages,
       temperature: 0.3,
-      max_tokens: 500
+      max_tokens: 300,
     });
 
-    const reply = response.choices[0].message.content;
+    const reply = completion.choices[0]?.message?.content || "I'm having trouble answering right now.";
 
-    res.json({ reply, usage: response.usage });
+    // 10️⃣ Save GPT reply
+    await saveMessage(userId, "assistant", reply);
 
+    // 11️⃣ Return response
+    res.json({
+      reply,
+      usage: completion.usage,
+    });
   } catch (error) {
-    console.error("GPT Error:", error);
-    res.status(500).json({ error: "Something went wrong with GPT" });
+    console.error("GPT ERROR:", error);
+    res.status(500).json({ error: "AI service temporarily unavailable" });
   }
 };
+
+export const getChatHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const history = await getRecentMessages(userId, 8);
+
+    // Map DB format to frontend format
+    const messages = history.map(m => ({
+      from: m.role === "user" ? "user" : "system",
+      text: m.content,
+      timestamp: m.timestamp,
+    }));
+
+    res.json(messages);
+    console.log(messages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load chat history" });
+  }
+};
+

@@ -1,9 +1,11 @@
 import express from "express";
-import { chatWithGPT } from "../controllers/chatController.js";
+import { chatWithGPT, getChatHistory } from "../controllers/chatController.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// POST /api/chat
-router.post("/", chatWithGPT);
+// protect the chat endpoint
+router.post("/chat", verifyToken, chatWithGPT);
+router.get("/history", verifyToken, getChatHistory);
 
 export default router;
