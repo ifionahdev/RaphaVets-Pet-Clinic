@@ -36,7 +36,7 @@ export default function AppointmentSummary({
             <div className="text-xs text-gray-400 mb-2">Pet Details</div>
             <div className="flex items-center gap-3">
               <img
-                src={selectedPet.image || "/images/dog-profile.png"}
+                src={`http://localhost:5000${selectedPet.image}` || "/images/dog-profile.png"}
                 alt={selectedPet.name}
                 className="w-10 h-10 rounded-full border border-[#5EE6FE] object-cover"
               />

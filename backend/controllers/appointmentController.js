@@ -1,6 +1,26 @@
 import db from "../config/db.js";
 
-
+// Helper function to cancel past pending appointments
+const cancelPastPendingAppointments = async () => {
+  try {
+    // Get all pending appointments with past dates
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    
+    // Assuming statusID 1 is "Pending" and statusID 4 is "Cancelled"
+    const [result] = await db.query(
+      `UPDATE appointment_tbl 
+       SET statusID = 4 
+       WHERE statusID = 1 AND appointmentDate < ? AND appointmentDate IS NOT NULL`,
+      [today]
+    );
+    
+    if (result.affectedRows > 0) {
+      console.log(`✅ Auto-cancelled ${result.affectedRows} past pending appointments`);
+    }
+  } catch (err) {
+    console.error("❌ Error auto-cancelling past appointments:", err);
+  }
+};
 
 export const getAllServices = async (req, res) => {
   try {
@@ -57,6 +77,9 @@ export const getBookedSlots = async (req, res) => {
   }
 
   try {
+    // Auto-cancel past pending appointments first
+    await cancelPastPendingAppointments();
+
     const [rows] = await db.query(
       `SELECT st.scheduleTime 
        FROM appointment_tbl a
@@ -197,6 +220,9 @@ export const getUserAppointments = async (req, res) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
+    // Auto-cancel past pending appointments first
+    await cancelPastPendingAppointments();
+
     const userId = req.user.id;
 
     const [rows] = await db.query(
@@ -224,5 +250,68 @@ export const getUserAppointments = async (req, res) => {
   } catch (err) {
     console.error("❌ Failed to fetch appointments:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const cancelAppointment = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const { appointmentId } = req.params;
+    const userId = req.user.id;
+
+    if (!appointmentId) {
+      return res.status(400).json({ message: "Appointment ID is required" });
+    }
+
+    // Verify the appointment belongs to the user and is in a cancellable status
+    const [appointments] = await db.query(
+      `SELECT a.appointmentID, a.statusID, ast.statusName
+       FROM appointment_tbl a
+       JOIN appointment_status_tbl ast ON a.statusID = ast.statusID
+       WHERE a.appointmentID = ? AND a.accID = ?`,
+      [appointmentId, userId]
+    );
+
+    if (appointments.length === 0) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    const appointment = appointments[0];
+    const currentStatus = appointment.statusName.toLowerCase();
+
+    // Only allow cancellation of upcoming or pending appointments
+    if (currentStatus !== 'upcoming' && currentStatus !== 'pending') {
+      return res.status(400).json({ 
+        message: `Cannot cancel appointment with status: ${appointment.statusName}` 
+      });
+    }
+
+    // Update appointment status to Cancelled (statusID 4)
+    const [result] = await db.query(
+      `UPDATE appointment_tbl 
+       SET statusID = 4 
+       WHERE appointmentID = ? AND accID = ?`,
+      [appointmentId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ message: "Failed to cancel appointment" });
+    }
+
+    console.log(`✅ Appointment ${appointmentId} cancelled by user ${userId}`);
+
+    res.status(200).json({ 
+      message: "Appointment cancelled successfully",
+      appointmentId: appointmentId
+    });
+  } catch (err) {
+    console.error("❌ Error cancelling appointment:", err);
+    res.status(500).json({ 
+      message: "Server error",
+      error: err.message 
+    });
   }
 };

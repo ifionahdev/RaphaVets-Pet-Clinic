@@ -70,6 +70,62 @@ export const getAllPetCareTips = async (req, res) => {
   }
 };
 
+// Get random published pet care tips for dashboard
+export const getRandomPetCareTips = async (req, res) => {
+  try {
+    const { count = 2 } = req.query; // Default to 2 tips
+    
+    const query = `
+      SELECT 
+        pc.petCareID,
+        pc.title,
+        pc.shortDescription,
+        pc.detailedContent,
+        pc.learnMoreURL,
+        pc.lastUpdated,
+        i.iconName,
+        i.iconKey,
+        pcc.categoryName,
+        a.firstName,
+        a.lastName
+      FROM pet_care_tips_content_tbl pc
+      INNER JOIN icon_tbl i ON pc.iconID = i.iconID
+      INNER JOIN pet_care_category_tbl pcc ON pc.petCareCategoryID = pcc.petCareCategoryID
+      INNER JOIN account_tbl a ON pc.accID = a.accId
+      WHERE pc.isDeleted = 0 AND pc.pubStatusID = 2
+      ORDER BY RAND()
+      LIMIT ?
+    `;
+
+    const [results] = await db.execute(query, [parseInt(count)]);
+    
+    const tips = results.map(tip => ({
+      id: tip.petCareID,
+      title: tip.title,
+      short: tip.shortDescription,
+      long: tip.detailedContent,
+      icon: getIconClass(tip.iconKey),
+      category: tip.categoryName,
+      url: tip.learnMoreURL,
+      lastUpdated: tip.lastUpdated,
+      author: `${tip.firstName} ${tip.lastName}`
+    }));
+
+    res.json({
+      success: true,
+      data: tips,
+      count: tips.length
+    });
+  } catch (error) {
+    console.error('Error fetching random pet care tips:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch random pet care tips',
+      error: error.message
+    });
+  }
+};
+
 // Get available categories from the database
 export const getCategories = async (req, res) => {
   try {

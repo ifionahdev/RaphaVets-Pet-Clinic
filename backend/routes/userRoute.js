@@ -2,6 +2,7 @@ import express from "express";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import {
   getUserProfile,
+  getCurrentUser,
   updateUserProfile,
   changeUserPassword,
   getUserPreference,
@@ -14,6 +15,9 @@ const router = express.Router();
 router.get("/", (req, res) => {
   res.json({ message: "✅ /api/users root reached" });
 });
+
+// Current authenticated user
+router.get("/me", verifyToken, getCurrentUser);
 
 // Profile routes
 router.get("/:id/profile", verifyToken, getUserProfile);

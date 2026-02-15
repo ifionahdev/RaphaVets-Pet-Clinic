@@ -3,13 +3,17 @@ import {
   getAllPetCareTips,
   getCategories,
   getPetCareTipsByCategory,
-  searchPetCareTips
+  searchPetCareTips,
+  getRandomPetCareTips
 } from '../controllers/petCareTipsController.js';
 
 const router = express.Router();
 
 // GET /api/pet-care-tips - Get all pet care tips
 router.get('/', getAllPetCareTips);
+
+// GET /api/pet-care-tips/random - Get random published tips for dashboard
+router.get('/random', getRandomPetCareTips);
 
 // GET /api/pet-care-tips/categories - Get available categories
 router.get('/categories', getCategories);

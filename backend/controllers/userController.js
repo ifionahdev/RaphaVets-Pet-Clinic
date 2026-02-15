@@ -136,6 +136,35 @@ export const getUserProfile = async (req, res) => {
   
 };
 
+// Get current authenticated user profile
+export const getCurrentUser = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const id = req.user.id;
+    const [rows] = await db.query(
+      `
+      SELECT 
+        a.accId, a.roleID, a.firstName, a.lastName, a.email,
+        c.address, c.contactNo
+      FROM account_tbl AS a
+      LEFT JOIN clientInfo_tbl AS c ON a.accId = c.accId
+      WHERE a.accId = ?
+      `,
+      [id]
+    );
+
+    if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error('❌ Error fetching current user profile:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 export const changeUserPassword = async (req, res) => {
   const { id } = req.params;
   const { currentPassword, newPassword, confirmPassword } = req.body;

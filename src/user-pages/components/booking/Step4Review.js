@@ -117,7 +117,7 @@ export default function Step4Review({
           {selectedPet ? (
             <div className="flex items-center gap-4 bg-gradient-to-r from-[#E8FBFF] to-[#FDFDFD] border border-[#D6F0F3] rounded-xl p-4">
               <img
-                src={selectedPet.image || "/images/dog-profile.png"}
+                src={`http://localhost:5000${selectedPet.image}` || "/images/dog-profile.png"}
                 alt={selectedPet.name}
                 className="w-16 h-16 rounded-full border-4 border-[#5EE6FE] object-cover shadow-sm"
               />

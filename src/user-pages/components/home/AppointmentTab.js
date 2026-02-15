@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import SuccessToast from "../../../template/SuccessToast";
+import ErrorToast from "../../../template/ErrorToast";
+import api from "../../../api/axios";
 
-const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter, handleViewDetails, handleCancelAppointment }) => {
+const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter, handleViewDetails, handleCancelAppointment, onAppointmentCancelled }) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const formatTime = (timeStr) => {
     if (!timeStr) return 'Time TBD';
@@ -116,18 +121,34 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
     setShowCancelModal(true);
   };
 
-  // Confirm cancellation - goes directly to success toast
-  const confirmCancellation = () => {
+  // Confirm cancellation - calls the backend API
+  const confirmCancellation = async () => {
     if (selectedAppointment) {
-      // Directly show success toast without backend call
-      setSuccessMessage(`Appointment for ${selectedAppointment.petName} has been cancelled successfully`);
-      setShowSuccessToast(true);
-      setShowCancelModal(false);
-      setSelectedAppointment(null);
-      
-      // Optional: If you want to call the parent function for any additional logic
-      if (typeof handleCancelAppointment === 'function') {
-        handleCancelAppointment(selectedAppointment);
+      setIsLoading(true);
+      try {
+        const response = await api.put(`/appointment/cancel/${selectedAppointment.id}`);
+        
+        // Show success message
+        setSuccessMessage(`Appointment for ${selectedAppointment.petName} has been cancelled successfully`);
+        setShowSuccessToast(true);
+        setShowCancelModal(false);
+        setSelectedAppointment(null);
+        
+        // Call callback to refresh appointments list
+        if (typeof onAppointmentCancelled === 'function') {
+          onAppointmentCancelled();
+        }
+        
+        // Call parent function for additional logic
+        if (typeof handleCancelAppointment === 'function') {
+          handleCancelAppointment(selectedAppointment);
+        }
+      } catch (error) {
+        console.error("Error cancelling appointment:", error);
+        setErrorMessage(error.response?.data?.message || "Failed to cancel appointment");
+        setShowErrorToast(true);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -295,15 +316,17 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
             <div className="flex gap-2">
               <button
                 onClick={closeModal}
-                className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all"
+                disabled={isLoading}
+                className="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Keep
               </button>
               <button
                 onClick={confirmCancellation}
-                className="flex-1 bg-[#FFB6C1] text-gray-800 py-2 rounded-lg text-sm font-semibold hover:bg-[#FFA0B0] transition-all"
+                disabled={isLoading}
+                className="flex-1 bg-[#FFB6C1] text-gray-800 py-2 rounded-lg text-sm font-semibold hover:bg-[#FFA0B0] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {isLoading ? "Cancelling..." : "Cancel"}
               </button>
             </div>
           </div>
@@ -316,6 +339,15 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
           message={successMessage}
           duration={3000}
           onClose={() => setShowSuccessToast(false)}
+        />
+      )}
+
+      {/* Error Toast */}
+      {showErrorToast && (
+        <ErrorToast 
+          message={errorMessage}
+          duration={3000}
+          onClose={() => setShowErrorToast(false)}
         />
       )}
     </>

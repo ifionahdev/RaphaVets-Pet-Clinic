@@ -262,7 +262,7 @@ const PetPatientManagement = () => {
   const handleSaveOwner = async (newData) => {
     try {
       if (editingItem) {
-        const res = await api.put(`/update-owner/${editingItem.id}`, newData);
+        const res = await api.put(`/admin/update-owner/${editingItem.id}`, newData);
         console.log("Owner updated:", res.data);
 
         const updatedOwner = {
@@ -292,7 +292,7 @@ const PetPatientManagement = () => {
         return { message: "Owner updated successfully" };
         
       } else {
-        const res = await api.post("admin/add-owner", newData);
+        const res = await api.post("/admin/add-owner", newData);
         console.log("Owner created:", res.data);
 
         setSuccessMessage("Owner added successfully!");

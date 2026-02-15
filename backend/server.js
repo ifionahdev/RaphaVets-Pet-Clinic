@@ -17,6 +17,7 @@ import appointmentVisitRoute from "./routes/admin_routes/appointmentVisitRoute.j
 import labRecordRoute from './routes/admin_routes/labRecordRoute.js';
 import medicalRecordsRoute from './routes/labRecordsRoute.js';
 import chatRoutes from './routes/chatRoute.js';
+import supportRoute from './routes/supportRoute.js';
 
 
 const app = express();
@@ -57,6 +58,9 @@ app.use('/api/medical-records', medicalRecordsRoute);
 
 // Chatbot route
 app.use("/api/chatbot", chatRoutes);
+
+// Support route
+app.use('/api/support', supportRoute);
 
 
 // Serve uploaded pet images

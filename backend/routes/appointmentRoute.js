@@ -5,6 +5,7 @@ import {
     bookAppointment,
     getBookedSlots,
     getUserAppointments,
+    cancelAppointment,
  } from "../controllers/appointmentController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 
@@ -18,4 +19,6 @@ router.get("/user", verifyToken, getUserAppointments);
 
 // Protected routes
 router.post("/book", verifyToken, bookAppointment);
+router.put("/cancel/:appointmentId", verifyToken, cancelAppointment);
+
 export default router;
