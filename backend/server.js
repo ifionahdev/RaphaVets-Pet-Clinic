@@ -16,8 +16,9 @@ import appointmentVisitRoute from "./routes/admin_routes/appointmentVisitRoute.j
 import labRecordRoute from './routes/admin_routes/labRecordRoute.js';
 import medicalRecordsRoute from './routes/labRecordsRoute.js';
 import chatRoutes from './routes/chatRoute.js';
-
-
+import breedDetectRoute from './routes/ml_routes/breedDetectRoute.js';
+import dotenv from "dotenv";
+dotenv.config();
 const app = express();
 
 app.use(cors());
@@ -64,7 +65,8 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "Backend connected!" });
 });
 
-
+// ML breed detection route
+app.use("/api/ml", breedDetectRoute);
 
 
 app.listen(5000, () => console.log("✅ Server running on port 5000"));
