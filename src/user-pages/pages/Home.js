@@ -19,10 +19,12 @@ function Home() {
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [labRecords, setLabRecords] = useState([]);
+  const [petCareTips, setPetCareTips] = useState([]);
   const [loading, setLoading] = useState({
     appointments: true,
     medical: true,
-    lab: true
+    lab: true,
+    tips: true
   });
   const navigate = useNavigate();
 
@@ -30,6 +32,7 @@ function Home() {
     fetchAppointments();
     fetchMedicalRecords();
     fetchLabRecords();
+    fetchPetCareTips();
   }, []);
 
   const fetchAppointments = async () => {
@@ -101,6 +104,19 @@ function Home() {
       console.error("Error details:", err.response?.data);
       setLabRecords([]);
       setLoading(prev => ({ ...prev, lab: false }));
+    }
+  };
+
+  const fetchPetCareTips = async () => {
+    try {
+      const res = await api.get("/pet-care-tips/random?count=2");
+      console.log("✅ Pet care tips response:", res.data);
+      setPetCareTips(res.data.data || []);
+      setLoading(prev => ({ ...prev, tips: false }));
+    } catch (err) {
+      console.error("❌ Error fetching pet care tips:", err);
+      setPetCareTips([]);
+      setLoading(prev => ({ ...prev, tips: false }));
     }
   };
 
@@ -211,24 +227,67 @@ function Home() {
           variants={containerVariants}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6"
         >
+          {/* Card 1: Pet Care Tip or Loading */}
           <motion.div variants={cardVariants}>
-            <DashboardCard 
-              title="Daily Walks" 
-              description="Take your dog for at least 30 minutes of walking to keep them healthy." 
-              icon="fa-dumbbell" 
-              bg="#FCE7F3" 
-              text="#045D56" 
-            />
+            {loading.tips ? (
+              <DashboardCard 
+                title="Loading Tip..." 
+                description="Fetching pet care tips for you."
+                icon="fa-spinner" 
+                bg="#FCE7F3" 
+                text="#045D56" 
+              />
+            ) : petCareTips[0] ? (
+              <DashboardCard 
+                title={petCareTips[0].title} 
+                description={petCareTips[0].short}
+                icon={petCareTips[0].icon}
+                bg="#FCE7F3" 
+                text="#045D56"
+                url={petCareTips[0].url}
+              />
+            ) : (
+              <DashboardCard 
+                title="Pet Care Tips" 
+                description="No tips available at the moment."
+                icon="fa-paw" 
+                bg="#FCE7F3" 
+                text="#045D56" 
+              />
+            )}
           </motion.div>
+
+          {/* Card 2: Pet Care Tip or Loading */}
           <motion.div variants={cardVariants}>
-            <DashboardCard 
-              title="Hydration Reminder" 
-              description="Ensure your pet has access to fresh water at all times." 
-              icon="fa-droplet" 
-              bg="#E3FAF7" 
-              text="#7C2E38" 
-            />
+            {loading.tips ? (
+              <DashboardCard 
+                title="Loading Tip..." 
+                description="Fetching pet care tips for you."
+                icon="fa-spinner" 
+                bg="#E3FAF7" 
+                text="#7C2E38" 
+              />
+            ) : petCareTips[1] ? (
+              <DashboardCard 
+                title={petCareTips[1].title} 
+                description={petCareTips[1].short}
+                icon={petCareTips[1].icon}
+                bg="#E3FAF7" 
+                text="#7C2E38"
+                url={petCareTips[1].url}
+              />
+            ) : (
+              <DashboardCard 
+                title="Pet Care Tips" 
+                description="No tips available at the moment."
+                icon="fa-paw" 
+                bg="#E3FAF7" 
+                text="#7C2E38" 
+              />
+            )}
           </motion.div>
+
+          {/* Card 3: Book Appointment */}
           <motion.div variants={cardVariants}>
             <DashboardCard 
               title="Book Appointment" 
@@ -287,7 +346,8 @@ function Home() {
                     appointments={filteredAppointments} 
                     appointmentFilter={appointmentFilter} 
                     setAppointmentFilter={setAppointmentFilter} 
-                    handleViewDetails={handleViewDetails} 
+                    handleViewDetails={handleViewDetails}
+                    onAppointmentCancelled={fetchAppointments}
                   />
                 )}
                 {activeTab === "Medical Reports" && (

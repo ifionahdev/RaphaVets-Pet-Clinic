@@ -234,6 +234,29 @@ function PetDetails() {
     }
   };
 
+  // Refresh appointments after cancellation
+  const refreshAppointments = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await api.get(`/pets/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const petData = res.data;
+      const mappedAppointments = (petData.appointments || []).map((appt) => ({
+        ...appt,
+        dateObj: parseAppointmentDate(appt),
+        formattedDate: formatAppointmentDate(appt),
+        displayDate: formatAppointmentDate(appt)
+      }));
+      
+      console.log("✅ Refreshed Appointments:", mappedAppointments);
+      setAppointments(mappedAppointments);
+    } catch (err) {
+      console.error("❌ Error refreshing appointments:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchPetData = async () => {
       try {
@@ -533,6 +556,7 @@ function PetDetails() {
                     setAppointmentFilter={setAppointmentFilter}
                     handleViewDetails={handleViewDetails}
                     handleCancelAppointment={handleCancelAppointment}
+                    onAppointmentCancelled={refreshAppointments}
                   />
                 )}
 

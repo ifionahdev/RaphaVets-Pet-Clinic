@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ClientLayout from "../ClientLayout";
+import api from "../../api/axios";
 
 export default function Support() {
   const [formData, setFormData] = useState({
@@ -23,23 +24,64 @@ export default function Support() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    setTimeout(() => {
-      console.log("Support form submitted:", formData);
-      setIsSubmitting(false);
+    try {
+      // Choose endpoint based on auth
+      const token = localStorage.getItem('token');
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
+      };
+
+      if (token) {
+        await api.post('/support', payload);
+      } else {
+        await api.post('/support/guest', payload);
+      }
+
       setIsSubmitted(true);
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: ""
-      });
-      
-      setTimeout(() => {
-        setIsSubmitted(false);
-      }, 5000);
-    }, 1500);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (err) {
+      console.error('Error sending support message:', err);
+      alert(err.response?.data?.message || 'Failed to send message');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Try to autofill name/email from authoritative API, fallback to localStorage
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await api.get('/users/me');
+        if (res && res.data) {
+          const user = res.data;
+          const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          const email = user.email || '';
+          setFormData(prev => ({ ...prev, name: name || prev.name, email: email || prev.email }));
+          return;
+        }
+      } catch (err) {
+        // ignore and fallback to localStorage
+      }
+
+      try {
+        const raw = localStorage.getItem('user');
+        if (raw) {
+          const user = JSON.parse(raw);
+          const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+          const email = user.email || '';
+          setFormData(prev => ({ ...prev, name: name || prev.name, email: email || prev.email }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   const contactInfo = [
     {

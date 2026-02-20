@@ -1,12 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ClientLayout from "../ClientLayout";
+import api from "../../api/axios";
 
 function FAQs() {
-  const [activeCategory, setActiveCategory] = useState("General");
+  const [activeCategory, setActiveCategory] = useState("");
   const [openFAQ, setOpenFAQ] = useState(null);
   const [search, setSearch] = useState("");
-  const [faqData, setFaqData] = useState([]);
+  const [faqData, setFaqData] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch FAQs and categories from backend
+  useEffect(() => {
+    const fetchFAQsData = async () => {
+      try {
+        setLoading(true);
+        const faqRes = await api.get("/faqs");
+
+        
+        // Group FAQs by categoryName
+        const grouped = {};
+        const categorySet = new Set();
+        
+        faqRes.data.forEach((faq) => {
+          // Debug: Log each FAQ to see if categoryName exists
+          
+          const cat = faq.categoryName || faq.faqsCategory || "General";
+          categorySet.add(cat);
+          
+          if (!grouped[cat]) {
+            grouped[cat] = [];
+          }
+          grouped[cat].push(faq);
+        });
+        
+        
+        setFaqData(grouped);
+        const uniqueCategories = Array.from(categorySet);
+        setCategories(uniqueCategories);
+        
+        if (uniqueCategories.length > 0) {
+          setActiveCategory(uniqueCategories[0]);
+        }
+        setError(null);
+      } catch (err) {
+        setError("Failed to load FAQs. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFAQsData();
+  }, []);
 
   // FAQ Data
   /*
@@ -123,8 +169,6 @@ function FAQs() {
     ]
   };
   */
-  // Categories for filtering
-  const categories = ["General", "Booking", "Pricing", "Privacy", "Services"];
 
   // Filter FAQs based on search
   const filteredFAQs = search 
@@ -213,6 +257,32 @@ function FAQs() {
         animate="visible"
         className="max-w-6xl mx-auto w-full bg-white shadow-md rounded-xl p-6"
       >
+        {/* Loading State */}
+        {loading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
+          >
+            <div className="inline-block">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-12 h-12 border-4 border-[#2FA394] border-t-transparent rounded-full mx-auto mb-4"
+              />
+            </div>
+            <p className="text-gray-600">Loading FAQs...</p>
+          </motion.div>
+        ) : error ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12 text-red-600"
+          >
+            <p>{error}</p>
+          </motion.div>
+        ) : (
+        <>
         {/* Header Section */}
         <motion.div 
           variants={itemVariants}
@@ -240,6 +310,8 @@ function FAQs() {
         {/* Category Filters */}
         <motion.div 
           variants={containerVariants}
+          initial="hidden"
+          animate="visible"
           className="flex flex-wrap gap-3 mb-8"
         >
           {search && (
@@ -254,7 +326,9 @@ function FAQs() {
             </motion.button>
           )}
           
-          {categories.map((cat, index) => (
+          {categories && categories.length > 0 ? (
+            categories.map((cat, index) => {
+              return (
             <motion.button
               key={cat}
               variants={filterVariants}
@@ -272,13 +346,20 @@ function FAQs() {
                   ? "bg-[#2FA394] text-white border-[#2FA394]"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-[#E3FAF7]"
               }`}
+              style={{
+                color: (!search && activeCategory === cat) || (search && filteredFAQs[cat]?.length > 0) ? "white" : "#374151"
+              }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ delay: index * 0.05 }}
             >
               {cat} {search && `(${filteredFAQs[cat]?.length || 0})`}
             </motion.button>
-          ))}
+              );
+            })
+          ) : (
+            <div className="text-gray-500">No categories available</div>
+          )}
         </motion.div>
 
         {/* FAQs Content */}
@@ -422,6 +503,8 @@ function FAQs() {
             </motion.button>
           </div>
         </motion.div>
+        </>
+        )}
       </motion.div>
     </ClientLayout>
   );

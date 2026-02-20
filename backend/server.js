@@ -11,6 +11,7 @@ import clientRoute from "./routes/admin_routes/ownerAndPetRoute.js"
 import dashboardRoute from "./routes/admin_routes/dashboardRoute.js"
 import petCareTipsRoutes from './routes/petCareTipsRoute.js';
 import videoRoutes from './routes/videoRoute.js';
+import faqRoute from './routes/faqRoute.js';
 import contentManagementRoute from './routes/admin_routes/contentManagementRoute.js';
 import appointmentVisitRoute from "./routes/admin_routes/appointmentVisitRoute.js";
 import labRecordRoute from './routes/admin_routes/labRecordRoute.js';
@@ -19,6 +20,9 @@ import chatRoutes from './routes/chatRoute.js';
 import breedDetectRoute from './routes/ml_routes/breedDetectRoute.js';
 import dotenv from "dotenv";
 dotenv.config();
+import supportRoute from './routes/supportRoute.js';
+
+
 const app = express();
 
 
@@ -41,6 +45,8 @@ app.use("/api/pets", petRoute);
 //pet care tips route
 app.use("/api/pet-care-tips", petCareTipsRoutes);
 app.use("/api/videos", videoRoutes);
+//FAQ route
+app.use("/api/faqs", faqRoute);
 
 // ADMIN SIDE ROUTES
 app.use("/api/admin", clientRoute);
@@ -56,6 +62,9 @@ app.use('/api/medical-records', medicalRecordsRoute);
 
 // Chatbot route
 app.use("/api/chatbot", chatRoutes);
+
+// Support route
+app.use('/api/support', supportRoute);
 
 
 // Serve uploaded pet images
