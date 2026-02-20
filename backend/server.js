@@ -19,8 +19,9 @@ import medicalRecordsRoute from './routes/labRecordsRoute.js';
 import chatRoutes from './routes/chatRoute.js';
 import breedDetectRoute from './routes/ml_routes/breedDetectRoute.js';
 import dotenv from "dotenv";
-dotenv.config();
 import supportRoute from './routes/supportRoute.js';
+dotenv.config();
+
 
 
 const app = express();
