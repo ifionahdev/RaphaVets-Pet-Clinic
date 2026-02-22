@@ -28,7 +28,7 @@ Write-Host "Changed directory to '$projectFolder'" -ForegroundColor Cyan
 # Step 1: Create virtual environment if missing
 Write-Host "1: Creating virtual environment..." -ForegroundColor Cyan
 if (-Not (Test-Path ".\venv")) {
-    python -m venv venv
+    python -3.10.11 -m venv venv
     Write-Host "Virtual environment created in ./venv" -ForegroundColor Green
 } else {
     Write-Host "Virtual environment already exists. Skipping creation." -ForegroundColor Yellow
@@ -45,6 +45,10 @@ python -m pip install --upgrade pip setuptools wheel
 # Step 4: Install dependencies
 Write-Host "4: Installing dependencies from requirements.txt..." -ForegroundColor Cyan
 if (Test-Path ".\requirements.txt") {
+
+    pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 torchaudio==2.1.2+cu118 `
+        --index-url https://download.pytorch.org/whl/cu118
+
     pip install -r requirements.txt
     Write-Host "Dependencies installed successfully." -ForegroundColor Green
 } else {
