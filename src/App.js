@@ -32,6 +32,8 @@ import AddVisit from "./admin-pages/pages/AddVisit";
 /*vet*/
 import VetLayout from "./vet-pages/VetLayout";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <BrowserRouter>
@@ -42,20 +44,20 @@ function App() {
         <Route path="/change-password" element={<ChangePassword />} />
 
         {/*user*/}
-        <Route path="/user-home" element={<Home />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/pet/:id" element={<PetDetails />} />
-        <Route path="/booking" element={<Booking />} />
-        <Route path="/breed-detect" element={<BreedDetect />} />
-        <Route path="/videos" element={<Videos />} />
-        <Route path="/pet-tips" element={<PetTips />} />
-        <Route path="/forum" element={<Forum />} />
-        <Route path="/faqs" element={<FAQs />} />
-        <Route path="/support" element={<Support />} />
-        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/user-home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/pet/:id" element={<ProtectedRoute><PetDetails /></ProtectedRoute>} />
+        <Route path="/booking" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
+        <Route path="/breed-detect" element={<ProtectedRoute><BreedDetect /></ProtectedRoute>} />
+        <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
+        <Route path="/pet-tips" element={<ProtectedRoute><PetTips /></ProtectedRoute>} />
+        <Route path="/forum" element={<ProtectedRoute><Forum /></ProtectedRoute>} />
+        <Route path="/faqs" element={<ProtectedRoute><FAQs /></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
 
         {/*admin*/}
-        <Route path="/admin-pages" element={<AdminLayout />}>
+        <Route path="/admin-pages" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="pet-management" element={<PetPatientManagement />} />
@@ -68,7 +70,7 @@ function App() {
         </Route>
 
         {/*vet*/}
-        <Route path="/vet" element={<VetLayout />} />
+        <Route path="/vet" element={<ProtectedRoute><VetLayout /></ProtectedRoute>} />
 
       </Routes>
     </BrowserRouter>
