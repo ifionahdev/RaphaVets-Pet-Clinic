@@ -46,10 +46,27 @@ python -m pip install --upgrade pip setuptools wheel
 Write-Host "4: Installing dependencies from requirements.txt..." -ForegroundColor Cyan
 if (Test-Path ".\requirements.txt") {
 
-    pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 torchaudio==2.1.2+cu118 `
-        --index-url https://download.pytorch.org/whl/cu118
+    Write-Host "Detecting GPU support..." -ForegroundColor Cyan
 
+    # Detect NVIDIA GPU (simple check)
+    $gpuExists = (Get-WmiObject Win32_VideoController | Where-Object { $_.Name -match "NVIDIA" })
+
+    if ($gpuExists) {
+        Write-Host "NVIDIA GPU detected. Installing CUDA PyTorch..." -ForegroundColor Green
+
+        pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 torchaudio==2.1.2+cu118 `
+            --index-url https://download.pytorch.org/whl/cu118
+    }
+    else {
+        Write-Host "No GPU detected. Installing CPU PyTorch..." -ForegroundColor Yellow
+
+        pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 `
+            --index-url https://download.pytorch.org/whl/cpu
+    }
+
+    # Install the rest of dependencies
     pip install -r requirements.txt
+
     Write-Host "Dependencies installed successfully." -ForegroundColor Green
 } else {
     Write-Host "!!!  requirements.txt not found! Please create it before running this script." -ForegroundColor Red
