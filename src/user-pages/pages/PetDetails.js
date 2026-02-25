@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import ClientLayout from "../ClientLayout";
@@ -13,6 +13,7 @@ import LabRecordsTab from "../components/home/LabRecordsTab";
 
 function PetDetails() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
 
   const [pet, setPet] = useState(null);
   const [appointments, setAppointments] = useState([]);
@@ -24,7 +25,12 @@ function PetDetails() {
     lab: true
   });
   const [appointmentFilter, setAppointmentFilter] = useState("Upcoming");
-  const [activeTab, setActiveTab] = useState("Appointments");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'medical') return 'Medical Reports';
+    if (tabParam === 'lab') return 'Lab Records';
+    return 'Appointments';
+  });
   const [showEditModal, setShowEditModal] = useState(false);
   
   // Add refresh trigger state

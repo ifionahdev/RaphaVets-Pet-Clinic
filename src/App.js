@@ -6,6 +6,9 @@ import SignupPage from "./SignupPage";
 import HomePage from "./guest-pages/HomePage";
 import ChangePassword from "./ChangePassword";
 
+//Socket.io
+import socket from "./socket";
+
 /*user*/
 import Home from "./user-pages/pages/Home";
 import Profile from "./user-pages/pages/Profile";
@@ -47,8 +50,22 @@ function App() {
     } else {
       document.documentElement.classList.remove("dark");
     }
+
+    // Connect socket
+    socket.connect();
+
+    // Listen once
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket:", socket.id);
+    });
+
+    // Cleanup (VERY IMPORTANT)
+    return () => {
+      socket.off("connect");
+      socket.disconnect();
+    };
+
   }, []);
-  
   return (
     <BrowserRouter>
       <Routes>
