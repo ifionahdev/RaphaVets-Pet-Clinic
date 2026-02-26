@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 22, 2026 at 12:39 PM
+-- Generation Time: Feb 26, 2026 at 04:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,15 +49,15 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`, `resetToken`, `resetTokenExpiry`) VALUES
-(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2026-02-22 17:45:32', '2025-11-09 12:21:30', '2026-02-22 17:45:32', '2025-11-09 19:26:09', 0, '205676104592a4bdda5ae79ab8b33f59d772d71ba631da7c9af8e03be2ba39c5', '2026-02-02 11:07:19'),
+(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2026-02-26 17:26:56', '2025-11-09 12:21:30', '2026-02-26 17:26:43', '2026-02-26 17:26:56', 0, '205676104592a4bdda5ae79ab8b33f59d772d71ba631da7c9af8e03be2ba39c5', '2026-02-02 11:07:19'),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '2025-11-22 12:57:36', '2025-11-09 12:21:30', '2025-11-22 12:57:36', '2025-11-09 12:20:21', 0, NULL, NULL),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2026-02-22 19:21:22', '2025-11-09 12:21:30', '2026-02-22 19:21:22', '2025-11-09 12:20:21', 0, NULL, NULL),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2026-02-26 14:22:05', '2025-11-09 12:21:30', '2026-02-26 14:22:05', '2026-02-26 14:21:48', 0, NULL, NULL),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1, NULL, NULL),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1, NULL, NULL),
-(9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 0, NULL, NULL),
+(9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2026-02-26 14:48:02', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 1, NULL, NULL),
 (15, 1, 'Mark', 'Mapili', 'markmam@gmail.com', '$2b$10$HtvFEFf/H6rlr5R109DxCu5UXMYAcoVnnkCRZZckloDTavRFUmh62', '2025-11-16 13:46:52', '2025-11-22 14:52:23', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 1, NULL, NULL),
-(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$CI2dPBXHpUJh1CyNdY6E2uFQtvdVqRPrx9gCMDkWqEPWkmQ4kF9Ry', '2025-11-18 09:28:29', '2026-02-22 18:11:42', '2026-02-22 14:48:49', '2026-02-22 17:59:09', '2026-02-22 18:11:42', 0, '40a82edcc2a8cf3b16dd129a8c6f397d2312723bfd093e7ff5a476f60cc4db86', '2026-02-01 22:58:54'),
-(18, 1, 'Fionah Irish ', 'Beltran', 'beltran.fionahirish@gmail.com', '$2b$10$7jPfNY9j1xAcyTepUT1.pOGUPDrAWQuKdxboD6kzYpU7ppvBAv6mS', '2025-11-22 12:58:29', '2026-02-05 16:40:51', '2025-11-22 12:58:29', '2026-02-05 16:40:51', '2025-11-22 12:58:29', 0, NULL, NULL);
+(17, 1, 'Mark', 'Mapili', 'markmapili2004@gmail.com', '$2b$10$CI2dPBXHpUJh1CyNdY6E2uFQtvdVqRPrx9gCMDkWqEPWkmQ4kF9Ry', '2025-11-18 09:28:29', '2026-02-26 22:28:45', '2026-02-22 14:48:49', '2026-02-26 22:28:45', '2026-02-26 22:28:27', 0, '40a82edcc2a8cf3b16dd129a8c6f397d2312723bfd093e7ff5a476f60cc4db86', '2026-02-01 22:58:54'),
+(18, 1, 'Fionah Irish ', 'Beltran', 'beltran.fionahirish@gmail.com', '$2b$10$7jPfNY9j1xAcyTepUT1.pOGUPDrAWQuKdxboD6kzYpU7ppvBAv6mS', '2025-11-22 12:58:29', '2026-02-26 22:35:05', '2025-11-22 12:58:29', '2026-02-26 22:35:05', '2026-02-26 22:34:38', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -124,19 +124,19 @@ INSERT INTO `appointment_tbl` (`appointmentID`, `accID`, `petID`, `serviceID`, `
 (7, 17, 60, 1, '2026-01-16', 3, NULL, 'Scheduled', 3, '2026-01-13 14:24:57', '2026-02-05 16:46:34', 0),
 (8, 17, 60, 5, '2026-02-12', 3, NULL, 'Scheduled', 4, '2026-02-05 16:48:22', '2026-02-22 17:56:28', 0),
 (9, 17, 62, 2, '2026-02-27', 4, NULL, 'Scheduled', 2, '2026-02-22 17:49:14', '2026-02-22 18:26:46', 0),
-(69, 17, 60, 1, '2025-09-05', 3, NULL, 'Scheduled', 2, '2025-09-05 09:30:00', '2025-09-05 09:30:00', 0),
+(69, 17, 60, 1, '2025-09-05', 3, NULL, 'Scheduled', 6, '2025-09-05 09:30:00', '2026-02-25 16:01:23', 0),
 (70, 17, 60, 2, '2025-09-12', 5, NULL, 'Scheduled', 6, '2025-09-12 10:15:00', '2025-09-12 10:15:00', 0),
 (71, 2, 56, 3, '2025-09-18', 2, NULL, 'Scheduled', 2, '2025-09-18 14:20:00', '2025-09-18 14:20:00', 0),
-(72, 17, 62, 1, '2025-09-22', 7, NULL, 'Scheduled', 2, '2025-09-22 11:45:00', '2025-09-22 11:45:00', 0),
+(72, 17, 62, 1, '2025-09-22', 7, NULL, 'Scheduled', 6, '2025-09-22 11:45:00', '2026-02-25 16:01:44', 0),
 (73, 18, 61, 5, '2025-09-28', 4, NULL, 'Scheduled', 6, '2025-09-28 16:30:00', '2025-09-28 16:30:00', 0),
-(74, 17, 60, 1, '2025-10-03', 3, NULL, 'Scheduled', 2, '2025-10-03 08:45:00', '2025-10-03 08:45:00', 0),
+(74, 17, 60, 1, '2025-10-03', 3, NULL, 'Scheduled', 4, '2025-10-03 08:45:00', '2026-02-25 16:01:50', 0),
 (75, 2, 56, 4, '2025-10-07', 6, NULL, 'Scheduled', 2, '2025-10-07 13:20:00', '2025-10-07 13:20:00', 0),
 (76, 17, 62, 2, '2025-10-11', 2, NULL, 'Scheduled', 6, '2025-10-11 10:00:00', '2025-10-11 10:00:00', 0),
 (77, 17, 60, 5, '2025-10-15', 8, NULL, 'Scheduled', 2, '2025-10-15 15:30:00', '2025-10-15 15:30:00', 0),
 (78, 18, 61, 1, '2025-10-19', 4, NULL, 'Scheduled', 2, '2025-10-19 09:15:00', '2025-10-19 09:15:00', 0),
 (79, 2, 56, 3, '2025-10-22', 5, NULL, 'Scheduled', 2, '2025-10-22 11:30:00', '2025-10-22 11:30:00', 0),
 (80, 17, 60, 6, '2025-10-26', 7, NULL, 'Scheduled', 6, '2025-10-26 14:45:00', '2025-10-26 14:45:00', 0),
-(81, 17, 62, 1, '2025-10-30', 3, NULL, 'Scheduled', 2, '2025-10-30 10:30:00', '2025-10-30 10:30:00', 0),
+(81, 17, 62, 1, '2025-10-30', 3, NULL, 'Scheduled', 4, '2025-10-30 10:30:00', '2026-02-25 16:02:20', 0),
 (82, 17, 60, 2, '2025-11-03', 4, NULL, 'Scheduled', 2, '2025-11-03 09:00:00', '2025-11-03 09:00:00', 0),
 (83, 2, 56, 1, '2025-11-06', 6, NULL, 'Scheduled', 6, '2025-11-06 13:45:00', '2025-11-06 13:45:00', 0),
 (84, 17, 62, 5, '2025-11-09', 2, NULL, 'Scheduled', 2, '2025-11-09 11:15:00', '2025-11-09 11:15:00', 0),
@@ -182,7 +182,8 @@ INSERT INTO `appointment_tbl` (`appointmentID`, `accID`, `petID`, `serviceID`, `
 (124, 17, 60, 1, '2026-02-13', 5, NULL, 'Scheduled', 2, '2026-02-13 13:45:00', '2026-02-13 13:45:00', 0),
 (125, 18, 61, 6, '2026-02-15', 7, NULL, 'Scheduled', 2, '2026-02-15 10:30:00', '2026-02-15 10:30:00', 0),
 (126, 17, 60, 2, '2026-02-18', 3, NULL, 'Scheduled', 2, '2026-02-18 15:20:00', '2026-02-18 15:20:00', 0),
-(127, 17, 62, 5, '2026-02-20', 4, NULL, 'Scheduled', 2, '2026-02-20 09:45:00', '2026-02-20 09:45:00', 0);
+(127, 17, 62, 5, '2026-02-20', 4, NULL, 'Scheduled', 2, '2026-02-20 09:45:00', '2026-02-20 09:45:00', 0),
+(128, 17, 60, 5, '2026-02-26', 3, NULL, 'Scheduled', 1, '2026-02-25 13:05:45', '2026-02-25 13:05:45', 0);
 
 -- --------------------------------------------------------
 
@@ -401,7 +402,30 @@ INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`, `isDelet
 (19, 15, 'image-1762920189690-705852010.png', 0),
 (20, 16, 'image-1763126286418-934497497.jpg', 0),
 (21, 17, 'image-1763807103530-154302295.png', 0),
-(22, 18, 'image-1770280785690-994902579.jpg', 0);
+(22, 18, 'image-1770280785690-994902579.jpg', 0),
+(23, 19, 'image-1772088438205-881442336.webp', 0),
+(24, 20, 'image-1772092136664-312660587.png', 0),
+(25, 21, 'image-1772092243265-996081346.webp', 0),
+(26, 22, 'image-1772092672607-56432965.png', 0),
+(27, 23, 'image-1772093279894-221791130.webp', 0),
+(28, 24, 'image-1772093348045-585409121.jpg', 0),
+(29, 25, 'image-1772093716262-833432969.webp', 0),
+(30, 26, 'image-1772093909211-895936805.jpg', 0),
+(31, 27, 'image-1772093954163-27009751.webp', 0),
+(32, 28, 'image-1772094010426-458129357.jpg', 1),
+(33, 29, 'image-1772094554417-40830747.webp', 0),
+(34, 30, 'image-1772095169328-385000363.webp', 0),
+(35, 31, 'image-1772098156650-662763877.webp', 0),
+(36, 32, 'image-1772098726718-947363461.png', 0),
+(37, 33, 'image-1772099139612-901927032.jpg', 0),
+(38, 34, 'image-1772115231178-341530060.webp', 0),
+(39, 35, 'image-1772115337003-143207228.png', 0),
+(40, 36, 'image-1772116179141-276357038.webp', 0),
+(41, 37, 'image-1772116275776-219210118.png', 0),
+(42, 38, 'image-1772116593308-573182454.jpg', 1),
+(43, 39, 'image-1772116905609-283622326.webp', 1),
+(44, 40, 'image-1772116974313-821152912.png', 1),
+(45, 41, 'image-1772118674625-42917705.png', 1);
 
 -- --------------------------------------------------------
 
@@ -443,7 +467,30 @@ INSERT INTO `forum_posts_tbl` (`forumID`, `accID`, `postType`, `description`, `c
 (15, 2, 'Lost', 'bin', '', 'cont@ct.me', '2025-11-12 11:36:44', '2025-11-12 12:03:09', 1, 0),
 (16, 2, 'Lost', 'yes', '09123456789', 'markmapili28@gmail.com', '2025-11-14 21:18:06', '2025-11-14 21:18:32', 1, 0),
 (17, 17, 'Lost', 'haga', '09123434556', 'safdsafs@gmail.cpm', '2025-11-22 18:25:03', '2025-11-22 18:25:03', 1, 0),
-(18, 17, 'Lost', 'Yeah, Sure Babe', '09123456789', 'Cont@ct.com', '2026-02-05 16:39:45', '2026-02-05 16:39:45', 0, 0);
+(18, 17, 'Lost', 'Yeah, Sure Babe', '09123456789', 'Cont@ct.com', '2026-02-05 16:39:45', '2026-02-05 16:39:45', 0, 0),
+(19, 17, 'Lost', 'Test', '09513733696', 'markmapili29@gmail.com', '2026-02-26 14:47:18', '2026-02-26 14:47:18', 1, 0),
+(20, 17, 'Found', 'Test4', '09081234511', 'markmapili2004@gmail.com', '2026-02-26 15:48:56', '2026-02-26 15:48:56', 1, 0),
+(21, 18, 'Lost', 'test5', '09513733696', '', '2026-02-26 15:50:43', '2026-02-26 15:50:43', 0, 0),
+(22, 17, 'Lost', 'Test 5', '09513733696', '', '2026-02-26 15:57:52', '2026-02-26 15:57:52', 0, 0),
+(23, 17, 'Found', 'test 6', '09513733696', 'markmapili2004@gmail.com', '2026-02-26 16:07:59', '2026-02-26 16:07:59', 0, 0),
+(24, 17, 'Found', 'test8', '09451373896', '', '2026-02-26 16:09:08', '2026-02-26 16:09:08', 0, 0),
+(25, 17, 'Found', 'Test9', '09513733696', '', '2026-02-26 16:15:16', '2026-02-26 16:15:16', 0, 0),
+(26, 17, 'Lost', 'Test10', '09513733696', '', '2026-02-26 16:18:29', '2026-02-26 16:18:29', 0, 0),
+(27, 17, 'Found', 'test11', '09513733696', '', '2026-02-26 16:19:14', '2026-02-26 16:19:14', 0, 0),
+(28, 17, 'Found', 'test12', '09513733696', '', '2026-02-26 16:20:10', '2026-02-26 23:47:53', 0, 1),
+(29, 17, 'Lost', 'test13', '09081234561', '', '2026-02-26 16:29:14', '2026-02-26 16:29:14', 0, 0),
+(30, 17, 'Lost', 'test14', '09513733696', '', '2026-02-26 16:39:29', '2026-02-26 16:39:29', 0, 0),
+(31, 18, 'Lost', 'test14', '09513733696', '', '2026-02-26 17:29:16', '2026-02-26 17:29:16', 0, 0),
+(32, 17, 'Lost', 'test15', '09513733696', '', '2026-02-26 17:38:46', '2026-02-26 17:38:46', 0, 0),
+(33, 17, 'Lost', 'test16', '09513733696', '', '2026-02-26 17:45:39', '2026-02-26 17:45:39', 0, 0),
+(34, 17, 'Lost', 'test17', '09513733696', '', '2026-02-26 22:13:51', '2026-02-26 22:13:51', 0, 0),
+(35, 18, 'Lost', 'test18', '09123456789', '', '2026-02-26 22:15:37', '2026-02-26 22:15:37', 0, 0),
+(36, 17, 'Lost', 'test18', '09513733696', '', '2026-02-26 22:29:39', '2026-02-26 22:29:39', 0, 0),
+(37, 18, 'Lost', 'test19', '09513733696', '', '2026-02-26 22:31:15', '2026-02-26 22:31:15', 0, 0),
+(38, 18, 'Lost', 'test20', '09123456789', '', '2026-02-26 22:36:33', '2026-02-26 23:47:17', 0, 1),
+(39, 17, 'Lost', 'test21', '09123456789', '', '2026-02-26 22:41:45', '2026-02-26 23:47:31', 0, 1),
+(40, 17, 'Lost', 'test22', '09123456789', '', '2026-02-26 22:42:54', '2026-02-26 23:45:38', 0, 1),
+(41, 17, 'Lost', 'test22', '09123456789', '', '2026-02-26 23:11:14', '2026-02-26 23:11:37', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -496,6 +543,79 @@ INSERT INTO `labtype_tbl` (`labType_ID`, `labType`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notifications_tbl`
+--
+
+CREATE TABLE `notifications_tbl` (
+  `notificationID` int(11) NOT NULL,
+  `notifTypeID` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'Additional data for frontend' CHECK (json_valid(`data`)),
+  `referenceID` int(11) DEFAULT NULL COMMENT 'ID of related record',
+  `referenceTable` varchar(50) DEFAULT NULL COMMENT 'Table name of related record',
+  `targetType` enum('all','specific','role') NOT NULL DEFAULT 'all',
+  `targetRoleID` int(11) DEFAULT NULL COMMENT 'If targeting specific role',
+  `createdBy` int(11) DEFAULT NULL COMMENT 'Who triggered this',
+  `createdAt` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications_tbl`
+--
+
+INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `message`, `data`, `referenceID`, `referenceTable`, `targetType`, `targetRoleID`, `createdBy`, `createdAt`) VALUES
+(3, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: Test...', '{\"forumId\":19,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"Test\"}', 19, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 14:47:18'),
+(4, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: Test4...', '{\"forumId\":20,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"Test4\"}', 20, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 15:48:56'),
+(5, 1, 'New Lost Pet 🐕', 'Fionah Irish  Beltran reported a lost pet: test5...', '{\"forumId\":21,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test5\"}', 21, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-26 15:50:43'),
+(6, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: Test 5...', '{\"forumId\":22,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"Test 5\"}', 22, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 15:57:52'),
+(7, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: test 6...', '{\"forumId\":23,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test 6\"}', 23, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:07:59'),
+(8, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: test8...', '{\"forumId\":24,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test8\"}', 24, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:09:08'),
+(9, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: Test9...', '{\"forumId\":25,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"Test9\"}', 25, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:15:16'),
+(10, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: Test10...', '{\"forumId\":26,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"Test10\"}', 26, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:18:29'),
+(11, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: test11...', '{\"forumId\":27,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test11\"}', 27, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:19:14'),
+(12, 1, 'New Found Pet 🐈', 'Mark Mapili reported a found pet: test12...', '{\"forumId\":28,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test12\"}', 28, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:20:10'),
+(13, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test13...', '{\"forumId\":29,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test13\"}', 29, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:29:14'),
+(14, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test14...', '{\"forumId\":30,\"postType\":\"Lost\",\"isAnonymous\":false}', 30, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 16:39:29'),
+(15, 1, 'New Lost Pet 🐕', 'Fionah Irish  Beltran reported a lost pet: test14...', '{\"forumId\":31,\"postType\":\"Lost\",\"isAnonymous\":false}', 31, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-26 17:29:16'),
+(16, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test15...', '{\"forumId\":32,\"postType\":\"Lost\",\"isAnonymous\":false}', 32, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 17:38:46'),
+(17, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test16...', '{\"forumId\":33,\"postType\":\"Lost\",\"isAnonymous\":false}', 33, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 17:45:39'),
+(18, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test17...', '{\"forumId\":34,\"postType\":\"Lost\",\"isAnonymous\":false}', 34, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 22:13:51'),
+(19, 1, 'New Lost Pet 🐕', 'Fionah Irish  Beltran reported a lost pet: test18...', '{\"forumId\":35,\"postType\":\"Lost\",\"isAnonymous\":false}', 35, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-26 22:15:37'),
+(20, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test18...', '{\"forumId\":36,\"postType\":\"Lost\",\"isAnonymous\":false}', 36, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 22:29:39'),
+(21, 1, 'New Lost Pet 🐕', 'Fionah Irish  Beltran reported a lost pet: test19...', '{\"forumId\":37,\"postType\":\"Lost\",\"isAnonymous\":false}', 37, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-26 22:31:15'),
+(22, 1, 'New Lost Pet 🐕', 'Fionah Irish  Beltran reported a lost pet: test20...', '{\"forumId\":38,\"postType\":\"Lost\",\"isAnonymous\":false}', 38, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-26 22:36:33'),
+(23, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test21...', '{\"forumId\":39,\"postType\":\"Lost\",\"isAnonymous\":false}', 39, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 22:41:45'),
+(24, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test22...', '{\"forumId\":40,\"postType\":\"Lost\",\"isAnonymous\":false}', 40, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 22:42:54'),
+(25, 1, 'New Lost Pet 🐕', 'Mark Mapili reported a lost pet: test22...', '{\"forumId\":41,\"postType\":\"Lost\",\"isAnonymous\":false}', 41, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-26 23:11:15');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notification_type_tbl`
+--
+
+CREATE TABLE `notification_type_tbl` (
+  `notifTypeID` int(11) NOT NULL,
+  `typeName` varchar(50) NOT NULL,
+  `typeDescription` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notification_type_tbl`
+--
+
+INSERT INTO `notification_type_tbl` (`notifTypeID`, `typeName`, `typeDescription`) VALUES
+(1, 'forum_update', 'Forum posts (lost/found pets)'),
+(2, 'pet_tips_update', 'Pet care tips updates'),
+(3, 'video_update', 'Video content updates'),
+(4, 'appointment_update', 'Appointment status changes'),
+(5, 'medical_record_update', 'Medical record updates'),
+(6, 'lab_record_update', 'Lab record updates');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `petmedical_file_tbl`
 --
 
@@ -520,7 +640,9 @@ INSERT INTO `petmedical_file_tbl` (`fileID`, `petmedicalID`, `originalName`, `st
 (3, 5, 'MATRIX OPERATION (SUBTRACTION) - MAPILI.pdf', 'file-1763897995250-343674125.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RaphaVets\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1763897995250-343674125.pdf', '2025-11-23 19:39:55', 1, 1),
 (4, 6, 'Module-3.pdf', 'file-1763899737328-343761804.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RaphaVets\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1763899737328-343761804.pdf', '2025-11-23 20:08:57', 1, 1),
 (5, 7, 'MODULE-2-DERIVATIVE-Students (1).pdf', 'file-1763904927620-819342555.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RaphaVets\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1763904927620-819342555.pdf', '2025-11-23 21:35:27', 1, 0),
-(6, 8, 'Mapili, Mark Angel O. - Midterm Exams Discrete Structures.pdf', 'file-1763904969883-497559202.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RaphaVets\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1763904969883-497559202.pdf', '2025-11-23 21:36:09', 1, 0);
+(6, 8, 'Mapili, Mark Angel O. - Midterm Exams Discrete Structures.pdf', 'file-1763904969883-497559202.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RaphaVets\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1763904969883-497559202.pdf', '2025-11-23 21:36:09', 1, 0),
+(7, 9, 'UMREC - Wonderpets.pdf', 'file-1772009241828-603012922.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RVCare\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1772009241828-603012922.pdf', '2026-02-25 16:47:22', 5, 0),
+(8, 10, 'Medical Certificate.pdf', 'file-1772024123159-768713351.pdf', 'C:\\Users\\LENOVO\\OneDrive\\Desktop\\RVCare\\RaphaVets-Pet-Clinic\\uploads\\medical_records\\file-1772024123159-768713351.pdf', '2026-02-25 20:55:24', 5, 0);
 
 -- --------------------------------------------------------
 
@@ -550,7 +672,9 @@ INSERT INTO `petmedical_tbl` (`petMedicalID`, `petID`, `recordTitle`, `labTypeID
 (5, 62, 'HaloHalo', 2, '2025-11-23 19:39:55', '2025-11-23 19:39:55', 1),
 (6, 60, 'Halobbbb', 1, '2025-11-23 20:08:57', '2025-11-23 20:08:57', 1),
 (7, 60, 'working', 1, '2025-11-23 21:27:56', '2025-11-23 21:35:27', 0),
-(8, 62, 'Working na', 1, '2025-11-23 21:36:09', '2025-11-23 21:39:30', 0);
+(8, 62, 'Working na', 1, '2025-11-23 21:36:09', '2025-11-23 21:39:30', 0),
+(9, 62, 'test1', 2, '2026-02-25 16:47:22', '2026-02-25 16:47:22', 0),
+(10, 62, 'Test2', 1, '2026-02-25 20:55:24', '2026-02-25 20:55:24', 0);
 
 -- --------------------------------------------------------
 
@@ -618,8 +742,11 @@ INSERT INTO `pet_care_tips_content_tbl` (`petCareID`, `accID`, `iconID`, `title`
 (4, 5, 1, 'Give 30-Minute Walks Daily', 1, 'Keeps your dog healthy and active.', 'https://vcahospitals.com/know-your-pet/the-benefits-of-walking-your-dog', 'Walk your dog twice a day or a single 30-minute session. Walking supports physical fitness, reduces anxiety, and strengthens the bond with your pet.', 2, '2025-11-18 14:46:13', '2025-11-18 15:37:42', 0),
 (5, 5, 3, 'Offer Fresh Water Multiple Times a Day', 1, 'Prevents dehydration.', 'https://www.wellnesspetfood.com/blog/how-often-should-you-change-your-pets-water/', 'Change your pet\'s water 2–3 times daily. Clean bowls thoroughly to avoid bacteria. Proper hydration keeps pets energetic and prevents kidney and urinary issues.', 1, '2025-11-18 14:46:13', '2025-11-17 13:04:10', 0),
 (6, 5, 4, 'Feed Measured Portions', 2, 'Controls weight and digestion.', 'https://www.northpointpets.com/whyaccuratelymeasuringyourpetsfoodisessential/', 'Use a measuring cup to feed your pet appropriate portions based on age, size, and activity level. Avoid free-feeding. Consult your vet for dietary adjustments if needed.', 1, '2025-11-18 14:46:13', '2025-11-17 13:04:10', 0),
-(7, 5, 1, 'Use Puzzle Toys to Stimulate Your Pet', 1, 'Keeps their mind sharp.', 'https://vmc.vet.osu.edu/sites/default/files/documents/behavioral-med-puzzle-toys-2024.pdf', 'Introduce treat puzzles, hide-and-seek games, or interactive toys. Mental stimulation prevents boredom, improves behavior, and strengthens your bond.', 1, '2025-11-18 14:46:13', '2025-11-18 15:34:12', 0),
-(9, 2, 2, 'GAGi', 11, 'is it me your looking for', 'miss na miss kita', 'pinyabuhay sarap sustasya', 3, '2025-11-18 17:15:17', '2025-11-18 17:26:52', 0);
+(7, 5, 1, 'Use Puzzle Toys to Stimulate Your Pet', 1, 'Keeps their mind sharp.', 'https://vmc.vet.osu.edu/sites/default/files/documents/behavioral-med-puzzle-toys-2024.pdf', 'Introduce treat puzzles, hide-and-seek games, or interactive toys. Mental stimulation prevents boredom, improves behavior, and strengthens your bond.', 2, '2025-11-18 14:46:13', '2026-02-25 15:48:22', 0),
+(9, 2, 2, 'GAGi', 11, 'is it me your looking for', 'miss na miss kita', 'pinyabuhay sarap sustasya', 3, '2025-11-18 17:15:17', '2026-02-25 15:47:55', 1),
+(10, 5, 1, 'HEHE', 1, 'GAHSFDSGDFDF', 'adfagdagdag', 'gdafgdafafa', 2, '2026-02-25 15:51:32', '2026-02-25 15:51:32', 0),
+(11, 5, 7, 'NEW', 1, 'TEST', '', 'TEST', 2, '2026-02-25 15:52:13', '2026-02-25 23:04:54', 0),
+(12, 5, 3, 'test123', 1, '123test', '', 'test123', 1, '2026-02-25 16:00:03', '2026-02-25 16:00:03', 0);
 
 -- --------------------------------------------------------
 
@@ -823,7 +950,93 @@ CREATE TABLE `userpreference_tbl` (
 
 INSERT INTO `userpreference_tbl` (`userprefID`, `accId`, `appointmentReminders`, `petHealthUpd`, `promoEmail`, `clinicAnnouncement`) VALUES
 (1, 2, 0, 0, 1, 0),
-(2, 17, 1, 0, 1, 0);
+(2, 17, 1, 1, 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_notifications_tbl`
+--
+
+CREATE TABLE `user_notifications_tbl` (
+  `userNotifID` int(11) NOT NULL,
+  `accID` int(11) NOT NULL,
+  `notificationID` int(11) NOT NULL,
+  `isRead` tinyint(1) NOT NULL DEFAULT 0,
+  `readAt` datetime DEFAULT NULL,
+  `isDeleted` tinyint(1) NOT NULL DEFAULT 0,
+  `deliveredAt` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_notifications_tbl`
+--
+
+INSERT INTO `user_notifications_tbl` (`userNotifID`, `accID`, `notificationID`, `isRead`, `readAt`, `isDeleted`, `deliveredAt`) VALUES
+(18, 9, 3, 0, NULL, 0, '2026-02-26 14:47:18'),
+(19, 18, 3, 1, '2026-02-26 15:42:16', 0, '2026-02-26 14:47:18'),
+(20, 17, 3, 1, '2026-02-26 15:48:18', 0, '2026-02-26 15:48:18'),
+(21, 18, 4, 1, '2026-02-26 15:56:24', 0, '2026-02-26 15:48:56'),
+(22, 17, 4, 1, '2026-02-26 15:50:24', 0, '2026-02-26 15:50:24'),
+(23, 17, 5, 1, '2026-02-26 15:51:33', 0, '2026-02-26 15:50:43'),
+(24, 18, 5, 1, '2026-02-26 15:51:49', 0, '2026-02-26 15:51:49'),
+(25, 18, 6, 1, '2026-02-26 16:07:29', 0, '2026-02-26 15:57:52'),
+(26, 18, 7, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:07:59'),
+(27, 18, 8, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:09:08'),
+(28, 18, 9, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:15:16'),
+(29, 18, 10, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:18:29'),
+(30, 18, 11, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:19:14'),
+(31, 18, 12, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:20:10'),
+(32, 18, 13, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:29:14'),
+(33, 18, 14, 1, '2026-02-26 17:39:51', 0, '2026-02-26 16:39:29'),
+(34, 17, 15, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:29:16'),
+(35, 18, 16, 1, '2026-02-26 17:39:51', 0, '2026-02-26 17:38:46'),
+(36, 18, 15, 1, '2026-02-26 17:39:51', 0, '2026-02-26 17:39:51'),
+(37, 17, 6, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(38, 17, 7, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(39, 17, 8, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(40, 17, 9, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(41, 17, 10, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(42, 17, 11, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(43, 17, 12, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(44, 17, 13, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(45, 17, 14, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(46, 17, 16, 1, '2026-02-26 17:45:13', 0, '2026-02-26 17:45:13'),
+(47, 18, 17, 1, '2026-02-26 22:33:58', 0, '2026-02-26 17:45:39'),
+(48, 18, 18, 1, '2026-02-26 22:33:58', 0, '2026-02-26 22:13:51'),
+(49, 17, 19, 1, '2026-02-26 22:33:42', 0, '2026-02-26 22:15:37'),
+(50, 18, 20, 1, '2026-02-26 22:33:58', 0, '2026-02-26 22:29:39'),
+(51, 17, 21, 1, '2026-02-26 22:33:42', 0, '2026-02-26 22:31:15'),
+(52, 17, 17, 1, '2026-02-26 22:33:42', 0, '2026-02-26 22:33:42'),
+(53, 17, 18, 1, '2026-02-26 22:33:42', 0, '2026-02-26 22:33:42'),
+(54, 17, 20, 1, '2026-02-26 22:33:42', 0, '2026-02-26 22:33:42'),
+(55, 18, 19, 1, '2026-02-26 22:33:58', 0, '2026-02-26 22:33:58'),
+(56, 18, 21, 1, '2026-02-26 22:33:58', 0, '2026-02-26 22:33:58'),
+(57, 17, 22, 1, '2026-02-26 22:42:34', 0, '2026-02-26 22:36:33'),
+(58, 18, 23, 1, '2026-02-26 22:42:29', 0, '2026-02-26 22:41:45'),
+(59, 18, 22, 1, '2026-02-26 22:42:29', 0, '2026-02-26 22:42:29'),
+(60, 17, 23, 1, '2026-02-26 22:42:34', 0, '2026-02-26 22:42:34'),
+(61, 18, 24, 1, '2026-02-26 23:45:16', 0, '2026-02-26 22:42:54'),
+(62, 18, 25, 1, '2026-02-26 23:45:16', 0, '2026-02-26 23:11:15'),
+(63, 17, 24, 1, '2026-02-26 23:45:24', 0, '2026-02-26 23:45:24'),
+(64, 17, 25, 1, '2026-02-26 23:45:24', 0, '2026-02-26 23:45:24');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_websocket_sessions_tbl`
+--
+
+CREATE TABLE `user_websocket_sessions_tbl` (
+  `sessionID` int(11) NOT NULL,
+  `accID` int(11) NOT NULL,
+  `socketID` varchar(255) NOT NULL,
+  `connectedAt` datetime NOT NULL DEFAULT current_timestamp(),
+  `lastPingAt` datetime NOT NULL DEFAULT current_timestamp(),
+  `isActive` tinyint(1) NOT NULL DEFAULT 1,
+  `userAgent` text DEFAULT NULL,
+  `ipAddress` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -994,6 +1207,21 @@ ALTER TABLE `labtype_tbl`
   ADD PRIMARY KEY (`labType_ID`);
 
 --
+-- Indexes for table `notifications_tbl`
+--
+ALTER TABLE `notifications_tbl`
+  ADD PRIMARY KEY (`notificationID`),
+  ADD KEY `notifTypeID` (`notifTypeID`),
+  ADD KEY `createdAt` (`createdAt`),
+  ADD KEY `notifications_ibfk_2` (`createdBy`);
+
+--
+-- Indexes for table `notification_type_tbl`
+--
+ALTER TABLE `notification_type_tbl`
+  ADD PRIMARY KEY (`notifTypeID`);
+
+--
 -- Indexes for table `petmedical_file_tbl`
 --
 ALTER TABLE `petmedical_file_tbl`
@@ -1078,6 +1306,23 @@ ALTER TABLE `userpreference_tbl`
   ADD KEY `accIdPreference` (`accId`);
 
 --
+-- Indexes for table `user_notifications_tbl`
+--
+ALTER TABLE `user_notifications_tbl`
+  ADD PRIMARY KEY (`userNotifID`),
+  ADD UNIQUE KEY `unique_user_notification` (`accID`,`notificationID`),
+  ADD KEY `notificationID` (`notificationID`),
+  ADD KEY `user_unread` (`accID`,`isRead`,`isDeleted`);
+
+--
+-- Indexes for table `user_websocket_sessions_tbl`
+--
+ALTER TABLE `user_websocket_sessions_tbl`
+  ADD PRIMARY KEY (`sessionID`),
+  ADD UNIQUE KEY `socketID` (`socketID`),
+  ADD KEY `accID` (`accID`,`isActive`);
+
+--
 -- Indexes for table `vet_table`
 --
 ALTER TABLE `vet_table`
@@ -1125,7 +1370,7 @@ ALTER TABLE `appointment_status_tbl`
 -- AUTO_INCREMENT for table `appointment_tbl`
 --
 ALTER TABLE `appointment_tbl`
-  MODIFY `appointmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `appointmentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
 
 --
 -- AUTO_INCREMENT for table `breed_tbl`
@@ -1161,13 +1406,13 @@ ALTER TABLE `feedbacks_tbl`
 -- AUTO_INCREMENT for table `forum_images_tbl`
 --
 ALTER TABLE `forum_images_tbl`
-  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `forum_posts_tbl`
 --
 ALTER TABLE `forum_posts_tbl`
-  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `icon_tbl`
@@ -1182,16 +1427,28 @@ ALTER TABLE `labtype_tbl`
   MODIFY `labType_ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `notifications_tbl`
+--
+ALTER TABLE `notifications_tbl`
+  MODIFY `notificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- AUTO_INCREMENT for table `notification_type_tbl`
+--
+ALTER TABLE `notification_type_tbl`
+  MODIFY `notifTypeID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `petmedical_file_tbl`
 --
 ALTER TABLE `petmedical_file_tbl`
-  MODIFY `fileID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `fileID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `petmedical_tbl`
 --
 ALTER TABLE `petmedical_tbl`
-  MODIFY `petMedicalID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `petMedicalID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `pet_care_category_tbl`
@@ -1203,7 +1460,7 @@ ALTER TABLE `pet_care_category_tbl`
 -- AUTO_INCREMENT for table `pet_care_tips_content_tbl`
 --
 ALTER TABLE `pet_care_tips_content_tbl`
-  MODIFY `petCareID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `petCareID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `pet_tbl`
@@ -1246,6 +1503,18 @@ ALTER TABLE `service_tbl`
 --
 ALTER TABLE `userpreference_tbl`
   MODIFY `userprefID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `user_notifications_tbl`
+--
+ALTER TABLE `user_notifications_tbl`
+  MODIFY `userNotifID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+
+--
+-- AUTO_INCREMENT for table `user_websocket_sessions_tbl`
+--
+ALTER TABLE `user_websocket_sessions_tbl`
+  MODIFY `sessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `vet_table`
@@ -1322,6 +1591,13 @@ ALTER TABLE `forum_posts_tbl`
   ADD CONSTRAINT `accID_forum_fk` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`);
 
 --
+-- Constraints for table `notifications_tbl`
+--
+ALTER TABLE `notifications_tbl`
+  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`notifTypeID`) REFERENCES `notification_type_tbl` (`notifTypeID`) ON DELETE CASCADE,
+  ADD CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`createdBy`) REFERENCES `account_tbl` (`accId`) ON DELETE SET NULL;
+
+--
 -- Constraints for table `petmedical_file_tbl`
 --
 ALTER TABLE `petmedical_file_tbl`
@@ -1368,6 +1644,19 @@ ALTER TABLE `service_pricing_tbl`
 --
 ALTER TABLE `userpreference_tbl`
   ADD CONSTRAINT `accIdPreference` FOREIGN KEY (`accId`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `user_notifications_tbl`
+--
+ALTER TABLE `user_notifications_tbl`
+  ADD CONSTRAINT `user_notifications_ibfk_1` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE,
+  ADD CONSTRAINT `user_notifications_ibfk_2` FOREIGN KEY (`notificationID`) REFERENCES `notifications_tbl` (`notificationID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_websocket_sessions_tbl`
+--
+ALTER TABLE `user_websocket_sessions_tbl`
+  ADD CONSTRAINT `websocket_sessions_ibfk_1` FOREIGN KEY (`accID`) REFERENCES `account_tbl` (`accId`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `vet_table`
