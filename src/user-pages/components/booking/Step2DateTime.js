@@ -23,12 +23,10 @@ export default function Step2DateTime({
     const fetchTimeSlots = async () => {
       try {
         const res = await api.get("/appointment/time");
-        console.log('Time slots response:', res.data);
         
-        // Store both raw and formatted times
         const slots = res.data.map(slot => ({
-          raw: slot.scheduleTime, // "08:00:00" - using scheduleTime field
-          formatted: formatTime(slot.scheduleTime) // "8:00 AM"
+          raw: slot.scheduleTime,
+          formatted: formatTime(slot.scheduleTime)
         }));
         
         setTimeSlots(slots);
@@ -39,7 +37,6 @@ export default function Step2DateTime({
     fetchTimeSlots();
   }, []);
 
-  // Fetch booked slots whenever date changes
   useEffect(() => {
     const fetchBookedSlots = async () => {
       if (!selectedDate) return;
@@ -47,9 +44,7 @@ export default function Step2DateTime({
       try {
         const formattedDate = format(selectedDate, 'yyyy-MM-dd');
         const res = await api.get(`/appointment/booked-slots?date=${formattedDate}`);
-        console.log('Booked slots response:', res.data);
         
-        // Store booked slots in raw format for comparison
         setBookedSlots(res.data);
       } catch (err) {
         console.error("❌ Failed to fetch booked slots:", err);
@@ -59,7 +54,6 @@ export default function Step2DateTime({
     fetchBookedSlots();
   }, [selectedDate]);
 
-  // Helper to format "08:00:00" → "8:00 AM"
   const formatTime = (timeStr) => {
     const [hour, minute, second] = timeStr.split(":").map(Number);
     const date = new Date();
@@ -69,34 +63,36 @@ export default function Step2DateTime({
     return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   };
 
-  // Helper to check if a time slot is booked
   const isTimeBooked = (rawTime) => {
     return bookedSlots.includes(rawTime);
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* Calendar (unchanged) */}
-      <div className="lg:col-span-2">
-        <div className="flex items-center justify-between mb-3">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-5">
+      {/* Calendar */}
+      <div className="lg:flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3 sm:mb-4">
           <div>
-            <div className="text-sm text-gray-500">Selected service</div>
-            <div className="text-md font-semibold text-gray-800">{selectedService?.label}</div>
+            <div className="text-xs sm:text-sm text-gray-500">Selected service</div>
+            <div className="text-sm sm:text-md font-semibold text-gray-800 truncate max-w-[200px] sm:max-w-full">
+              {selectedService?.label || "-"}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100">
-              <i className="fa-solid fa-chevron-left" />
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button onClick={prevMonth} className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100">
+              <i className="fa-solid fa-chevron-left text-xs sm:text-sm" />
             </button>
-            <div className="text-sm font-semibold">{format(currentMonth, "MMMM yyyy")}</div>
-            <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100">
-              <i className="fa-solid fa-chevron-right" />
+            <div className="text-xs sm:text-sm font-semibold whitespace-nowrap">{format(currentMonth, "MMMM yyyy")}</div>
+            <button onClick={nextMonth} className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100">
+              <i className="fa-solid fa-chevron-right text-xs sm:text-sm" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-sm">
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-xs sm:text-sm">
           {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((w) => (
-            <div key={w} className="text-center text-xs text-gray-400 py-2">{w}</div>
+            <div key={w} className="text-center text-[10px] sm:text-xs text-gray-400 py-1 sm:py-2">{w}</div>
           ))}
 
           {calendar.map((week, wi) =>
@@ -112,13 +108,13 @@ export default function Step2DateTime({
                       setSelectedTime("");
                     }
                   }}
-                  className={`h-12 flex items-center justify-center rounded-md transition ${
+                  className={`h-8 sm:h-10 md:h-12 flex items-center justify-center rounded-md transition text-xs sm:text-sm ${
                     !isSameMonth(day, currentMonth) ? "text-gray-300" : ""
                   } ${isDisabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer hover:bg-[#EEF8FA]"} ${
                     selected ? "bg-[#5EE6FE] text-white" : "bg-white"
                   }`}
                 >
-                  <div className="text-sm">{format(day, "d")}</div>
+                  <div>{format(day, "d")}</div>
                 </button>
               );
             })
@@ -127,16 +123,18 @@ export default function Step2DateTime({
       </div>
 
       {/* Time slots */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="text-sm text-gray-500 mb-2">Available time slots</div>
-        {!selectedDate && <div className="text-sm text-gray-400">Choose a date to see slots</div>}
+      <div className="lg:w-64 xl:w-72 bg-white border border-gray-100 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm">
+        <div className="text-xs sm:text-sm text-gray-500 mb-2">Available time slots</div>
+        {!selectedDate && <div className="text-xs sm:text-sm text-gray-400">Choose a date to see slots</div>}
 
         {selectedDate && (
           <>
-            <div className="text-xs text-gray-500 mb-2">{format(selectedDate, "EEEE, MMM d")}</div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="text-[10px] sm:text-xs text-gray-500 mb-2 truncate">
+              {format(selectedDate, "EEEE, MMM d")}
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
               {timeSlots.length === 0 ? (
-                <div className="text-gray-400 text-sm">No time slots available</div>
+                <div className="col-span-2 text-gray-400 text-xs sm:text-sm py-2 text-center">No time slots available</div>
               ) : (
                 timeSlots.map((slot) => {
                   const active = selectedTime === slot.raw;
@@ -147,7 +145,7 @@ export default function Step2DateTime({
                       key={slot.raw}
                       onClick={() => !isBooked && setSelectedTime(slot.raw)}
                       disabled={isBooked}
-                      className={`text-sm rounded-lg py-2 px-2 transition ${
+                      className={`text-xs sm:text-sm rounded-lg py-1.5 sm:py-2 px-1 sm:px-2 transition ${
                         active
                           ? "bg-[#5EE6FE] text-white shadow-md"
                           : isBooked
@@ -155,19 +153,19 @@ export default function Step2DateTime({
                           : "bg-white border border-gray-100 hover:bg-[#EEF8FA]"
                       }`}
                     >
-                      {slot.formatted}
-                      {isBooked && <span className="ml-1 text-xs">(Booked)</span>}
+                      <span className="block text-center">{slot.formatted}</span>
+                      {isBooked && <span className="block text-[8px] sm:text-[10px]">(Booked)</span>}
                     </button>
                   );
                 })
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <button
                 disabled={!selectedTime}
                 onClick={() => goToStep(3)}
-                className={`w-full py-3 rounded-lg font-semibold transition ${
+                className={`w-full py-2 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm transition ${
                   selectedTime
                     ? "bg-[#5EE6FE] text-white hover:bg-[#3ecbe0]"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
