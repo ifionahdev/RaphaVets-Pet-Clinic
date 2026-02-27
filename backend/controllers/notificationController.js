@@ -1,7 +1,66 @@
 import db from "../config/db.js";
 import { getIO } from "../socket.js";
 
-const sendToOnlineUsers = async (userIds, notification) => {
+const shouldNotifyUser = async (userId, notifType) => {
+    try {
+        // notifType can be: 'forum', 'pet_tips', 'video', 'appointment', 'medical', 'lab'
+        const [pref] = await db.query(
+            `SELECT * FROM userpreference_tbl WHERE accId = ?`,
+            [userId]
+        );
+        
+        if (pref.length === 0) {
+            return true; // Default to true if no preferences set
+        }
+
+        switch(notifType) {
+            case 'forum':
+                return true; // Forum posts are always sent (no preference option yet)
+            case 'pet_tips':
+                return true; // Pet tips are always sent (no preference option yet)
+            case 'video':
+                return true; // Videos are always sent (no preference option yet)
+            case 'appointment':
+                return pref[0].appointmentReminders === 1;
+            case 'medical':
+                return pref[0].petHealthUpd === 1;
+            case 'lab':
+                return pref[0].petHealthUpd === 1;
+            case 'promo':
+                return pref[0].promoEmail === 1;
+            case 'clinic':
+                return pref[0].clinicAnnouncement === 1;
+            default:
+                return true;
+        }
+    } catch (error) {
+        console.error('❌ [shouldNotifyUser] Error checking preferences:', error);
+        return true; // Default to true on error to prevent notification loss
+    }
+};
+
+// Helper function to filter users based on preferences
+const filterUsersByPreference = async (userIds, notifType) => {
+    if (!userIds || userIds.length === 0) return [];
+    
+    try {
+        const filteredUsers = [];
+        
+        for (const userId of userIds) {
+            const shouldNotify = await shouldNotifyUser(userId, notifType);
+            if (shouldNotify) {
+                filteredUsers.push(userId);
+            }
+        }
+        
+        return filteredUsers;
+    } catch (error) {
+        console.error('❌ [filterUsersByPreference] Error:', error);
+        return userIds; // Return original on error
+    }
+};
+
+const sendToOnlineUsers = async (userIds, notification, notifType) => {
     try {
         console.log('🔍 [sendToOnlineUsers] Starting with userIds:', userIds);
         
@@ -10,12 +69,20 @@ const sendToOnlineUsers = async (userIds, notification) => {
             return;
         }
 
-        // Get active sessions from database
-        console.log('🔍 [sendToOnlineUsers] Querying active sessions for users:', userIds);
+        // Filter users based on preferences
+        const filteredUserIds = await filterUsersByPreference(userIds, notifType);
+        
+        if (filteredUserIds.length === 0) {
+            console.log('⚠️ [sendToOnlineUsers] No users after preference filtering');
+            return;
+        }
+
+        // Get active sessions from database for filtered users
+        console.log('🔍 [sendToOnlineUsers] Querying active sessions for users:', filteredUserIds);
         const [sessions] = await db.query(
             `SELECT socketID FROM user_websocket_sessions_tbl
              WHERE accID IN (?) AND isActive = 1`,
-            [userIds]
+            [filteredUserIds]
         );
 
         console.log('🔍 [sendToOnlineUsers] Found active sessions:', sessions.length);
@@ -77,7 +144,8 @@ export const createForumPostNotification = async (req, res) => {
                 JSON.stringify({
                     forumId: forumID,
                     postType: postType,
-                    isAnonymous: isAnonymous
+                    isAnonymous: isAnonymous,
+                    description: description
                 }),
                 forumID,
                 'forum_posts_tbl',
@@ -95,14 +163,7 @@ export const createForumPostNotification = async (req, res) => {
             [accID]
         );
 
-        // Also check your own user ID from the database
-        const [myUser] = await db.query(
-            `SELECT accId, email FROM account_tbl WHERE accId = ?`,
-            [accID]
-        );
-        console.log('🔍 [DEBUG] My user info:', myUser[0]);
-
-        // 3. Link notifications to all users
+        // 3. Link notifications to all users (no preference check for forum posts)
         if (users.length > 0) {
             const userValues = users.map(u => [u.accId, notificationId]);
             await db.query(
@@ -111,6 +172,7 @@ export const createForumPostNotification = async (req, res) => {
             );
         }
 
+        // Mark as read for creator
         await db.query(
             `INSERT INTO user_notifications_tbl (accID, notificationID, isRead, readAt) 
              VALUES (?, ?, 1, NOW())`,
@@ -118,7 +180,7 @@ export const createForumPostNotification = async (req, res) => {
         );
         console.log('✅ Marked notification as read for creator:', accID);
 
-        // 4. Send to online users via WebSocket - WITH FULL DETAILS
+        // 4. Send to online users via WebSocket (forum posts are always sent, no preference filter)
         await sendToOnlineUsers(users.map(u => u.accId), {
             notificationId,
             type: 'forum_update',
@@ -134,9 +196,8 @@ export const createForumPostNotification = async (req, res) => {
                 description: description
             },
             createdAt: new Date()
-        });
+        }, 'forum');
 
-        // Only send response if this is being called as an API endpoint
         if (res && typeof res.status === 'function') {
             res.status(201).json({ 
                 success: true, 
@@ -193,14 +254,14 @@ export const createPetTipsNotification = async (req, res) => {
         const notificationId = result.insertId;
         console.log('✅ [createPetTipsNotification] Notification inserted with ID:', notificationId);
 
-        // 2. Get ALL clients
+        // 2. Get ALL clients (no preference filter for pet tips yet)
         console.log('🔍 [createPetTipsNotification] Fetching all clients...');
         const [users] = await db.query(
             `SELECT accId FROM account_tbl WHERE isDeleted = 0 AND roleID = 1`
         );
         console.log('🔍 [createPetTipsNotification] Found users:', users.length);
 
-        // 3. Link to all users
+        // 3. Link to all users (pet tips are always sent, no preference check)
         if (users.length > 0) {
             console.log('🔍 [createPetTipsNotification] Linking notifications...');
             const userValues = users.map(u => [u.accId, notificationId]);
@@ -220,7 +281,7 @@ export const createPetTipsNotification = async (req, res) => {
             createdBy: accID,
             data: { petCareId: petCareID, shortDescription },
             createdAt: new Date()
-        });
+        }, 'pet_tips');
 
         console.log('✅ [createPetTipsNotification] Completed');
         res.status(201).json({ 
@@ -235,6 +296,7 @@ export const createPetTipsNotification = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
+
 
 /**
  * Create notification for video update - ONLY when new video is published
@@ -300,7 +362,7 @@ export const createVideoNotification = async (req, res) => {
             createdBy: accID,
             data: { videoId: videoID, category: category[0]?.videoCategory },
             createdAt: new Date()
-        });
+        }, 'video');
 
         console.log('✅ [createVideoNotification] Completed');
         res.status(201).json({ 
@@ -332,6 +394,17 @@ export const createAppointmentNotification = async (req, res) => {
             [statusID]
         );
         console.log('🔍 [createAppointmentNotification] Status:', status[0]);
+
+        // Check if user wants appointment notifications
+        const shouldNotify = await shouldNotifyUser(accID, 'appointment');
+        
+        if (!shouldNotify) {
+            console.log('⚠️ [createAppointmentNotification] User has disabled appointment notifications');
+            return res.status(200).json({ 
+                success: true, 
+                message: 'User has disabled appointment notifications' 
+            });
+        }
 
         // 1. Insert notification
         console.log('🔍 [createAppointmentNotification] Inserting notification...');
@@ -365,7 +438,7 @@ export const createAppointmentNotification = async (req, res) => {
             [accID, notificationId]
         );
 
-        // 3. Send to user if online
+        // 3. Send to user if online (already filtered by preference)
         console.log('🔍 [createAppointmentNotification] Sending to user...');
         await sendToOnlineUsers([accID], {
             notificationId,
@@ -374,7 +447,7 @@ export const createAppointmentNotification = async (req, res) => {
             message: `Your appointment for ${new Date(appointmentDate).toLocaleDateString()} is now ${status[0]?.statusName}`,
             data: { appointmentId: appointmentID, status: status[0]?.statusName },
             createdAt: new Date()
-        });
+        }, 'appointment');
 
         console.log('✅ [createAppointmentNotification] Completed');
         res.status(201).json({ 
@@ -388,6 +461,7 @@ export const createAppointmentNotification = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
+
 
 /**
  * Create notification for medical/lab record update - ONLY for specific user (pet owner)
@@ -411,6 +485,17 @@ export const createMedicalRecordNotification = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Pet not found' });
         }
         console.log('🔍 [createMedicalRecordNotification] Pet owner:', pet[0]);
+
+        // Check if user wants medical record notifications
+        const shouldNotify = await shouldNotifyUser(pet[0].accID, 'medical');
+        
+        if (!shouldNotify) {
+            console.log('⚠️ [createMedicalRecordNotification] User has disabled medical record notifications');
+            return res.status(200).json({ 
+                success: true, 
+                message: 'User has disabled medical record notifications' 
+            });
+        }
 
         // Get lab type name
         console.log('🔍 [createMedicalRecordNotification] Fetching lab type...');
@@ -466,7 +551,7 @@ export const createMedicalRecordNotification = async (req, res) => {
             message: `${recordTitle} has been added`,
             data: { petMedicalId: petMedicalID, petId: petID, petName: pet[0].petName },
             createdAt: new Date()
-        });
+        }, typeId === 5 ? 'medical' : 'lab');
 
         console.log('✅ [createMedicalRecordNotification] Completed');
         res.status(201).json({ 
