@@ -74,26 +74,43 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
       const response = await api.get('/notifications');
       console.log('📥 [fetchNotifications] Response:', response.data);
       
+      // Get current user ID
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = user?.id;
+      
       if (response.data.success) {
-        // Transform the notifications to match component format
-        const formattedNotifications = response.data.notifications.map(notif => {
-          const style = getNotificationStyle(notif.typeName);
-          return {
-            id: notif.notificationID,
-            notificationId: notif.notificationID,
-            title: notif.title,
-            message: notif.message,
-            timestamp: notif.createdAt,
-            read: notif.isRead === 1,
-            type: notif.typeName,
-            icon: style.icon,
-            color: style.color,
-            link: getNotificationLink(notif.typeName)
-          };
-        });
+        // Transform and FILTER the notifications
+        const formattedNotifications = response.data.notifications
+          .filter(notif => {
+            // 🔴 FILTER OUT OWN NOTIFICATIONS
+            // Check if this notification was created by the current user
+            if (notif.createdBy && notif.createdBy === currentUserId) {
+              console.log('⏭️ [fetchNotifications] Filtering out own notification:', notif.notificationID);
+              return false;
+            }
+            return true;
+          })
+          .map(notif => {
+            const style = getNotificationStyle(notif.typeName);
+            return {
+              id: notif.notificationID,
+              notificationId: notif.notificationID,
+              title: notif.title,
+              message: notif.message,
+              timestamp: notif.createdAt,
+              read: notif.isRead === 1,
+              type: notif.typeName,
+              icon: style.icon,
+              color: style.color,
+              link: getNotificationLink(notif.typeName),
+              createdBy: notif.createdBy // Store for future reference
+            };
+          });
+        
+        console.log('📥 [fetchNotifications] Formatted notifications:', formattedNotifications.length);
         setNotifications(formattedNotifications);
         
-        // Update unread count
+        // Update unread count (only count unread notifications that aren't your own)
         const unreadResponse = await api.get('/notifications/unread-count');
         if (unreadResponse.data.success) {
           setUnreadCount(unreadResponse.data.unread);
@@ -139,6 +156,16 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
       socket.on('new_notification', (notification) => {
         console.log('📨 [Socket] RAW notification received:', notification);
         
+        // Get current user ID from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const currentUserId = user?.id;
+        
+        // 🔴 SKIP IF THIS IS THE CURRENT USER'S OWN NOTIFICATION
+        if (notification.createdBy && notification.createdBy === currentUserId) {
+          console.log('⏭️ [Socket] Skipping own notification');
+          return;
+        }
+        
         // Transform the backend notification to frontend format
         const style = getNotificationStyle(notification.type);
         
@@ -152,29 +179,24 @@ function Header({ darkMode, setDarkMode, setIsMenuOpen }) {
           type: notification.type || 'forum_update',
           icon: style.icon,
           color: style.color,
-          link: getNotificationLink(notification.type)
+          link: getNotificationLink(notification.type),
+          createdBy: notification.createdBy
         };
         
-        console.log('📨 [Socket] FORMATTED notification:', formattedNotification);
+        console.log('📨 [Socket] Adding notification to state');
         
         // Update state with the new notification
         setNotifications(prev => {
-          // Check if notification already exists to avoid duplicates
+          // Check if notification already exists
           const exists = prev.some(n => n.notificationId === formattedNotification.notificationId);
           if (exists) {
-            console.log('⚠️ [Socket] Notification already exists, skipping');
             return prev;
           }
           return [formattedNotification, ...prev];
         });
         
         // Update unread count
-        setUnreadCount(prev => {
-          console.log('📨 [Socket] Previous unread:', prev);
-          const newCount = prev + 1;
-          console.log('📨 [Socket] New unread:', newCount);
-          return newCount;
-        });
+        setUnreadCount(prev => prev + 1);
       });
 
       // Listen for notification read updates

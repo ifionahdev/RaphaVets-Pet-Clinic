@@ -1,13 +1,6 @@
 import db from "../config/db.js";
 import { getIO } from "../socket.js";
 
-// ===========================================
-// HELPER FUNCTIONS
-// ===========================================
-
-/**
- * Helper to send notifications to online users
- */
 const sendToOnlineUsers = async (userIds, notification) => {
     try {
         console.log('🔍 [sendToOnlineUsers] Starting with userIds:', userIds);
@@ -54,13 +47,6 @@ const sendToOnlineUsers = async (userIds, notification) => {
     }
 };
 
-// ===========================================
-// CREATE NOTIFICATIONS (Triggered by events)
-// ===========================================
-
-/**
- * Create notification for new forum post - ONLY when new post is created
- */
 export const createForumPostNotification = async (req, res) => {
     console.log('🔍 [createForumPostNotification] Started');
     
@@ -109,6 +95,13 @@ export const createForumPostNotification = async (req, res) => {
             [accID]
         );
 
+        // Also check your own user ID from the database
+        const [myUser] = await db.query(
+            `SELECT accId, email FROM account_tbl WHERE accId = ?`,
+            [accID]
+        );
+        console.log('🔍 [DEBUG] My user info:', myUser[0]);
+
         // 3. Link notifications to all users
         if (users.length > 0) {
             const userValues = users.map(u => [u.accId, notificationId]);
@@ -117,6 +110,13 @@ export const createForumPostNotification = async (req, res) => {
                 [userValues]
             );
         }
+
+                await db.query(
+            `INSERT INTO user_notifications_tbl (accID, notificationID, isRead, readAt) 
+             VALUES (?, ?, 1, NOW())`,
+            [accID, notificationId]
+        );
+        console.log('✅ Marked notification as read for creator:', accID);
 
         // 4. Send to online users via WebSocket - WITH FULL DETAILS
         await sendToOnlineUsers(users.map(u => u.accId), {
@@ -128,6 +128,7 @@ export const createForumPostNotification = async (req, res) => {
             creatorName: creatorName,
             postType: postType,
             emoji: postType === 'Lost' ? '🐕' : '🐈',
+            createdBy: accID,
             data: { 
                 forumId: forumID, 
                 postType,
@@ -214,9 +215,10 @@ export const createPetTipsNotification = async (req, res) => {
         await sendToOnlineUsers(users.map(u => u.accId), {
             notificationId,
             type: 'pet_tips_update',
-            title: `New Pet Care Tip 📝`,  // ✅ Already has emoji
+            title: `New Pet Care Tip 📝`,
             message: title,
-            fullDescription: shortDescription,  // ✅ Add full description
+            fullDescription: shortDescription,
+            createdBy: accID,
             data: { petCareId: petCareID, shortDescription },
             createdAt: new Date()
         });
@@ -296,6 +298,7 @@ export const createVideoNotification = async (req, res) => {
             type: 'video_update',
             title: `New Video: ${category[0]?.videoCategory || 'Educational'} 🎥`,  // ✅ Already has emoji
             message: videoTitle,
+            createdBy: accID,
             data: { videoId: videoID, category: category[0]?.videoCategory },
             createdAt: new Date()
         });
@@ -491,10 +494,9 @@ export const createMedicalRecordNotification = async (req, res) => {
     }
 };
 
-// ===========================================
-// USER NOTIFICATION MANAGEMENT
-// ===========================================
-
+/**
+ * Get user's notifications (with pagination)
+ */
 /**
  * Get user's notifications (with pagination)
  */
@@ -523,6 +525,7 @@ export const getUserNotifications = async (req, res) => {
         const [notifications] = await db.query(
             `SELECT 
                 n.*, 
+                n.createdBy,
                 un.isRead, 
                 un.readAt,
                 un.deliveredAt,
@@ -536,6 +539,7 @@ export const getUserNotifications = async (req, res) => {
              
              SELECT 
                 n.*, 
+                n.createdBy,
                 0 as isRead, 
                 NULL as readAt,
                 NULL as deliveredAt,
