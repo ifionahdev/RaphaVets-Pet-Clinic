@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 from pathlib import Path
 from io import BytesIO
+from fastapi import HTTPException
 
 ml_service_root = Path(__file__).resolve().parents[1]
 MODEL_PATH = ml_service_root / "models" / "breed_model.pkl"
@@ -45,6 +46,5 @@ def predict_breed_from_bytes(file_bytes: bytes) -> dict:
             "note": note
         }
     except Exception as e:
-        return {
-            "error": str(e)
-        }
+        print("ML prediction error:", e)
+        raise HTTPException(status_code=500, detail="Prediction failed due to server error.")
