@@ -58,8 +58,8 @@ const AppointmentsVisits = () => {
   const [activeTab, setActiveTab] = useState("Calendar");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [appointments, setAppointments] = useState(sampleAppointments);
-  const [visits, setVisits] = useState(sampleVisits);
+  const [appointments, setAppointments] = useState([]);
+  const [visits, setVisits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
@@ -235,10 +235,12 @@ const AppointmentsVisits = () => {
 
   const updateAppointmentsStatus = async (newStatus) => {
     try{
-      await api.patch("/admin/appointments/status", {
+      const res = await api.patch("/admin/appointments/status", {
         status: newStatus,
         idsToUpdate: selectedAppointments,
       });
+
+      const updatedCount = res.data.editedCount || selectedAppointments.length;
 
       setAppointments(prev => prev.map(app => 
         selectedAppointments.includes(app.id) 
@@ -248,13 +250,13 @@ const AppointmentsVisits = () => {
 
       const message = selectedAppointments.length === 1 
         ? `Appointment status updated to ${newStatus}!`
-        : `${selectedAppointments.length} appointments updated to ${newStatus}!`;
+        : `${updatedCount} appointments updated to ${newStatus}!`;
 
       setToast({ type: "success", message });
       setSelectedAppointments([]);
       setIsSelectMode(false);
     }catch(err){
-      console.log(err.message);
+      alert(err.response?.data?.message || "Failed to update appointment status.");
     }
     
   };
@@ -317,6 +319,14 @@ const AppointmentsVisits = () => {
       const idsToDelete = Array.isArray(visitToDelete) 
         ? visitToDelete.map(visit => visit.id)
         : [visitToDelete.id];
+
+      try{
+        api.delete("/admin/appointments/", {
+          data: { idsToDelete: idsToDelete},
+        })
+      }catch(err){
+        console.log(err.message);
+      }
       
       setVisits(prev => prev.filter(visit => !idsToDelete.includes(visit.id)));
       

@@ -28,7 +28,7 @@ Write-Host "Changed directory to '$projectFolder'" -ForegroundColor Cyan
 # Step 1: Create virtual environment if missing
 Write-Host "1: Creating virtual environment..." -ForegroundColor Cyan
 if (-Not (Test-Path ".\venv")) {
-    python -3.10.11 -m venv venv
+    py -3.10 -m venv venv
     Write-Host "Virtual environment created in ./venv" -ForegroundColor Green
 } else {
     Write-Host "Virtual environment already exists. Skipping creation." -ForegroundColor Yellow

@@ -22,11 +22,10 @@ router.post("/predict/breed", upload.single("file"), async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
-    console.error("ML error status:", error.response?.status); 
-    console.error("ML error data:", error.response?.data); 
-    console.error("ML error message:", error.message); 
-    res.status(500).json({ error: "Prediction failed" });
+    console.error("Error processing image:", error);
+    res.status(500).json({ error: "Failed to process the image." });
   }
+    
 });
 
 export default router;

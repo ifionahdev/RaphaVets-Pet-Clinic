@@ -137,55 +137,50 @@ const AddVisit = () => {
       setCurrentStep(1);
     }
   };
-  const handleNewClientSave = (ownerData) => {
+  const handleNewClientSave = async (ownerData) => {
     const generatedPassword = Math.random().toString(36).slice(-8);
     
-    const newUser = {
-      id: sampleUsers.length + 1,
+    const formData = {
       firstName: ownerData.firstName,
       lastName: ownerData.lastName,
       email: ownerData.email,
       phone: ownerData.phone,
-      name: `${ownerData.firstName} ${ownerData.lastName}`,
+      address: ownerData.address || null,
+      sex: ownerData.sex || null,
+      dob: ownerData.dob || null,
       password: generatedPassword,
-    };
 
-    let newPetData = null;
-    if (ownerData.pets && ownerData.pets.length > 0) {
-      const pet = ownerData.pets[0];
-      newPetData = {
-        id: samplePets.length + 1,
-        userId: newUser.id,
+      pets: ownerData.pets?.map(pet => ({
         name: pet.name,
         type: pet.type,
         breed: pet.breed,
-        sex: pet.sex,
-        weight: pet.weight,
-        color: pet.color,
-        birthDate: pet.dob,
-        notes: pet.notes,
-        age: pet.dob ? calculateAge(pet.dob) : "Unknown"
-      };
-    }
+        sex: pet.sex || null,
+        weight: pet.weight || null,
+        color: pet.color || null,
+        dob: pet.dob || null,
+        notes: pet.notes || null
+      })) || []
+    };
 
-    console.log("New client created:", newUser);
-    if (newPetData) {
-      console.log("New pet created:", newPetData);
-    }
+    console.log("Sending owner payload:", formData);
+
+    const res = await api.post("/admin/add-owner", formData);
+
+    const createdOwner = res.data;
 
     setVisitData(prev => ({ 
       ...prev, 
-      user: newUser,
-      pet: newPetData 
+      user: createdOwner,
+      pet: createdOwner.pets?.[0] || null
     }));
-    setSelectedClientId(newUser.id);
+    setSelectedClientId(createdOwner.id);
     setShowNewClientForm(false);
     
     setCurrentStep(2);
     
     setToast({ 
       type: "success", 
-      message: `New client created! Password sent to ${newUser.phone} and ${newUser.email}` 
+      message: `New client created! Password sent to ${createdOwner.phone} and ${createdOwner.email}` 
     });
   };
 
@@ -215,18 +210,17 @@ const AddVisit = () => {
   };
 
   const handleMarkAppointmentComplete = async () => {
-    const updatedAppointments = appointments.map(app =>
-      app.id === visitData.appointment.id ? { ...app, status: "Completed" } : app
-    );
-
-    const res = await api.patch(`admin/appointments/mark-complete/${visitData.appointment.id}`);
-    const visitTime = res.data.time;
+    console.log("Marking appointment as complete for ID:", visitData.appointment.id);
+    const res = await api.patch(`admin/appointments/status`,{
+      status: "Completed",
+      idsToUpdate: [visitData.appointment.id]
+    });
 
     setVisitData(prev => ({
       ...prev,          
       visitType: "Scheduled",
       id: visitData.appointment.id,
-      time: visitTime,
+      time: new Date().now().toISOString(),
     }));  
     console.log("Appointment marked as completed:", visitData.appointment.id);
     
@@ -240,8 +234,23 @@ const AddVisit = () => {
     setCurrentStep(4); // Go to confirmation
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     console.log("Final visit data:", visitData);
+
+    if (!visitData.user?.id || !visitData.pet?.id || !visitData.serviceType) {
+      console.error("Missing required fields:", visitData);
+      setToast({ type: "error", message: "Please select a client, pet, and service before submitting." });
+      return;
+    }
+
+    const payload = {
+      userID: visitData.user.id,
+      petID: visitData.pet.id,
+      serviceType: visitData.serviceType, // string, e.g., "Consultation"
+    };
+
+    const res = await api.post("/admin/appointments/make-visit", payload);
+    console.log("Visit created successfully:", res.data);
     
     setCurrentStep(5); // Go to success page
   };
