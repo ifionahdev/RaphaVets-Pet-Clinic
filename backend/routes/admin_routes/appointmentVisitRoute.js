@@ -6,8 +6,8 @@ import {
     getAppointmentAndVisits,
     getOwnerDetails,
     updateStatus,
-    completeAppointment,
     deleteAppointment,
+    createVisit
  } from "../../controllers/admin_controllers/appointmentVisitController.js";
 
 const router = express.Router();
@@ -16,7 +16,8 @@ router.post("/assign", verifyToken, allowRoles(2, 3), assignAppointment);
 router.get("/", verifyToken, allowRoles(2, 3), getAppointmentAndVisits);
 router.get("/owners", verifyToken, allowRoles(2, 3), getOwnerDetails);
 router.patch("/status", verifyToken, allowRoles(2,3), updateStatus);
-router.patch("/mark-complete/:id", verifyToken, allowRoles(2, 3), completeAppointment);
 router.delete("/", verifyToken, allowRoles(2,3), deleteAppointment,);
+router.post("/make-visit", verifyToken, allowRoles(2,3), createVisit);
+//router.delete("/visit")
 
 export default router;
