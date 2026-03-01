@@ -104,7 +104,7 @@ export default function PetTipsOverlay({ onClose }) {
         </button>
 
         {/* Title */}
-        <h1 className="text-3xl font-bold text-[#2FA394] mb-6 text-center">
+        <h1 className="text-3xl font-bold text-[#5EE6FE] mb-6 text-center">
           Pet Care Tips
         </h1>
 
@@ -126,7 +126,7 @@ export default function PetTipsOverlay({ onClose }) {
               onClick={() => setFilter(cat)}
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
                 filter === cat
-                  ? "bg-[#2FA394] text-white border-[#2FA394]"
+                  ? "bg-[#5EE6FE] text-white border-[#5EE6FE]"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-[#E3FAF7]"
               }`}
             >
@@ -145,7 +145,7 @@ export default function PetTipsOverlay({ onClose }) {
               style={{ backgroundColor: cardColors[idx % cardColors.length] }}
               className="cursor-pointer p-5 rounded-xl shadow-lg"
             >
-              <div className="text-2xl text-[#2FA394] mb-3">
+              <div className="text-2xl text-[#5EE6FE] mb-3">
                 <i className={`fa-solid ${tip.icon}`}></i>
               </div>
               <h3 className="font-semibold">{tip.title}</h3>
@@ -172,7 +172,7 @@ export default function PetTipsOverlay({ onClose }) {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.8, opacity: 0 }}
               >
-                <h2 className="text-xl font-bold text-[#2FA394] mb-3">
+                <h2 className="text-xl font-bold text-[#5EE6FE] mb-3">
                   {selectedTip.title}
                 </h2>
 
@@ -181,7 +181,7 @@ export default function PetTipsOverlay({ onClose }) {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => window.open(selectedTip.url, "_blank")}
-                    className="bg-[#2FA394] text-white px-4 py-2 rounded-lg"
+                    className="bg-[#5EE6FE] text-white px-4 py-2 rounded-lg"
                   >
                     Learn More
                   </button>
