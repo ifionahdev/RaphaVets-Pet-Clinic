@@ -1,7 +1,117 @@
+import { useState, useEffect } from 'react';
 import { Line, Doughnut, Bar } from "react-chartjs-2";
+import api from "../../../api/axios";
 import StatsCard from "./StatsCard";
 
-const AppointmentsReport = () => {
+const AppointmentsReport = ({ dateRange }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchData();
+  }, [dateRange]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = {};
+      if (dateRange?.start && dateRange?.end) {
+        params.startDate = dateRange.start.toISOString().split('T')[0];
+        params.endDate = dateRange.end.toISOString().split('T')[0];
+      }
+      
+      // Using your custom api instance instead of axios
+      const response = await api.get('/admin/reports', { params });
+      
+      if (response.data.success) {
+        setData(response.data.data.appointments);
+      }
+    } catch (err) {
+      console.error('Error fetching appointments data:', err);
+      setError('Failed to load appointments data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format numbers with commas
+  const formatNumber = (num) => {
+    return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") || "0";
+  };
+
+  if (loading) {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+          Appointments Analytics
+        </h2>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+          Appointments Analytics
+        </h2>
+        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg text-red-600 dark:text-red-400">
+          {error || 'No data available'}
+        </div>
+      </section>
+    );
+  }
+
+  // Prepare chart data
+  const weeklyTrendData = {
+    labels: data.weeklyTrend?.map(item => item.day.substring(0, 3)) || ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    datasets: [
+      { 
+        data: data.weeklyTrend?.map(item => item.count) || [12, 19, 14, 22, 18, 25, 30],
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.4,
+        fill: true
+      }
+    ]
+  };
+
+  const statusBreakdownData = {
+    labels: ["Completed", "Upcoming", "Pending", "Cancelled"],
+    datasets: [
+      { 
+        data: [
+          data.statusBreakdown?.find(s => s.statusName === 'Completed')?.count || 0,
+          data.statusBreakdown?.find(s => s.statusName === 'Upcoming')?.count || 0,
+          data.statusBreakdown?.find(s => s.statusName === 'Pending')?.count || 0,
+          data.statusBreakdown?.find(s => s.statusName === 'Cancelled')?.count || 0
+        ],
+        backgroundColor: ['#22c55e', '#3b82f6', '#eab308', '#ef4444'],
+        borderWidth: 0
+      }
+    ]
+  };
+
+  const peakHoursData = {
+    labels: data.peakHours?.map(item => {
+      const hour = parseInt(item.hour.split(':')[0]);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}${ampm}`;
+    }) || ["8AM", "10AM", "12PM", "2PM", "4PM"],
+    datasets: [
+      { 
+        data: data.peakHours?.map(item => item.count) || [5, 12, 18, 9, 7],
+        backgroundColor: '#3b82f6',
+        borderRadius: 6
+      }
+    ]
+  };
+
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
@@ -10,10 +120,26 @@ const AppointmentsReport = () => {
 
       {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Total Appointments" value="1,248" change="+12%" />
-        <StatsCard title="Completion Rate" value="82%" change="High" />
-        <StatsCard title="Cancelled" value="96" change="-4%" />
-        <StatsCard title="Today" value="34" change="Active" />
+        <StatsCard 
+          title="Total Appointments" 
+          value={formatNumber(data.kpi?.total || 0)} 
+          change={`+${Math.round((data.kpi?.completionRate || 0) / 100 * (data.kpi?.total || 1))}%`} 
+        />
+        <StatsCard 
+          title="Completion Rate" 
+          value={`${data.kpi?.completionRate || 0}%`} 
+          change={data.kpi?.completionRate > 70 ? 'High' : 'Medium'} 
+        />
+        <StatsCard 
+          title="Cancelled" 
+          value={formatNumber(data.kpi?.cancelled || 0)} 
+          change={`-${Math.round((data.kpi?.cancelled / (data.kpi?.total || 1)) * 100)}%`} 
+        />
+        <StatsCard 
+          title="Today" 
+          value={formatNumber(data.kpi?.today || 0)} 
+          change={data.kpi?.today > 0 ? 'Active' : 'No Appointments'} 
+        />
       </div>
 
       {/* CHARTS */}
@@ -21,46 +147,23 @@ const AppointmentsReport = () => {
         <div className="lg:col-span-2 bg-white dark:bg-[#111] p-5 rounded-xl">
           <h3 className="font-semibold mb-4">Weekly Trend</h3>
           <div className="h-[260px]">
-            <Line
-              data={{
-                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                datasets: [
-                  { 
-                    data: [12, 19, 14, 22, 18, 25, 30],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                  }
-                ]
-              }}
-              options={{ 
+            {weeklyTrendData.datasets[0].data.length > 0 ? (
+              <Line data={weeklyTrendData} options={{ 
                 maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false }
-                }
-              }}
-            />
+                plugins: { legend: { display: false } }
+              }} />
+            ) : (
+              <div className="flex items-center justify-center h-full">No data</div>
+            )}
           </div>
         </div>
 
         <div className="bg-white dark:bg-[#111] p-5 rounded-xl">
           <h3 className="font-semibold mb-4">Status Breakdown</h3>
           <Doughnut 
-            data={{
-              labels: ["Completed", "Upcoming", "Pending", "Cancelled"],
-              datasets: [
-                { 
-                  data: [65, 15, 10, 7],
-                  backgroundColor: ['#22c55e', '#3b82f6', '#eab308', '#ef4444'],
-                  borderWidth: 0
-                }
-              ]
-            }}
+            data={statusBreakdownData}
             options={{
-              plugins: {
-                legend: { position: 'bottom' }
-              }
+              plugins: { legend: { position: 'bottom' } }
             }}
           />
         </div>
@@ -69,21 +172,10 @@ const AppointmentsReport = () => {
           <h3 className="font-semibold mb-4">Peak Hours</h3>
           <div className="h-[260px]">
             <Bar
-              data={{
-                labels: ["8AM", "10AM", "12PM", "2PM", "4PM"],
-                datasets: [
-                  { 
-                    data: [5, 12, 18, 9, 7],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 6
-                  }
-                ]
-              }}
+              data={peakHoursData}
               options={{ 
                 maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false }
-                }
+                plugins: { legend: { display: false } }
               }}
             />
           </div>
