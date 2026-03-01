@@ -169,7 +169,7 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Background elements */}
+      {/* Background elements for desktop */}
       <div className="hidden md:block md:fixed top-0 left-0 w-[200px] h-[450px] bg-[#5EE6FE] rounded-br-[125px] rounded-bl-[125px] transform -rotate-[41.73deg] -translate-x-[30px] -translate-y-[-250px] z-0 pointer-events-none"
         style={{ background: "linear-gradient(5deg, #5EE6FE, #6aa5afff)" }} />
       
@@ -183,7 +183,44 @@ function LoginPage() {
       <div className="hidden md:block md:fixed bottom-0 left-[18%] w-[260px] h-[480px] bg-[#5EE6FE] rounded-tl-[125px] rounded-tr-[125px] transform -rotate-[41.73deg] -translate-x-[-100px] translate-y-[150px] z-30 pointer-events-none"
         style={{ background: "linear-gradient(5deg, #6aa5afff, #5EE6FE)" }} />
       
+      {/* Logo for desktop */}
       <img src="/images/logo.png" alt="Logo" className="hidden md:block md:fixed top-5 right-5 w-24 h-24 object-contain z-40 pointer-events-none" />
+      
+      {/* Logo for mobile */}
+      <img src="/images/logo.png" alt="Logo" className="block md:hidden fixed top-5 left-1/2 transform -translate-x-1/2 w-16 h-16 object-contain z-40" />
+      
+      {/* Mobile Background Shapes */}
+      <div className="md:hidden absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Top left circle */}
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#5EE6FE] opacity-20 rounded-full blur-3xl"></div>
+        
+        {/* Top right shape */}
+        <div className="absolute -top-10 -right-10 w-48 h-48 bg-[#2FA394] opacity-20 rounded-full blur-3xl"></div>
+        
+        {/* Bottom left shape */}
+        <div className="absolute bottom-0 -left-10 w-56 h-56 bg-[#5EE6FE] opacity-20 rounded-full blur-3xl"></div>
+        
+        {/* Bottom right shape */}
+        <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-[#42C4D6] opacity-20 rounded-full blur-3xl"></div>
+        
+        {/* Decorative lines */}
+        <div className="absolute top-1/4 right-0 w-32 h-32 border-4 border-[#5EE6FE] opacity-30 rounded-full"></div>
+        <div className="absolute bottom-1/3 left-0 w-24 h-24 border-2 border-[#2FA394] opacity-30 rotate-45"></div>
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(94,230,254,0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(94,230,254,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }}></div>
+        
+        {/* Floating paw prints */}
+        <i className="fa-solid fa-paw absolute top-20 left-10 text-[#5EE6FE] text-4xl opacity-10 rotate-12"></i>
+        <i className="fa-solid fa-paw absolute bottom-32 right-8 text-[#2FA394] text-5xl opacity-10 -rotate-12"></i>
+        <i className="fa-solid fa-paw absolute top-1/3 right-20 text-[#42C4D6] text-3xl opacity-10 rotate-45"></i>
+      </div>
       
       {/* Login form wrapper */}
       <div className="relative z-20 w-full md:w-auto min-h-screen flex flex-col items-center justify-center
@@ -231,8 +268,16 @@ function LoginPage() {
               WebkitOverflowScrolling: "touch",
             }}
           >
+              {/* Decorative inner shapes for mobile */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#5EE6FE] opacity-5 rounded-bl-full"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#2FA394] opacity-5 rounded-tr-full"></div>
+              
+              {/* Small decorative lines inside form */}
+              <div className="absolute top-10 left-10 w-16 h-16 border-2 border-[#5EE6FE] opacity-10 rounded-full"></div>
+              <div className="absolute bottom-16 right-8 w-12 h-12 border border-[#42C4D6] opacity-10 rotate-45"></div>
+              
               {/* Welcome text */}
-              <div className="w-full flex items-center mb-2 px-2 sm:px-0 sm:py-2 md:py-3">
+              <div className="w-full flex items-center mb-2 px-2 sm:px-0 sm:py-2 md:py-3 relative z-10">
                 <div className="flex-1 h-[3px] bg-[#5EE6FE]" />
                 <h1 className="mx-3 sm:mx-6 text-[20px] sm:text-[20px] md:text-[25px] font-bold text-gray-800" style={{ fontFamily: "'Baloo Chettan 2'" }}>
                   Welcome
@@ -240,11 +285,11 @@ function LoginPage() {
                 <div className="flex-1 h-[3px] bg-[#5EE6FE]" />
               </div> 
 
-              <div className="text-gray-600 text-center mb-6 text-sm sm:text-base">
+              <div className="text-gray-600 text-center mb-6 text-sm sm:text-base relative z-10">
                 Login to your account to continue
               </div>       
 
-              <form onSubmit={handleLogin} className="flex flex-col gap-3 sm:gap-4 w-full px-4 sm:px-6">
+              <form onSubmit={handleLogin} className="flex flex-col gap-3 sm:gap-4 w-full px-4 sm:px-6 relative z-10">
                 <FormMessage type={formMessage.type} message={formMessage.message} />
 
                 {/* Email */}
@@ -314,7 +359,7 @@ function LoginPage() {
               </form>
 
               {/* Divider and Create Account */}
-              <div className="w-full px-4 sm:px-6">
+              <div className="w-full px-4 sm:px-6 relative z-10">
                 <div className="flex items-center my-1">
                   <div className="flex-grow h-[1px] bg-gray-300"></div>
                   <span className="px-3 text-gray-500 text-sm">or</span>
@@ -330,7 +375,7 @@ function LoginPage() {
                 </button>
               </div>
 
-              <Link to="/home" className="text-xs sm:text-sm text-gray-500 mt-4 hover:underline inline-block">
+              <Link to="/home" className="text-xs sm:text-sm text-gray-500 mt-4 hover:underline inline-block relative z-10">
                 Continue as a guest.
               </Link>
             </div>
