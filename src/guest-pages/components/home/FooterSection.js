@@ -131,7 +131,7 @@ const Footer = () => {
             <h4 className="text-lg font-bold mb-4">Connect With Us</h4>
             <div className="space-y-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/RaphaVets/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-gray-400 hover:text-[#5EE6FE] transition-colors"
@@ -140,7 +140,7 @@ const Footer = () => {
                 <span>RaphaVets Pet Clinic</span>
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/explore/locations/106483752003308/raphavets-pet-clinic"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-gray-400 hover:text-[#5EE6FE] transition-colors"
