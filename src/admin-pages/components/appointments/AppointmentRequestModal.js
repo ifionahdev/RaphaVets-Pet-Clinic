@@ -121,11 +121,11 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
                     </div>
                     <div>
                       <span className="text-gray-500">Phone:</span>
-                      <p className="font-medium text-gray-700">096609182898</p>
+                      <p className="font-medium text-gray-700">{appointment.phone}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Email:</span>
-                      <p className="font-medium text-gray-700">shdjak@gmail.com</p>
+                      <p className="font-medium text-gray-700">{appointment.email}</p>
                     </div>
                   </div>
                 </div>

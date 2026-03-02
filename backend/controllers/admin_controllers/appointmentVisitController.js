@@ -159,11 +159,7 @@ export const getAppointmentAndVisits = async (req, res) => {
       id: apt.appointmentID,
       petName: apt.petName,
       owner: apt.ownerName,
-      date: new Date(apt.appointmentDate).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      }),
+      date: apt.appointmentDate,
       time: new Date(`1970-01-01T${apt.scheduleTime}`).toLocaleTimeString(
         "en-US",
         {
