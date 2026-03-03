@@ -145,7 +145,7 @@ export const createForumPostNotification = async (req, res) => {
                 }),
                 forumID,
                 'forum_posts_tbl',
-                'all',
+                'specific',
                 accID
             ]
         );
@@ -159,9 +159,14 @@ export const createForumPostNotification = async (req, res) => {
             [accID]
         );
 
-        // 3. Link notifications to all users (no preference check for forum posts)
-        if (users.length > 0) {
-            const userValues = users.map(u => [u.accId, notificationId]);
+        const preferredUserIds = await filterUsersByPreference(
+            users.map(u => u.accId),
+            'forum'
+        );
+
+        // 3. Link notifications only to users who allow forum notifications
+        if (preferredUserIds.length > 0) {
+            const userValues = preferredUserIds.map(userId => [userId, notificationId]);
             await db.query(
                 `INSERT INTO user_notifications_tbl (accID, notificationID) VALUES ?`,
                 [userValues]
@@ -176,8 +181,8 @@ export const createForumPostNotification = async (req, res) => {
         );
         console.log('✅ Marked notification as read for creator:', accID);
 
-        // 4. Send to online users via WebSocket (forum posts are always sent, no preference filter)
-        await sendToOnlineUsers(users.map(u => u.accId), {
+        // 4. Send to online users via WebSocket
+        await sendToOnlineUsers(preferredUserIds, {
             notificationId,
             type: 'forum_update',
             title: `New ${postType} Pet`,
@@ -242,7 +247,7 @@ export const createPetTipsNotification = async (req, res) => {
                 JSON.stringify({ petCareId: petCareID, shortDescription }),
                 petCareID,
                 'pet_care_tips_content_tbl',
-                'all', // Send to all users
+                'specific',
                 accID
             ]
         );
@@ -250,17 +255,22 @@ export const createPetTipsNotification = async (req, res) => {
         const notificationId = result.insertId;
         console.log('✅ [createPetTipsNotification] Notification inserted with ID:', notificationId);
 
-        // 2. Get ALL clients (no preference filter for pet tips yet)
+        // 2. Get ALL clients
         console.log('🔍 [createPetTipsNotification] Fetching all clients...');
         const [users] = await db.query(
             `SELECT accId FROM account_tbl WHERE isDeleted = 0 AND roleID = 1`
         );
         console.log('🔍 [createPetTipsNotification] Found users:', users.length);
 
-        // 3. Link to all users (pet tips are always sent, no preference check)
-        if (users.length > 0) {
+        const preferredUserIds = await filterUsersByPreference(
+            users.map(u => u.accId),
+            'pet_tips'
+        );
+
+        // 3. Link only to users who allow pet tips notifications
+        if (preferredUserIds.length > 0) {
             console.log('🔍 [createPetTipsNotification] Linking notifications...');
-            const userValues = users.map(u => [u.accId, notificationId]);
+            const userValues = preferredUserIds.map(userId => [userId, notificationId]);
             await db.query(
                 `INSERT INTO user_notifications_tbl (accID, notificationID) VALUES ?`,
                 [userValues]
@@ -268,7 +278,7 @@ export const createPetTipsNotification = async (req, res) => {
             console.log('✅ [createPetTipsNotification] Notifications linked');
         }
 
-        await sendToOnlineUsers(users.map(u => u.accId), {
+        await sendToOnlineUsers(preferredUserIds, {
             notificationId,
             type: 'pet_tips_update',
             title: `New Pet Care Tip`,
@@ -282,7 +292,7 @@ export const createPetTipsNotification = async (req, res) => {
         console.log('✅ [createPetTipsNotification] Completed');
         res.status(201).json({ 
             success: true, 
-            message: 'Pet tip notification sent to all users',
+            message: 'Pet tip notification sent based on user preferences',
             notificationId 
         });
 
@@ -329,7 +339,7 @@ export const createVideoNotification = async (req, res) => {
                 JSON.stringify({ videoId: videoID, category: category[0]?.videoCategory }),
                 videoID,
                 'video_content_tbl',
-                'all',
+                'specific',
                 accID
             ]
         );
@@ -341,16 +351,21 @@ export const createVideoNotification = async (req, res) => {
             'SELECT accId FROM account_tbl WHERE isDeleted = 0 AND roleID = 1'
         );
         console.log('🔍 [createVideoNotification] Users to notify:', users.length);
+
+        const preferredUserIds = await filterUsersByPreference(
+            users.map(u => u.accId),
+            'video'
+        );
         
-        if (users.length > 0) {
-            const userValues = users.map(u => [u.accId, notificationId]);
+        if (preferredUserIds.length > 0) {
+            const userValues = preferredUserIds.map(userId => [userId, notificationId]);
             await db.query(
                 `INSERT INTO user_notifications_tbl (accID, notificationID) VALUES ?`,
                 [userValues]
             );
         }
 
-        await sendToOnlineUsers(users.map(u => u.accId), {
+        await sendToOnlineUsers(preferredUserIds, {
             notificationId,
             type: 'video_update',
             title: `New Video: ${category[0]?.videoCategory || 'Educational'}`,
@@ -363,7 +378,7 @@ export const createVideoNotification = async (req, res) => {
         console.log('✅ [createVideoNotification] Completed');
         res.status(201).json({ 
             success: true, 
-            message: 'Video notification sent to all users',
+            message: 'Video notification sent based on user preferences',
             notificationId 
         });
 
