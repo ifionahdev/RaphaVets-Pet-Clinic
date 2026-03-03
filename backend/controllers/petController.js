@@ -7,12 +7,32 @@ const calculateAge = (dob) => {
   const birth = new Date(dob);
   // Handle invalid dates (like '0000-00-00' from your database)
   if (isNaN(birth.getTime())) return "Unknown";
+
+  const now = new Date();
+  if (birth > now) return "Unknown";
+
+  const diffMs = now.getTime() - birth.getTime();
+  const daysOld = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (daysOld < 7) {
+    return `${daysOld} day${daysOld === 1 ? "" : "s"} old`;
+  }
+
+  if (daysOld < 28) {
+    const weeksOld = Math.floor(daysOld / 7);
+    return `${weeksOld} week${weeksOld === 1 ? "" : "s"} old`;
+  }
+
+  if (daysOld < 365) {
+    const monthsOld = Math.floor(daysOld / 30);
+    return `${monthsOld} month${monthsOld === 1 ? "" : "s"} old`;
+  }
   
-  const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
-  const m = today.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-  return `${age} yrs`;
+  let yearsOld = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) yearsOld--;
+
+  return `${yearsOld} yr${yearsOld === 1 ? "" : "s"} old`;
 };
 
 // Get pets for the logged-in user
@@ -74,6 +94,7 @@ export const getPetDetails = async (req, res) => {
     const [appointments] = await db.query(
       `SELECT 
           a.appointmentID AS id,
+          a.appointmentDate AS appointmentDate,
           p.petName,
           CONCAT(acc.firstName, ' ', acc.lastName) AS ownerName,
           s.service AS type,
@@ -90,6 +111,18 @@ export const getPetDetails = async (req, res) => {
       [petID]
     );
 
+    const latestCompletedAppointment = appointments.find(
+      (appt) => String(appt.status || '').toLowerCase() === 'completed'
+    );
+
+    const lastCheck = latestCompletedAppointment?.appointmentDate
+      ? new Date(latestCompletedAppointment.appointmentDate).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      : 'N/A';
+
     res.json({
       id: pet.petID,
       name: pet.petName,
@@ -98,6 +131,7 @@ export const getPetDetails = async (req, res) => {
       dateOfBirth: pet.dateOfBirth,
       age: calculateAge(pet.dateOfBirth),
       weight: pet.weight_kg,
+      lastCheck,
       color: pet.color,
       note: pet.note,
       image: pet.imageName

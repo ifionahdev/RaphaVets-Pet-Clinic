@@ -22,14 +22,12 @@ function AccountInformation({ userData, setUserData }) {
   };
 
   const validateContactNo = (number) => {
-    // Only numbers, spaces, dashes, parentheses, and plus sign allowed
-    return /^[\d\s\-+()]*$/.test(number) || number === "";
+    // Only numbers allowed
+    return /^\d*$/.test(number) || number === "";
   };
 
   const validateContactNoLength = (number) => {
-    // Count only digits (ignore formatting characters)
-    const digitCount = (number.match(/\d/g) || []).length;
-    return digitCount === 11;
+    return number.length === 10;
   };
 
   const validateEmail = (email) => {
@@ -45,31 +43,8 @@ function AccountInformation({ userData, setUserData }) {
   };
 
   const filterContactInput = (value) => {
-    // Remove any letters and special characters except numbers, spaces, dashes, parentheses, plus
-    const filtered = value.replace(/[^\d\s\-+()]/g, '');
-    
-    // Count only digits (ignore formatting characters) and limit to 11
-    const digits = filtered.replace(/\D/g, '');
-    const truncatedDigits = digits.slice(0, 11);
-    
-    // If we truncated, we need to reconstruct with original formatting
-    if (digits.length > 11) {
-      let result = '';
-      let digitIndex = 0;
-      for (let i = 0; i < filtered.length; i++) {
-        if (/\d/.test(filtered[i])) {
-          if (digitIndex < 11) {
-            result += truncatedDigits[digitIndex];
-            digitIndex++;
-          }
-        } else {
-          result += filtered[i];
-        }
-      }
-      return result;
-    }
-    
-    return filtered;
+    // Keep digits only and cap at 10 digits (for +63 prefix)
+    return value.replace(/\D/g, '').slice(0, 10);
   };
 
   // Load user data
@@ -138,13 +113,13 @@ function AccountInformation({ userData, setUserData }) {
 
     // Validate contact number format
     if (!validateContactNo(formData.contactNo)) {
-      setMessage({ type: "error", text: "Contact number can only contain numbers, spaces, dashes, parentheses, and plus sign" });
+      setMessage({ type: "error", text: "Contact number can only contain numbers" });
       return false;
     }
 
-    // Validate contact number length (must be exactly 11 digits)
+    // Validate contact number length (must be exactly 10 digits)
     if (!validateContactNoLength(formData.contactNo)) {
-      setMessage({ type: "error", text: "Contact number must be exactly 11 digits" });
+      setMessage({ type: "error", text: "Contact number must be exactly 10 digits" });
       return false;
     }
 
@@ -226,20 +201,49 @@ function AccountInformation({ userData, setUserData }) {
               {item.label}
             </label>
             <div className="flex items-center gap-2">
-              <input
-                type={item.type}
-                name={item.field}
-                value={formData[item.field] || ""}
-                onChange={handleChange}
-                disabled={!editableFields[item.field]}
-                maxLength={item.field === "contactNo" ? 15 : undefined} // Allow some space for formatting
-                className={`w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-1 focus:ring-[#5EE6FE] focus:border-[#5EE6FE] transition-all ${
-                  editableFields[item.field]
-                    ? "border-[#5EE6FE] bg-white"
-                    : "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-600"
-                }`}
-                placeholder={`Enter ${item.label.toLowerCase()}`}
-              />
+              {item.field === "contactNo" ? (
+                <div
+                  className={`w-full flex items-center border rounded-lg transition-all ${
+                    editableFields[item.field]
+                      ? "border-[#5EE6FE] bg-white"
+                      : "border-gray-300 bg-gray-100"
+                  }`}
+                >
+                  <span className="px-3 py-2 text-sm sm:text-base text-gray-600 border-r border-gray-300 bg-gray-50 rounded-l-lg">
+                    +63
+                  </span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    name={item.field}
+                    value={formData[item.field] || ""}
+                    onChange={handleChange}
+                    disabled={!editableFields[item.field]}
+                    maxLength={10}
+                    className={`w-full px-3 py-2 text-sm sm:text-base focus:ring-1 focus:ring-[#5EE6FE] focus:border-[#5EE6FE] outline-none rounded-r-lg ${
+                      editableFields[item.field]
+                        ? "bg-white"
+                        : "bg-gray-100 cursor-not-allowed text-gray-600"
+                    }`}
+                    placeholder="9XXXXXXXXX"
+                  />
+                </div>
+              ) : (
+                <input
+                  type={item.type}
+                  name={item.field}
+                  value={formData[item.field] || ""}
+                  onChange={handleChange}
+                  disabled={!editableFields[item.field]}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-1 focus:ring-[#5EE6FE] focus:border-[#5EE6FE] transition-all ${
+                    editableFields[item.field]
+                      ? "border-[#5EE6FE] bg-white"
+                      : "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-600"
+                  }`}
+                  placeholder={`Enter ${item.label.toLowerCase()}`}
+                />
+              )}
               <button
                 onClick={() => toggleEdit(item.field)}
                 type="button"

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import ClientLayout from "../ClientLayout";
+import socket from "../../socket";
 
 // sections
 import AccountInformation from "../components/profile/AccountInformation";
@@ -44,6 +45,35 @@ function Profile() {
     };
 
     fetchUserProfile();
+
+    const userId = localStorage.getItem("userId");
+
+    const joinRoom = () => {
+      if (userId) {
+        socket.emit("join", userId);
+      }
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
+    }
+
+    socket.on("connect", joinRoom);
+
+    const handleOwnerProfileUpdated = (payload) => {
+      if (String(payload?.accId) === String(userId)) {
+        fetchUserProfile();
+      }
+    };
+
+    socket.on("owner_profile_updated", handleOwnerProfileUpdated);
+
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("owner_profile_updated", handleOwnerProfileUpdated);
+    };
   }, []);
 
   const sections = {

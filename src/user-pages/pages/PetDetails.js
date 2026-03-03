@@ -442,7 +442,7 @@ function PetDetails() {
           name: petData.name || "Unknown Name",
           breed: petData.breed || "Unknown Breed",
           gender: petData.petGender || petData.gender || "N/A",
-          age: calculateAge(petData.dateOfBirth),
+          age: petData.age || calculateAge(petData.dateOfBirth),
           image: petData.image || "/images/dog-profile.png",
           weight: petData.weight_kg,
           lastCheck: petData.lastCheck || "N/A",
@@ -684,7 +684,7 @@ function PetDetails() {
                 </motion.button>
               </h2>
               <p className="text-gray-500 text-xs sm:text-sm mt-1">
-                {pet.breed || "Unknown breed"} • {pet.gender || "Unknown"} • {pet.age || "Unknown age"}
+                {pet.breed || "Unknown breed"} • {pet.age || "Unknown age"}
               </p>
             </div>
           </div>

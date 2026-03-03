@@ -108,10 +108,9 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
       console.log("Initial data received:", initialData);
       
       if (initialData) {
-        // Editing existing owner - split the name
-        const nameParts = initialData.name ? initialData.name.split(' ') : ['', ''];
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+        // Editing existing owner - use direct fields to avoid incorrect name splitting
+        const firstName = initialData.firstName || '';
+        const lastName = initialData.lastName || '';
         
         console.log("Owner DOB from initialData:", initialData.dateOfBirth);
         console.log("Formatted DOB:", formatDateForInput(initialData.dateOfBirth));
@@ -132,7 +131,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
           
           setPetData({
             type: pet.petType || pet.type || "",
-            breed: pet.breed || "",
+            breed: pet.breed || pet.breedName || "",
             name: pet.petName || pet.name || "",
             sex: pet.petGender || pet.gender || pet.sex || "",
             weight: pet.weight ? pet.weight.replace(' kg', '') : "",

@@ -6,6 +6,7 @@ import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
 import AddPetModal from "../components/petpatient-management/AddPetModal";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
+import socket from "../../socket";
 
 import PetOwnersTab from "../components/petpatient-management/PetOwnersTab";
 import PetsTab from "../components/petpatient-management/PetsTab";
@@ -51,6 +52,37 @@ const PetPatientManagement = () => {
     // Load initial data
     fetchOwnersAndPets();
     fetchMedicalRecords();
+  }, []);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+
+    const joinRoom = () => {
+      if (userId) {
+        socket.emit("join", userId);
+      }
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
+    }
+
+    socket.on("connect", joinRoom);
+
+    const handleOwnerUpdated = () => {
+      fetchOwnersAndPets();
+    };
+
+    socket.on("owner_updated", handleOwnerUpdated);
+    socket.on("owner_profile_updated", handleOwnerUpdated);
+
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("owner_updated", handleOwnerUpdated);
+      socket.off("owner_profile_updated", handleOwnerUpdated);
+    };
   }, []);
 
   const formatDate = (dateString) => {
@@ -129,6 +161,8 @@ const PetPatientManagement = () => {
         data.map(o => ({
           id: o.accId,
           name: o.name,
+          firstName: o.firstName,
+          lastName: o.lastName,
           gender: o.gender,
           dateOfBirth: formatDate(o.dateOfBirth),
           email: o.email,

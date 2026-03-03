@@ -1,6 +1,7 @@
   import db from "../../config/db.js";
   import bcrypt from 'bcryptjs';
   import nodemailer from 'nodemailer'; 
+  import { getIO } from "../../socket.js";
 
   export const getOwnersWithPets = async (req, res) => {
   try {
@@ -500,6 +501,25 @@ export const updateOwner = async (req, res) => {
 
       await connection.commit();
       connection.release();
+
+      try {
+        const io = getIO();
+        const payload = {
+          accId: Number(ownerId),
+          firstName,
+          lastName,
+          email,
+          phone,
+          address,
+          sex,
+          dob
+        };
+
+        io.emit("owner_updated", payload);
+        io.to(`user_${ownerId}`).emit("owner_profile_updated", payload);
+      } catch (socketError) {
+        console.error("⚠️ Socket emit failed (updateOwner):", socketError.message);
+      }
 
       res.status(200).json({ 
         message: "Owner updated successfully",

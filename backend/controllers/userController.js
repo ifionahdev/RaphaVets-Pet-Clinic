@@ -1,5 +1,6 @@
 import db from "../config/db.js";
 import bcrypt from "bcryptjs";
+import { getIO } from "../socket.js";
 
 export const getUserPreference = async (req, res) => {
   const { id } = req.params;
@@ -289,6 +290,23 @@ export const updateUserProfile = async (req, res) => {
         "INSERT INTO clientInfo_tbl (accId, address, contactNo) VALUES (?, ?, ?)",
         [id, address, contactNo]
       );
+    }
+
+    try {
+      const io = getIO();
+      const payload = {
+        accId: Number(id),
+        firstName,
+        lastName,
+        email,
+        contactNo,
+        address
+      };
+
+      io.emit("owner_updated", payload);
+      io.to(`user_${id}`).emit("owner_profile_updated", payload);
+    } catch (socketError) {
+      console.error("⚠️ Socket emit failed (updateUserProfile):", socketError.message);
     }
 
     res.status(200).json({ message: "Profile updated successfully!" });
