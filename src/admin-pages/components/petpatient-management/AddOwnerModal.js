@@ -3,6 +3,11 @@ import { X, Copy, Check, AlertCircle } from "lucide-react";
 import api from "../../../api/axios";
 
 const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
+  const todayIso = new Date().toISOString().split("T")[0];
+  const ownerMaxDob = new Date();
+  ownerMaxDob.setFullYear(ownerMaxDob.getFullYear() - 18);
+  const ownerMaxDobIso = ownerMaxDob.toISOString().split("T")[0];
+
   const [ownerData, setOwnerData] = useState({
     firstName: "",
     lastName: "",
@@ -25,7 +30,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
   });
 
   const [step, setStep] = useState("form");
-  const [generatedCredentials, setGeneratedCredentials] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -171,7 +175,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
           notes: "",
         });
         setStep("form");
-        setGeneratedCredentials(null);
         setCopiedField(null);
         setErrors({});
         setApiError("");
@@ -180,25 +183,8 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
   }, [initialData, isOpen]);
 
   // Validation functions
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) return "Email is required";
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
-    return "";
-  };
-
-  const validatePhone = (phone) => {
-    const phoneRegex = /^[0-9+\-\s()]{10,}$/;
-    if (!phone) return "Phone number is required";
-    if (!phoneRegex.test(phone.replace(/\s/g, ''))) return "Please enter a valid phone number";
-    if (phone.replace(/\D/g, '').length < 10) return "Phone number must be at least 10 digits";
-    return "";
-  };
-
-  const validateName = (name, field) => {
-    if (!name) return `${field} is required`;
-    if (name.length < 2) return `${field} must be at least 2 characters`;
-    if (!/^[a-zA-Z\s]+$/.test(name)) return `${field} can only contain letters and spaces`;
+  const validateRequired = (value, field) => {
+    if (!String(value || "").trim()) return `${field} is required`;
     return "";
   };
 
@@ -206,42 +192,41 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
     const newErrors = {};
     
     // Owner validations
-    newErrors.firstName = validateName(ownerData.firstName, "First name");
-    newErrors.lastName = validateName(ownerData.lastName, "Last name");
-    newErrors.email = validateEmail(ownerData.email);
-    newErrors.phone = validatePhone(ownerData.phone);
+    newErrors.firstName = validateRequired(ownerData.firstName, "First name");
+    newErrors.lastName = validateRequired(ownerData.lastName, "Last name");
+    newErrors.email = validateRequired(ownerData.email, "Email");
+    newErrors.phone = validateRequired(ownerData.phone, "Phone number");
+    newErrors.sex = validateRequired(ownerData.sex, "Gender");
+    newErrors.dob = validateRequired(ownerData.dob, "Date of birth");
+    newErrors.address = validateRequired(ownerData.address, "Address");
     
     // Date of birth validation (optional but if provided, must be valid)
     if (ownerData.dob) {
-      const dobDate = new Date(ownerData.dob);
-      const today = new Date();
-      if (dobDate > today) {
+      if (ownerData.dob > todayIso) {
         newErrors.dob = "Date of birth cannot be in the future";
+      } else if (ownerData.dob > ownerMaxDobIso) {
+        newErrors.dob = "Owner must be older than 18 years old";
       }
+    }
+
+    if (ownerData.phone && ownerData.phone.length !== 10) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
     }
 
     // PET VALIDATIONS - REQUIRED FOR NEW OWNERS
     if (!initialData) {
       // Pet validations for NEW owners (required)
-      newErrors.petName = validateName(petData.name, "Pet name");
-      if (!petData.type) newErrors.petType = "Pet type is required";
-      if (!petData.breed) newErrors.petBreed = "Breed is required";
-      
-      // Weight validation
-      if (petData.weight) {
-        const weight = parseFloat(petData.weight);
-        if (isNaN(weight) || weight <= 0) {
-          newErrors.petWeight = "Weight must be a positive number";
-        } else if (weight > 200) {
-          newErrors.petWeight = "Weight seems too high. Please verify.";
-        }
-      }
+      newErrors.petName = validateRequired(petData.name, "Pet name");
+      newErrors.petType = validateRequired(petData.type, "Pet type");
+      newErrors.petBreed = validateRequired(petData.breed, "Breed");
+      newErrors.petSex = validateRequired(petData.sex, "Pet gender");
+      newErrors.petWeight = validateRequired(petData.weight, "Weight");
+      newErrors.petColor = validateRequired(petData.color, "Color");
+      newErrors.petDob = validateRequired(petData.dob, "Pet date of birth");
 
       // Date of birth validation for pet
       if (petData.dob) {
-        const petDob = new Date(petData.dob);
-        const today = new Date();
-        if (petDob > today) {
+        if (petData.dob > todayIso) {
           newErrors.petDob = "Pet date of birth cannot be in the future";
         }
       }
@@ -252,6 +237,14 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
   };
 
   const handleOwnerChange = (field, value) => {
+    if (field === "firstName" || field === "lastName") {
+      value = value.replace(/[^\p{L}\s]/gu, "");
+    }
+
+    if (field === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
     setOwnerData({ ...ownerData, [field]: value });
     // Clear error when user starts typing
     if (errors[field]) {
@@ -267,6 +260,10 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
     // Don't allow pet changes when editing existing owner
     if (initialData) return;
     
+    if (field === "name" || field === "color") {
+      value = value.replace(/[^\p{L}\s]/gu, "");
+    }
+
     const updated = { ...petData, [field]: value };
     if (field === "type") updated.breed = "";
     setPetData(updated);
@@ -320,13 +317,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
         // Editing - just close the modal after success
         handleClose();
       } else {
-        // Creating new owner - show credentials
-        setGeneratedCredentials({
-          email: response.email,
-          password: response.password
-        });
-        
-        // Move to success step to show credentials
+        // Creating new owner - show success state only (no credentials displayed)
         setStep("success");
         
         // Auto-close after 3 seconds to let user see the credentials
@@ -356,7 +347,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
     setStep("form");
     setOwnerData({ firstName: "", lastName: "", email: "", phone: "", address: "", sex: "", dob: "" });
     setPetData({ type: "", breed: "", name: "", sex: "", weight: "", color: "", dob: "", notes: "" });
-    setGeneratedCredentials(null);
     setCopiedField(null);
     setErrors({});
     setApiError("");
@@ -476,15 +466,21 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                     
                     <div className="space-y-1.5">
                       <label className="text-xs font-medium text-gray-700">Phone Number *</label>
-                      <input 
-                        type="text" 
-                        value={ownerData.phone} 
-                        onChange={(e) => handleOwnerChange("phone", e.target.value)}
-                        className={`w-full px-2.5 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                          errors.phone ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                        placeholder="Enter phone number"
-                      />
+                      <div className={`flex items-center border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent ${
+                        errors.phone ? 'border-red-300' : 'border-gray-300'
+                      }`}>
+                        <span className="px-2.5 py-1.5 text-sm text-gray-600 bg-gray-50 border-r border-gray-300 rounded-l-lg">+63</span>
+                        <input 
+                          type="tel"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={10}
+                          value={ownerData.phone} 
+                          onChange={(e) => handleOwnerChange("phone", e.target.value)}
+                          className="w-full px-2.5 py-1.5 text-sm rounded-r-lg focus:outline-none"
+                          placeholder="9XXXXXXXXX"
+                        />
+                      </div>
                       {errors.phone && (
                         <p className="text-red-500 text-xs flex items-center gap-1">
                           <AlertCircle size={12} />
@@ -495,7 +491,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-gray-700">Gender</label>
+                        <label className="text-xs font-medium text-gray-700">Gender *</label>
                         <div className="flex gap-4">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -520,13 +516,20 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                             <span className="text-sm text-gray-700">Female</span>
                           </label>
                         </div>
+                        {errors.sex && (
+                          <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                            <AlertCircle size={12} />
+                            {errors.sex}
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-gray-700">Date of Birth</label>
+                        <label className="text-xs font-medium text-gray-700">Date of Birth *</label>
                         <input 
                           type="date" 
                           value={ownerData.dob} 
                           onChange={(e) => handleOwnerChange("dob", e.target.value)}
+                          max={ownerMaxDobIso}
                           className={`w-full px-2.5 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                             errors.dob ? 'border-red-300' : 'border-gray-300'
                           }`}
@@ -541,14 +544,20 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-700">Address</label>
+                      <label className="text-xs font-medium text-gray-700">Address *</label>
                       <input 
                         type="text" 
                         value={ownerData.address} 
                         onChange={(e) => handleOwnerChange("address", e.target.value)}
                         className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter address (optional)"
+                        placeholder="Enter address"
                       />
+                      {errors.address && (
+                        <p className="text-red-500 text-xs flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {errors.address}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -663,7 +672,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700">Gender</label>
+                          <label className="text-xs font-medium text-gray-700">Gender *</label>
                           <div className="flex gap-4">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input
@@ -688,9 +697,15 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                               <span className="text-sm text-gray-700">Female</span>
                             </label>
                           </div>
+                          {errors.petSex && (
+                            <p className="text-red-500 text-xs flex items-center gap-1 mt-1">
+                              <AlertCircle size={12} />
+                              {errors.petSex}
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700">Weight (kg)</label>
+                          <label className="text-xs font-medium text-gray-700">Weight (kg) *</label>
                           <input 
                             type="number" 
                             value={petData.weight} 
@@ -713,7 +728,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700">Color</label>
+                          <label className="text-xs font-medium text-gray-700">Color *</label>
                           <input 
                             type="text" 
                             value={petData.color} 
@@ -721,13 +736,20 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                             className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                             placeholder="Enter color"
                           />
+                          {errors.petColor && (
+                            <p className="text-red-500 text-xs flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              {errors.petColor}
+                            </p>
+                          )}
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700">Date of Birth</label>
+                          <label className="text-xs font-medium text-gray-700">Date of Birth *</label>
                           <input 
                             type="date" 
                             value={petData.dob} 
                             onChange={(e) => handlePetChange("dob", e.target.value)}
+                            max={todayIso}
                             className={`w-full px-2.5 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                               errors.petDob ? 'border-red-300' : 'border-gray-300'
                             }`}
@@ -846,7 +868,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
             </div>
           )}
 
-          {step === "success" && generatedCredentials && (
+          {step === "success" && (
             <div className="text-center py-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -855,43 +877,11 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Owner Added Successfully!</h3>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 max-w-md mx-auto">
-                <h4 className="text-sm font-semibold text-blue-800 mb-3">Login Credentials</h4>
-                
-                {/* Email */}
-                <div className="flex items-center justify-between mb-3 bg-white p-3 rounded border">
-                  <div className="text-left flex-1">
-                    <p className="text-xs text-blue-600 font-medium">Email</p>
-                    <p className="text-blue-800 font-mono text-sm break-all">{generatedCredentials.email}</p>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(generatedCredentials.email, 'email')}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors ml-2"
-                  >
-                    {copiedField === 'email' ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
-                </div>
-                
-                {/* Password */}
-                <div className="flex items-center justify-between bg-white p-3 rounded border">
-                  <div className="text-left flex-1">
-                    <p className="text-xs text-blue-600 font-medium">Temporary Password</p>
-                    <p className="text-blue-800 font-mono text-sm break-all">{generatedCredentials.password}</p>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard(generatedCredentials.password, 'password')}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors ml-2"
-                  >
-                    {copiedField === 'password' ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
-                </div>
-              </div>
-              
               <p className="text-sm text-gray-600 mb-2">
-                These credentials have been sent to <strong>{generatedCredentials.email}</strong>
+                The owner account has been created successfully.
               </p>
               <p className="text-xs text-gray-500">
-                Please ask the owner to check their email and change their password after first login.
+                This window will close automatically.
               </p>
             </div>
           )}

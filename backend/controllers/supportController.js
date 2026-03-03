@@ -65,14 +65,28 @@ export const sendSupportMessage = async (req, res) => {
       return res.status(500).json({ success: false, message: 'SMTP not configured on server. Contact administrator.' });
     }
 
-    const supportTo = process.env.SUPPORT_EMAIL_TO || process.env.SMTP_USER;
-    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const supportTo = process.env.SUPPORT_EMAIL || process.env.SMTP_USER;
+    const smtpFromRaw = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const smtpFromMatch = typeof smtpFromRaw === 'string' ? smtpFromRaw.match(/<([^>]+)>/) : null;
+    const smtpFrom = (smtpFromMatch ? smtpFromMatch[1] : smtpFromRaw || '').trim();
+
+    if (!supportTo) {
+      return res.status(500).json({ success: false, message: 'Support destination email is not configured on server.' });
+    }
 
     const mailOptions = {
-      from: `${name} <${fromAddress}>`,
+      from: {
+        name: 'RaphaVets Support',
+        address: smtpFrom
+      },
+      sender: smtpFrom,
       to: supportTo,
       subject: `[Support] ${subject}`,
       replyTo: email,
+      headers: {
+        'X-Support-Requester-Name': name,
+        'X-Support-Requester-Email': email
+      },
       html: `
   <div style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
     
