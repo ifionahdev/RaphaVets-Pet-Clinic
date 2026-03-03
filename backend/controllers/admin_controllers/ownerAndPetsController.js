@@ -203,8 +203,8 @@ const emailTransporter = nodemailer.createTransport({
   port: process.env.SMTP_PORT || 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
   }
 });
 
@@ -225,14 +225,27 @@ export const createOwner = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields: firstName, lastName, email, phone" });
     }
 
-    // ✅ ADDED: Check if email already exists
-    const [existingEmail] = await db.execute(
-      "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 0",
+    // ✅ CHECK IF EMAIL EXISTS AND IS NOT DELETED
+    const [existingAccount] = await db.execute(
+      "SELECT accId, isDeleted FROM account_tbl WHERE email = ?",
       [email]
     );
 
-    if (existingEmail.length > 0) {
-      return res.status(400).json({ message: "Email already exists" });
+    if (existingAccount.length > 0) {
+      const account = existingAccount[0];
+      
+      // If account exists and is NOT deleted, reject
+      if (account.isDeleted === 0) {
+        return res.status(400).json({ 
+          message: "Email already exists and is active" 
+        });
+      }
+      
+      // If account exists but IS deleted, we can proceed with recreation
+      console.log(`⚠️ Found deleted account with email ${email}. Proceeding with recreation.`);
+      
+      // Optionally: You might want to hard delete or archive the old account data
+      // For now, we'll proceed with creating a new account
     }
 
     // Generate random password
@@ -264,23 +277,71 @@ export const createOwner = async (req, res) => {
     await connection.beginTransaction();
 
     try {
-      // Create account WITH PASSWORD
-      const [accountResult] = await connection.execute(
-        `INSERT INTO account_tbl 
-         (firstName, lastName, email, password, roleID, isDeleted, createdAt) 
-         VALUES (?, ?, ?, ?, 1, 0, NOW())`,
-        [firstName, lastName, email, hashedPassword]
+      let accId;
+
+      // Check if there's a deleted account we want to "reactivate"
+      const [deletedAccount] = await connection.execute(
+        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1",
+        [email]
       );
 
-      const accId = accountResult.insertId;
+      if (deletedAccount.length > 0) {
+        // Reactivate the deleted account
+        const oldAccId = deletedAccount[0].accId;
+        
+        await connection.execute(
+          `UPDATE account_tbl 
+           SET firstName = ?, lastName = ?, password = ?, isDeleted = 0, 
+               lastUpdatedAt = NOW(), createdAt = NOW()
+           WHERE accId = ?`,
+          [firstName, lastName, hashedPassword, oldAccId]
+        );
+        
+        accId = oldAccId;
+        
+        // Update or insert client info
+        const [existingClient] = await connection.execute(
+          "SELECT cliendInfoId FROM clientinfo_tbl WHERE accId = ?",
+          [oldAccId]
+        );
+        
+        if (existingClient.length > 0) {
+          await connection.execute(
+            `UPDATE clientinfo_tbl 
+             SET gender = ?, dateOfBirth = ?, address = ?, contactNo = ?
+             WHERE accId = ?`,
+            [sex || null, dob || null, address || null, phone, oldAccId]
+          );
+        } else {
+          await connection.execute(
+            `INSERT INTO clientinfo_tbl 
+             (accId, gender, dateOfBirth, address, contactNo) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [oldAccId, sex || null, dob || null, address || null, phone]
+          );
+        }
+        
+        console.log(`✅ Reactivated deleted account with ID: ${oldAccId}`);
+        
+      } else {
+        // Create new account
+        const [accountResult] = await connection.execute(
+          `INSERT INTO account_tbl 
+           (firstName, lastName, email, password, roleID, isDeleted, createdAt) 
+           VALUES (?, ?, ?, ?, 1, 0, NOW())`,
+          [firstName, lastName, email, hashedPassword]
+        );
 
-      // Create client info
-      await connection.execute(
-        `INSERT INTO clientinfo_tbl 
-         (accId, gender, dateOfBirth, address, contactNo) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [accId, sex || null, dob || null, address || null, phone]
-      );
+        accId = accountResult.insertId;
+
+        // Create client info
+        await connection.execute(
+          `INSERT INTO clientinfo_tbl 
+           (accId, gender, dateOfBirth, address, contactNo) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [accId, sex || null, dob || null, address || null, phone]
+        );
+      }
 
       // Create pets if provided
       if (pets && pets.length > 0) {

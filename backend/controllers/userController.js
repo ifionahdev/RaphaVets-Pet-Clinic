@@ -11,17 +11,22 @@ export const getUserPreference = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      // if no record yet, create one with default values
+      // Create with default values (all enabled except forum posts maybe)
       await db.query(
-        "INSERT INTO userpreference_tbl (accId, appointmentReminders, petHealthUpd, promoEmail, clinicAnnouncement) VALUES (?, 1, 0, 1, 0)",
+        `INSERT INTO userpreference_tbl 
+        (accId, appointmentReminders, petHealthUpd, petCareTips, petVideos, forumPost) 
+        VALUES (?, 1, 1, 1, 1, 1)`,
         [id]
       );
 
       return res.status(200).json({
+        userprefID: null,
+        accId: parseInt(id),
         appointmentReminders: 1,
-        petHealthUpd: 0,
-        promoEmail: 1,
-        clinicAnnouncement: 0,
+        petHealthUpd: 1,
+        petCareTips: 1,
+        petVideos: 1,
+        forumPost: 1
       });
     }
 
@@ -37,22 +42,39 @@ export const updateUserPreference = async (req, res) => {
   const {
     appointmentReminders,
     petHealthUpd,
-    promoEmail,
-    clinicAnnouncement,
+    petCareTips,
+    petVideos,
+    forumPost
   } = req.body;
+
+  // Validate that all fields are provided
+  if (appointmentReminders === undefined || 
+      petHealthUpd === undefined || 
+      petCareTips === undefined || 
+      petVideos === undefined || 
+      forumPost === undefined) {
+    return res.status(400).json({ 
+      message: "All preference fields are required" 
+    });
+  }
 
   try {
     const [result] = await db.query(
       `
       UPDATE userpreference_tbl 
-      SET appointmentReminders=?, petHealthUpd=?, promoEmail=?, clinicAnnouncement=? 
-      WHERE accId=?
+      SET appointmentReminders = ?, 
+          petHealthUpd = ?, 
+          petCareTips = ?, 
+          petVideos = ?, 
+          forumPost = ? 
+      WHERE accId = ?
       `,
       [
         appointmentReminders,
         petHealthUpd,
-        promoEmail,
-        clinicAnnouncement,
+        petCareTips,
+        petVideos,
+        forumPost,
         id,
       ]
     );
@@ -62,10 +84,10 @@ export const updateUserPreference = async (req, res) => {
       await db.query(
         `
         INSERT INTO userpreference_tbl 
-        (accId, appointmentReminders, petHealthUpd, promoEmail, clinicAnnouncement)
-        VALUES (?, ?, ?, ?, ?)
+        (accId, appointmentReminders, petHealthUpd, petCareTips, petVideos, forumPost)
+        VALUES (?, ?, ?, ?, ?, ?)
         `,
-        [id, appointmentReminders, petHealthUpd, promoEmail, clinicAnnouncement]
+        [id, appointmentReminders, petHealthUpd, petCareTips, petVideos, forumPost]
       );
     }
 
@@ -75,7 +97,6 @@ export const updateUserPreference = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const getUserProfile = async (req, res) => {
   const { id } = req.params;
@@ -132,6 +153,65 @@ export const getCurrentUser = async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching current user profile:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getUserProfileWithPreferences = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Get user profile
+    const [userRows] = await db.query(
+      `
+      SELECT 
+        a.accId, a.roleID, a.firstName, a.lastName, a.email,
+        c.address, c.contactNo
+      FROM account_tbl AS a
+      LEFT JOIN clientInfo_tbl AS c ON a.accId = c.accId
+      WHERE a.accId = ?
+      `,
+      [id]
+    );
+
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get user preferences
+    const [prefRows] = await db.query(
+      "SELECT * FROM userpreference_tbl WHERE accId = ?",
+      [id]
+    );
+
+    let preferences = prefRows[0];
+    
+    // If no preferences exist, create default ones
+    if (prefRows.length === 0) {
+      await db.query(
+        `INSERT INTO userpreference_tbl 
+        (accId, appointmentReminders, petHealthUpd, petCareTips, petVideos, forumPost) 
+        VALUES (?, 1, 1, 1, 1, 0)`,
+        [id]
+      );
+      
+      preferences = {
+        userprefID: null,
+        accId: parseInt(id),
+        appointmentReminders: 1,
+        petHealthUpd: 1,
+        petCareTips: 1,
+        petVideos: 1,
+        forumPost: 0
+      };
+    }
+
+    res.status(200).json({
+      profile: userRows[0],
+      preferences: preferences
+    });
+  } catch (error) {
+    console.error("❌ Error fetching user profile with preferences:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

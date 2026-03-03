@@ -33,9 +33,9 @@ function NotificationSettings() {
         setNotifications({
           appointments: res.data.appointmentReminders === 1,
           health: res.data.petHealthUpd === 1,
-          petTips: res.data.petTips === 1,
+          petTips: res.data.petCareTips === 1,
           petVideos: res.data.petVideos === 1,
-          forumPosts: res.data.forumPosts === 1,
+          forumPosts: res.data.forumPost === 1,
         });
         setMessage({ type: "", text: "" });
       } catch (err) {
@@ -65,9 +65,9 @@ function NotificationSettings() {
       const payload = {
         appointmentReminders: notifications.appointments ? 1 : 0,
         petHealthUpd: notifications.health ? 1 : 0,
-        petTips: notifications.petTips ? 1 : 0,
+        petCareTips: notifications.petTips ? 1 : 0,
         petVideos: notifications.petVideos ? 1 : 0,
-        forumPosts: notifications.forumPosts ? 1 : 0,
+        forumPost: notifications.forumPosts ? 1 : 0,
       };
 
       await api.put(`/users/${userId}/preferences`, payload, {

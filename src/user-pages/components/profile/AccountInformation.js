@@ -15,6 +15,63 @@ function AccountInformation({ userData, setUserData }) {
 
   const userId = localStorage.getItem("userId");
 
+  // Validation functions
+  const validateName = (name) => {
+    // Only letters, spaces, hyphens, and apostrophes allowed
+    return /^[A-Za-z\s\-']+$/.test(name) || name === "";
+  };
+
+  const validateContactNo = (number) => {
+    // Only numbers, spaces, dashes, parentheses, and plus sign allowed
+    return /^[\d\s\-+()]*$/.test(number) || number === "";
+  };
+
+  const validateContactNoLength = (number) => {
+    // Count only digits (ignore formatting characters)
+    const digitCount = (number.match(/\d/g) || []).length;
+    return digitCount === 11;
+  };
+
+  const validateEmail = (email) => {
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) || email === "";
+  };
+
+  // Filter functions to prevent invalid characters during typing
+  const filterNameInput = (value) => {
+    // Remove any numbers and special characters except spaces, hyphens, and apostrophes
+    return value.replace(/[^A-Za-z\s\-']/g, '');
+  };
+
+  const filterContactInput = (value) => {
+    // Remove any letters and special characters except numbers, spaces, dashes, parentheses, plus
+    const filtered = value.replace(/[^\d\s\-+()]/g, '');
+    
+    // Count only digits (ignore formatting characters) and limit to 11
+    const digits = filtered.replace(/\D/g, '');
+    const truncatedDigits = digits.slice(0, 11);
+    
+    // If we truncated, we need to reconstruct with original formatting
+    if (digits.length > 11) {
+      let result = '';
+      let digitIndex = 0;
+      for (let i = 0; i < filtered.length; i++) {
+        if (/\d/.test(filtered[i])) {
+          if (digitIndex < 11) {
+            result += truncatedDigits[digitIndex];
+            digitIndex++;
+          }
+        } else {
+          result += filtered[i];
+        }
+      }
+      return result;
+    }
+    
+    return filtered;
+  };
+
   // Load user data
   useEffect(() => {
     if (userData) {
@@ -30,7 +87,18 @@ function AccountInformation({ userData, setUserData }) {
   }, [userData]);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    let filteredValue = value;
+    
+    // Apply filters based on field type
+    if (name === "firstName" || name === "lastName") {
+      filteredValue = filterNameInput(value);
+    } else if (name === "contactNo") {
+      filteredValue = filterContactInput(value);
+    }
+    // Email is not filtered, just validated later
+
+    setFormData((prev) => ({ ...prev, [name]: filteredValue }));
     // Clear message when user starts typing
     if (message.text) setMessage({ type: "", text: "" });
   };
@@ -39,9 +107,64 @@ function AccountInformation({ userData, setUserData }) {
     setEditableFields((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const validateForm = () => {
+    // Check if any field is empty
+    if (!formData.firstName.trim()) {
+      setMessage({ type: "error", text: "First name is required" });
+      return false;
+    }
+    if (!formData.lastName.trim()) {
+      setMessage({ type: "error", text: "Last name is required" });
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setMessage({ type: "error", text: "Email is required" });
+      return false;
+    }
+    if (!formData.contactNo.trim()) {
+      setMessage({ type: "error", text: "Contact number is required" });
+      return false;
+    }
+
+    // Validate name formats
+    if (!validateName(formData.firstName)) {
+      setMessage({ type: "error", text: "First name can only contain letters, spaces, hyphens, and apostrophes" });
+      return false;
+    }
+    if (!validateName(formData.lastName)) {
+      setMessage({ type: "error", text: "Last name can only contain letters, spaces, hyphens, and apostrophes" });
+      return false;
+    }
+
+    // Validate contact number format
+    if (!validateContactNo(formData.contactNo)) {
+      setMessage({ type: "error", text: "Contact number can only contain numbers, spaces, dashes, parentheses, and plus sign" });
+      return false;
+    }
+
+    // Validate contact number length (must be exactly 11 digits)
+    if (!validateContactNoLength(formData.contactNo)) {
+      setMessage({ type: "error", text: "Contact number must be exactly 11 digits" });
+      return false;
+    }
+
+    // Validate email format
+    if (!validateEmail(formData.email)) {
+      setMessage({ type: "error", text: "Please enter a valid email address (e.g., name@example.com)" });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = async () => {
     if (!userId) {
       setMessage({ type: "error", text: "⚠️ Not logged in!" });
+      return;
+    }
+
+    // Validate form before saving
+    if (!validateForm()) {
       return;
     }
 
@@ -109,6 +232,7 @@ function AccountInformation({ userData, setUserData }) {
                 value={formData[item.field] || ""}
                 onChange={handleChange}
                 disabled={!editableFields[item.field]}
+                maxLength={item.field === "contactNo" ? 15 : undefined} // Allow some space for formatting
                 className={`w-full border rounded-lg px-3 py-2 text-sm sm:text-base focus:ring-1 focus:ring-[#5EE6FE] focus:border-[#5EE6FE] transition-all ${
                   editableFields[item.field]
                     ? "border-[#5EE6FE] bg-white"

@@ -70,7 +70,7 @@ export const forgotPassword = async (req, res) => {
 
     // Send email
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.SMTP_USER,
       to: email,
       subject: 'Password Reset Request - RaphaVets Pet Clinic',
       html: `
@@ -209,7 +209,7 @@ export const loginUser = async (req, res) => {
 
     // Check if account is deleted
     if (user.isDeleted) {
-      return res.status(403).json({ message: "This account has been deleted" });
+      return res.status(403).json({ message: "Invalid email or password" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

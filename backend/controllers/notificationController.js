@@ -15,21 +15,17 @@ const shouldNotifyUser = async (userId, notifType) => {
 
         switch(notifType) {
             case 'forum':
-                return true; // Forum posts are always sent (no preference option yet)
+                return pref[0].forumPost === 1;
             case 'pet_tips':
-                return true; // Pet tips are always sent (no preference option yet)
+                return pref[0].petCareTips === 1;
             case 'video':
-                return true; // Videos are always sent (no preference option yet)
+                return pref[0].petVideos === 1;
             case 'appointment':
                 return pref[0].appointmentReminders === 1;
             case 'medical':
                 return pref[0].petHealthUpd === 1;
             case 'lab':
                 return pref[0].petHealthUpd === 1;
-            case 'promo':
-                return pref[0].promoEmail === 1;
-            case 'clinic':
-                return pref[0].clinicAnnouncement === 1;
             default:
                 return true;
         }
@@ -395,6 +391,33 @@ export const createAppointmentNotification = async (req, res) => {
         );
         console.log('🔍 [createAppointmentNotification] Status:', status[0]);
 
+        // Get appointment details including pet name
+        console.log('🔍 [createAppointmentNotification] Fetching appointment details...');
+        const [appointmentDetails] = await db.query(
+            `SELECT a.*, p.petName, s.service
+             FROM appointment_tbl a
+             JOIN pet_tbl p ON a.petID = p.petID
+             JOIN service_tbl s ON a.serviceID = s.serviceID
+             WHERE a.appointmentID = ?`,
+            [appointmentID]
+        );
+
+        if (!appointmentDetails.length) {
+            console.log('❌ [createAppointmentNotification] Appointment not found');
+            return res.status(404).json({ success: false, message: 'Appointment not found' });
+        }
+
+        const appointment = appointmentDetails[0];
+        console.log(appointment);
+        const formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        // Format status for display (lowercase)
+        const statusDisplay = status[0]?.statusName.toLowerCase();
+
         // Check if user wants appointment notifications
         const shouldNotify = await shouldNotifyUser(accID, 'appointment');
         
@@ -415,11 +438,14 @@ export const createAppointmentNotification = async (req, res) => {
             [
                 4, // appointment_update
                 `Appointment ${status[0]?.statusName}`,
-                `Your appointment for ${new Date(appointmentDate).toLocaleDateString()} is now ${status[0]?.statusName}`,
+                `Your appointment for ${appointment.petName} on ${formattedDate} has been updated to ${statusDisplay}`,
                 JSON.stringify({ 
                     appointmentId: appointmentID, 
+                    petName: appointment.petName,
+                    service: appointment.service,
                     status: status[0]?.statusName,
-                    date: appointmentDate 
+                    date: appointmentDate,
+                    formattedDate: formattedDate
                 }),
                 appointmentID,
                 'appointment_tbl',
@@ -444,8 +470,15 @@ export const createAppointmentNotification = async (req, res) => {
             notificationId,
             type: 'appointment_update',
             title: `Appointment ${status[0]?.statusName}`,
-            message: `Your appointment for ${new Date(appointmentDate).toLocaleDateString()} is now ${status[0]?.statusName}`,
-            data: { appointmentId: appointmentID, status: status[0]?.statusName },
+            message: `Your appointment for ${appointment.petName} on ${formattedDate} has been ${statusDisplay}`,
+            data: { 
+                appointmentId: appointmentID, 
+                petName: appointment.petName,
+                service: appointment.service,
+                status: status[0]?.statusName,
+                date: appointmentDate,
+                formattedDate: formattedDate
+            },
             createdAt: new Date()
         }, 'appointment');
 
@@ -612,8 +645,10 @@ export const getUserNotifications = async (req, res) => {
                 nt.typeName
              FROM notifications_tbl n
              JOIN notification_type_tbl nt ON n.notifTypeID = nt.notifTypeID
+             JOIN account_tbl a ON a.accId = ?
              WHERE n.targetType = 'all' 
              AND n.createdAt > DATE_SUB(NOW(), INTERVAL 30 DAY)
+             AND n.createdAt >= a.createdAt
              AND n.notificationID NOT IN (
                  SELECT notificationID FROM user_notifications_tbl 
                  WHERE accID = ? AND isDeleted = 0
@@ -621,7 +656,7 @@ export const getUserNotifications = async (req, res) => {
              
              ORDER BY createdAt DESC
              LIMIT ? OFFSET ?`,
-            [userId, userId, parseInt(limit), parseInt(offset)]
+            [userId, userId, userId, parseInt(limit), parseInt(offset)]
         );
 
         console.log('🔍 [getUserNotifications] Found notifications:', notifications.length);
@@ -631,13 +666,15 @@ export const getUserNotifications = async (req, res) => {
                 SELECT notificationID FROM user_notifications_tbl WHERE accID = ? AND isDeleted = 0
                 UNION ALL
                 SELECT n.notificationID FROM notifications_tbl n
+                JOIN account_tbl a ON a.accId = ?
                 WHERE n.targetType = 'all' 
                 AND n.createdAt > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND n.createdAt >= a.createdAt
                 AND n.notificationID NOT IN (
                     SELECT notificationID FROM user_notifications_tbl WHERE accID = ?
                 )
             ) as combined`,
-            [userId, userId]
+            [userId, userId, userId]
         );
 
         console.log('🔍 [getUserNotifications] Total count:', totalResult[0].total);
@@ -687,14 +724,16 @@ export const getUnreadCount = async (req, res) => {
                  WHERE accID = ? AND isRead = 0 AND isDeleted = 0) as specific_unread,
                 
                 (SELECT COUNT(*) FROM notifications_tbl n
+                 JOIN account_tbl a ON a.accId = ?
                  WHERE n.targetType = 'all' 
                  AND n.createdAt > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                 AND n.createdAt >= a.createdAt
                  AND NOT EXISTS (
                      SELECT 1 FROM user_notifications_tbl un
                      WHERE un.notificationID = n.notificationID 
                      AND un.accID = ?
                  )) as global_unread`,
-            [userId, userId]
+            [userId, userId, userId]
         );
 
         console.log('🔍 [getUnreadCount] Counts:', result[0]);
@@ -745,9 +784,13 @@ export const markAsRead = async (req, res) => {
         if (result.affectedRows === 0) {
             console.log('🔍 [markAsRead] Notification not found in user_notifications, checking global...');
             const [globalNotif] = await db.query(
-                `SELECT * FROM notifications_tbl 
-                 WHERE notificationID = ? AND targetType = 'all'`,
-                [notificationId]
+                `SELECT n.* FROM notifications_tbl n
+                 JOIN account_tbl a ON a.accId = ?
+                 WHERE n.notificationID = ? 
+                 AND n.targetType = 'all'
+                 AND n.createdAt > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                 AND n.createdAt >= a.createdAt`,
+                [userId, notificationId]
             );
 
             console.log('🔍 [markAsRead] Global notification check:', globalNotif);
@@ -808,14 +851,16 @@ export const markAllAsRead = async (req, res) => {
         console.log('🔍 [markAllAsRead] Fetching global notifications...');
         const [globalNotifs] = await db.query(
             `SELECT notificationID FROM notifications_tbl n
+             JOIN account_tbl a ON a.accId = ?
              WHERE n.targetType = 'all' 
              AND n.createdAt > DATE_SUB(NOW(), INTERVAL 30 DAY)
+             AND n.createdAt >= a.createdAt
              AND NOT EXISTS (
                  SELECT 1 FROM user_notifications_tbl un
                  WHERE un.notificationID = n.notificationID 
                  AND un.accID = ?
              )`,
-            [userId]
+            [userId, userId]
         );
 
         console.log('🔍 [markAllAsRead] Global notifications to mark:', globalNotifs.length);
