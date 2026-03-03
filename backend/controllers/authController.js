@@ -70,7 +70,7 @@ export const forgotPassword = async (req, res) => {
 
     // Send email
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.SMTP_USER,
       to: email,
       subject: 'Password Reset Request - RaphaVets Pet Clinic',
       html: `
