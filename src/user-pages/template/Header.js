@@ -471,7 +471,7 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
       <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
         <motion.button
           onClick={toggleMenu}
-          className={`text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
+          className={`md:hidden text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
             animateIcon ? 'transition-transform duration-300' : ''
           }`}
           whileHover={{ scale: 1.1 }}
@@ -480,6 +480,7 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
         >
           ☰
         </motion.button>
+        
         <img
           src="/images/logo.png"
           className="w-[30px] sm:w-[40px] md:w-[60px] lg:w-[80px] flex-shrink-0"
