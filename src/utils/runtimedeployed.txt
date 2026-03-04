@@ -12,16 +12,7 @@ const browserOrigin =
     ? window.location.origin
     : "";
 
-const isLocalhostOrigin = /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(
-  browserOrigin,
-);
-
-const localApiFallback = "http://localhost:5000/api";
-
-export const API_BASE_URL = (
-  ensureProtocol(configuredApiUrl) ||
-  (isLocalhostOrigin ? localApiFallback : `${browserOrigin}/api`)
-).replace(
+export const API_BASE_URL = (ensureProtocol(configuredApiUrl) || `${browserOrigin}/api`).replace(
   /\/+$/,
   "",
 );
