@@ -300,20 +300,19 @@ function Home() {
     }
   };
 
-  return (
-    <ClientLayout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-4 sm:space-y-6"
-      >
-        {/* Dashboard Cards - Responsive Grid */}
-        <motion.div 
+    return (
+      <ClientLayout>
+        <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5"
+          initial="hidden"
+          animate="visible"
+          className="space-y-4 sm:space-y-6 px-2 sm:px-4 md:px-6"
         >
-          {/* Card 1: Pet Care Tip or Loading */}
+          {/* Dashboard Cards - adjust grid for tablets */}
+          <motion.div 
+            variants={containerVariants}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5"
+          >          {/* Card 1: Pet Care Tip or Loading */}
           <motion.div variants={cardVariants} className="w-full">
             {loading.tips ? (
               <DashboardCard 
@@ -386,10 +385,9 @@ function Home() {
           </motion.div>
         </motion.div>
 
-        {/* Tabs Section - Responsive height */}
         <motion.div 
           variants={itemVariants}
-          className="px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white shadow-lg flex flex-col min-h-[300px] sm:h-[350px] lg:h-[400px]"
+          className="px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-white shadow-lg flex flex-col min-h-[300px] sm:h-[350px] md:h-[400px] lg:h-[400px]"
         >
           {/* Tab Headers - Responsive */}
           <div className="font-semibold flex gap-4 sm:gap-6 border-b pb-2 sm:pb-3 mb-3 sm:mb-4 overflow-x-auto scrollbar-hide">

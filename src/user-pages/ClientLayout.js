@@ -20,15 +20,19 @@ function ClientLayout({ children }) {
       document.documentElement.classList.add("dark");
     }
 
-    if (window.innerWidth >= 768) {
+    // Change from md to lg - sidebar starts open only on large screens
+    if (window.innerWidth >= 1024) { // lg breakpoint
       setIsMenuOpen(true);
     }
   }, []);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMenuOpen(false); 
+      // Change from md to lg - close sidebar when below lg
+      if (window.innerWidth < 1024) { // below lg
+        setIsMenuOpen(false);
+      } else {
+        setIsMenuOpen(true);
       }
     };
 
@@ -73,7 +77,7 @@ function ClientLayout({ children }) {
       />
       
       {/* Main content with sidebar */}
-      <div className="flex flex-col md:flex-row gap-0 px-0 md:px-5 lg:px-12">
+      <div className="flex flex-col lg:flex-row gap-0 px-0 lg:px-5 xl:px-12 lg:mt-0">
         {/* Sidebar */}
         <Sidebar
           isMenuOpen={isMenuOpen}
@@ -81,11 +85,11 @@ function ClientLayout({ children }) {
           animationEnabled={sidebarAnimate}
         />
         
-        {/* Main content area */}
+        {/* Main content area - adjust width for tablet/desktop */}
         <div className={`
-          flex flex-col gap-5 rounded-none md:rounded-xl p-4 sm:p-5 w-full
+          flex flex-col gap-5 rounded-none lg:rounded-xl p-4 sm:p-5 w-full
           transition-all duration-300 ease-in-out
-          md:w-[calc(100%-250px)]
+          ${isMenuOpen ? 'lg:w-[calc(100%-250px)]' : 'lg:w-full'}
         `}>
           {children}
         </div>
@@ -94,16 +98,17 @@ function ClientLayout({ children }) {
       {/* Floating Chat Button */}
       <button 
         onClick={() => setChatType("ai")} 
-        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 md:bottom-12 md:right-20 bg-[#5EE6FE] text-white text-xl sm:text-2xl w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 transition-transform"
+        className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 md:bottom-12 md:right-12 lg:right-20 bg-[#5EE6FE] text-white text-xl sm:text-2xl w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 transition-transform"
       >
         <i className="fa-regular fa-comment"></i>
       </button>
 
       {chatType && <FloatingChatBox type={chatType} onClose={() => setChatType(null)} />}
       
+      {/* Overlay - show on all screens below lg when menu is open */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 z-40 md:hidden bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+          className="fixed inset-0 z-40 lg:hidden bg-black/50 backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsMenuOpen(false)}
         />
       )}

@@ -473,32 +473,33 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
         visible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      {/* Left side - Menu, Logo */}
-      <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
-        <motion.button
-          onClick={toggleMenu}
-          className={`md:hidden text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
-            animateIcon ? 'transition-transform duration-300' : ''
-          }`}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          ☰
-        </motion.button>
-        
-        <img
-          src="/images/logo.png"
-          className="w-[30px] sm:w-[40px] md:w-[60px] lg:w-[80px] flex-shrink-0"
-          alt="Logo"
-        />
-        <div className="flex flex-col flex-shrink-0">
-          <div className="font-baloo text-lg sm:text-xl md:text-2xl leading-none">
-            <span className="text-[#000000]">RV</span>
-            <span className="text-[#5EE6FE]">Care</span>
-          </div>
+      
+    {/* Left side - Menu, Logo */}
+    <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
+      <motion.button
+        onClick={toggleMenu}
+        className={`lg:hidden text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
+          animateIcon ? 'transition-transform duration-300' : ''
+        }`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        ☰
+      </motion.button>
+      
+      <img
+        src="/images/logo.png"
+        className="w-[30px] sm:w-[40px] md:w-[60px] flex-shrink-0"
+        alt="Logo"
+      />
+      <div className="flex flex-col flex-shrink-0">
+        <div className="font-baloo text-lg sm:text-xl md:text-2xl leading-none">
+          <span className="text-[#000000]">RV</span>
+          <span className="text-[#5EE6FE]">Care</span>
         </div>
       </div>
+    </div>
 
       {/* RIGHT SIDE - NOTIF + FORUM */}
       <div className="flex flex-row justify-end items-center gap-3 sm:gap-5 md:gap-8 text-gray-700 flex-shrink-0">
