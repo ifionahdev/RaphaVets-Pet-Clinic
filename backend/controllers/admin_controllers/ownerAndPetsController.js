@@ -425,7 +425,16 @@ export const createOwner = async (req, res) => {
       // Send email in background to avoid blocking API response
       setImmediate(async () => {
         try {
-          await emailTransporter.sendMail({
+          if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            console.warn('⚠️ SMTP not configured for owner credentials email', {
+              hasUser: Boolean(process.env.SMTP_USER),
+              hasPass: Boolean(process.env.SMTP_PASS),
+            });
+            return;
+          }
+
+          console.log(`📧 Queueing owner credentials email to ${normalizedEmail}`);
+          const info = await emailTransporter.sendMail({
             from: process.env.SMTP_FROM || '"RaphaVets Clinic" <markmapili29@gmail.com>',
             to: normalizedEmail,
             subject: 'Your RaphaVets Clinic Account Login Credentials',
@@ -471,7 +480,13 @@ export const createOwner = async (req, res) => {
             `
           });
 
-          console.log(`✅ Login credentials email sent to ${normalizedEmail}`);
+          console.log('✅ Login credentials email sent', {
+            to: normalizedEmail,
+            messageId: info?.messageId,
+            accepted: info?.accepted,
+            rejected: info?.rejected,
+            response: info?.response,
+          });
         } catch (emailError) {
           console.error('❌ Failed to send email:', emailError);
         }

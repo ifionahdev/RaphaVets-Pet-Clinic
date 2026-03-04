@@ -114,7 +114,14 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Forgot password email send result', {
+      to: email,
+      messageId: info?.messageId,
+      accepted: info?.accepted,
+      rejected: info?.rejected,
+      response: info?.response,
+    });
 
     res.status(200).json({
       success: true,

@@ -235,9 +235,10 @@ export const createAdminSettingsUser = async (req, res) => {
     const transporter = getTransporter();
 
     if (transporter) {
+      console.log(`📧 Queueing admin settings email to ${safeEmail}`);
       setImmediate(async () => {
         try {
-          await transporter.sendMail({
+          const info = await transporter.sendMail({
             from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: safeEmail,
             subject: 'RaphaVets Account Credentials',
@@ -249,10 +250,22 @@ export const createAdminSettingsUser = async (req, res) => {
               <p>Please change your password after your first login.</p>
             `,
           });
-          console.log(`✅ Account email sent to ${safeEmail}`);
+          console.log('✅ Account email sent', {
+            to: safeEmail,
+            messageId: info?.messageId,
+            accepted: info?.accepted,
+            rejected: info?.rejected,
+            response: info?.response,
+          });
         } catch (mailError) {
           console.error('Failed to send account email:', mailError);
         }
+      });
+    } else {
+      console.warn('⚠️ SMTP not configured for admin settings email', {
+        hasHost: Boolean(process.env.SMTP_HOST),
+        hasUser: Boolean(process.env.SMTP_USER),
+        hasPass: Boolean(process.env.SMTP_PASS),
       });
     }
 
