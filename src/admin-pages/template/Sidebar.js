@@ -109,18 +109,40 @@ const Sidebar = () => {
       return;
     }
 
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      setChangePasswordMessage({
+        message: "User session not found. Please log in again.",
+        type: "error"
+      });
+      return;
+    }
+
     setChangePasswordLoading(true);
     setChangePasswordMessage({ message: "", type: "" });
 
     try {
-      const token = localStorage.getItem("token");
+      const payload = {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      };
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await api.put(`/users/${userId}/change-password`, payload);
+      setChangePasswordMessage({
+        message: response.data?.message || "Password changed successfully.",
+        type: "success"
+      });
+
+      setTimeout(() => {
+        setShowChangePasswordModal(false);
+        resetPasswordForm();
+      }, 1200);
       
     } catch (err) {
       console.error("Change password error:", err);
       setChangePasswordMessage({
-        message: "Failed to change password. Please check your current password.",
+        message: err?.response?.data?.message || "Failed to change password. Please check your current password.",
         type: "error"
       });
     } finally {

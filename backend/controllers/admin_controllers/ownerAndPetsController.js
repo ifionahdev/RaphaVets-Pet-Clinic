@@ -3,7 +3,7 @@
   import nodemailer from 'nodemailer'; 
   import { getIO } from "../../socket.js";
 
-const NAME_REGEX = /^[A-Za-z\s\-']+$/;
+const NAME_REGEX = /^[\p{L}]+(?:[ '\-][\p{L}]+)*$/u;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeToLocalPhone = (rawValue) => {

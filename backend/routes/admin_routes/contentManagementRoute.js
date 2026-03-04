@@ -21,6 +21,11 @@ import {
   getPublishedVideos,
   getVideosByCategory,
 } from "../../controllers/admin_controllers/videoResourcesController.js";
+import {
+  getAllForumPostsAdmin,
+  updateForumPostStatusAdmin,
+  deleteForumPostAdmin,
+} from "../../controllers/admin_controllers/forumManagementController.js";
 import { verifyToken } from "../../middleware/authMiddleware.js";
 import { allowRoles } from "../../middleware/roleMiddleware.js";
 const router = express.Router();
@@ -54,5 +59,10 @@ router.post('/videos/create', verifyToken, allowRoles(2, 3), createVideo);
 router.post('/videos/createCategory', verifyToken, allowRoles(2, 3), createVideoCategory);
 router.put('/videos/update/:id', verifyToken, allowRoles(2, 3), updateVideo);
 router.delete('/videos/delete/:id', verifyToken, allowRoles(2, 3), deleteVideo);
+
+// FORUM POSTS (admin content management)
+router.get('/forum-posts', verifyToken, allowRoles(2, 3), getAllForumPostsAdmin);
+router.patch('/forum-posts/:id/status', verifyToken, allowRoles(2, 3), updateForumPostStatusAdmin);
+router.delete('/forum-posts/:id', verifyToken, allowRoles(2, 3), deleteForumPostAdmin);
 
 export default router;

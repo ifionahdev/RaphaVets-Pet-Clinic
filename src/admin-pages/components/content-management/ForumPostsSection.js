@@ -82,6 +82,13 @@ const ForumPostsSection = ({
     });
   };
 
+  const getImageSrc = (image) => {
+    if (!image) return "";
+    if (typeof image === "string") return image;
+    if (typeof image === "object") return image.url || image.imageUrl || image.src || "";
+    return "";
+  };
+
   const PostModal = ({ post, onClose }) => {
     if (!post) return null;
 
@@ -139,9 +146,18 @@ const ForumPostsSection = ({
                         key={index}
                         className="group relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 cursor-pointer hover:border-[#5EE6FE] transition-colors"
                       >
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <ImageIcon className="h-6 w-6 text-gray-400" />
-                        </div>
+                        {getImageSrc(image) ? (
+                          <img
+                            src={getImageSrc(image)}
+                            alt={`Forum post image ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <ImageIcon className="h-6 w-6 text-gray-400" />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Eye className="h-5 w-5 text-white" />
                         </div>

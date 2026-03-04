@@ -34,45 +34,7 @@ const ContentManagement = () => {
   const currentAdminId = localStorage.getItem('userId') || 'unknown';
   const currentAdminName = localStorage.getItem('userName') || 'Admin';
 
-  // Mock data for forum posts (not from backend)
-  const [forumPosts, setForumPosts] = useState([
-    {
-      id: 1,
-      type: "lost",
-      description: "Lost near Central Park area. Last seen wearing a blue collar with identification tags. Very friendly and responds to the name Max. Has a small white patch on chest.",
-      date: "2024-01-15",
-      realName: "John Doe",
-      anonymous: false,
-      contactNumber: "+1 (555) 123-4567",
-      email: "john@email.com",
-      images: ["img1.jpg", "img2.jpg", "img3.jpg"],
-      status: "active"
-    },
-    {
-      id: 2,
-      type: "found",
-      description: "Found this beautiful Siamese cat near 5th Avenue. No collar or identification. Appears to be well-groomed and friendly. Currently being cared for while we look for the owner.",
-      date: "2024-01-14",
-      realName: "Sarah Wilson",
-      anonymous: true,
-      contactNumber: "+1 (555) 987-6543",
-      email: "sarah@email.com",
-      images: ["img1.jpg"],
-      status: "archived"
-    },
-    {
-      id: 3,
-      type: "lost",
-      description: "My Persian cat went missing from the Westside area. She's very shy and might hide if approached. Has distinctive blue eyes and long white fur. Please contact immediately if spotted.",
-      date: "2024-01-13",
-      realName: "Mike Chen",
-      anonymous: false,
-      contactNumber: "+1 (555) 456-7890",
-      email: "mike@email.com",
-      images: [],
-      status: "active"
-    }
-  ]);
+  const [forumPosts, setForumPosts] = useState([]);
 
   // Stats state
   const [stats, setStats] = useState({
@@ -168,6 +130,19 @@ const ContentManagement = () => {
     }
   };
 
+  // Fetch forum posts (admin content management)
+  const fetchForumPosts = async () => {
+    try {
+      const response = await api.get('/admin/content/forum-posts');
+      setForumPosts(response.data?.data || []);
+    } catch (error) {
+      console.error('Error fetching forum posts:', error);
+      showError(error.response?.data?.message || 'Failed to fetch forum posts', {
+        title: 'Fetch Error'
+      });
+    }
+  };
+
   // Fetch all data on component mount
   useEffect(() => {
     fetchPetCareTips();
@@ -176,6 +151,7 @@ const ContentManagement = () => {
     fetchVideoCategories(); 
     fetchIcons();
     fetchPublicationStatuses();
+    fetchForumPosts();
   }, []);
 
   // Update stats when data changes
@@ -373,11 +349,28 @@ const ContentManagement = () => {
   const handleDeleteForumPost = (id) => {
     showConfirm(
       'Are you sure you want to delete this forum post? This action cannot be undone.',
-      () => {
-        setForumPosts(prevPosts => prevPosts.filter(post => post.id !== id));
-        showSuccess('Forum post deleted successfully!', {
-          title: 'Deleted'
-        });
+      async () => {
+        try {
+          setLoading(true);
+          const response = await api.delete(`/admin/content/forum-posts/${id}`);
+          if (response.data?.success) {
+            setForumPosts(prevPosts => prevPosts.filter(post => post.id !== id));
+            showSuccess('Forum post deleted successfully!', {
+              title: 'Deleted'
+            });
+          } else {
+            showError(response.data?.message || 'Failed to delete forum post', {
+              title: 'Delete Failed'
+            });
+          }
+        } catch (error) {
+          console.error('Error deleting forum post:', error);
+          showError(error.response?.data?.message || 'Failed to delete forum post', {
+            title: 'Error'
+          });
+        } finally {
+          setLoading(false);
+        }
       },
       {
         title: 'Delete Forum Post',
@@ -387,13 +380,30 @@ const ContentManagement = () => {
     );
   };
 
-  const handleArchiveForumPost = (id, newStatus) => {
-    setForumPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === id ? { ...post, status: newStatus } : post
-      )
-    );
-    showToast(`Post ${newStatus === 'active' ? 'restored' : 'archived'} successfully!`, 'success');
+  const handleArchiveForumPost = async (id, newStatus) => {
+    try {
+      const response = await api.patch(`/admin/content/forum-posts/${id}/status`, {
+        status: newStatus,
+      });
+
+      if (response.data?.success) {
+        setForumPosts(prevPosts =>
+          prevPosts.map(post =>
+            post.id === id ? { ...post, status: newStatus } : post
+          )
+        );
+        showToast(`Post ${newStatus === 'active' ? 'restored' : 'archived'} successfully!`, 'success');
+      } else {
+        showError(response.data?.message || 'Failed to update forum post status', {
+          title: 'Update Failed'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating forum post status:', error);
+      showError(error.response?.data?.message || 'Failed to update forum post status', {
+        title: 'Error'
+      });
+    }
   };
 
   return (
