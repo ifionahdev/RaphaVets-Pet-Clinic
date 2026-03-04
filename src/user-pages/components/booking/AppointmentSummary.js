@@ -1,5 +1,6 @@
 import React from "react";
 import { format } from "date-fns";
+import { buildMediaUrl } from "../../../utils/runtimeUrls";
 
 export default function AppointmentSummary({
   step,
@@ -48,7 +49,7 @@ export default function AppointmentSummary({
             <div className="text-[10px] sm:text-xs text-gray-400 mb-1 sm:mb-2">Pet Details</div>
             <div className="flex items-center gap-2 sm:gap-3">
               <img
-                src={`http://localhost:5000${selectedPet.image}`}
+                src={buildMediaUrl(selectedPet.image)}
                 alt={selectedPet.name}
                 onError={(e) => {
                           e.target.src = "/images/dog-profile.png";

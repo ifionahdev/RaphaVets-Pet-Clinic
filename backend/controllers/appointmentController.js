@@ -83,7 +83,7 @@ export const getBookedSlots = async (req, res) => {
     const [bookedRows] = await db.query(
       `SELECT st.scheduleTime 
        FROM appointment_tbl a
-       JOIN scheduleTime_tbl st ON a.scheduledTimeID = st.scheduledTimeID
+       JOIN scheduletime_tbl st ON a.scheduledTimeID = st.scheduledTimeID
        WHERE a.appointmentDate = ? 
        AND a.statusID != 4 and a.statusID != 3`,
       [date]
@@ -106,7 +106,7 @@ export const getBookedSlots = async (req, res) => {
       const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}:00`;
       
       // Get all time slots and filter those that are in the past
-      const [allTimeSlots] = await db.query("SELECT scheduleTime FROM scheduleTime_tbl");
+      const [allTimeSlots] = await db.query("SELECT scheduleTime FROM scheduletime_tbl");
       
       pastSlots = allTimeSlots
         .map(slot => slot.scheduleTime)
@@ -128,7 +128,7 @@ export const getBookedSlots = async (req, res) => {
 
 export const getAllTime = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM scheduleTime_tbl");
+    const [rows] = await db.query("SELECT * FROM scheduletime_tbl");
     
     console.log('Raw time slots from DB:', rows);
     
@@ -186,7 +186,7 @@ export const bookAppointment = async (req, res) => {
 
     console.log("🔍 Looking up time slot:", startTime);
     const [timeRows] = await db.query(
-      "SELECT scheduledTimeID FROM scheduleTime_tbl WHERE scheduleTime = ?",
+      "SELECT scheduledTimeID FROM scheduletime_tbl WHERE scheduleTime = ?",
       [startTime] // Use scheduleTime field
     );
 
@@ -262,10 +262,10 @@ export const getUserAppointments = async (req, res) => {
       JOIN pet_tbl p ON a.petID = p.petID
       JOIN service_tbl s ON a.serviceID = s.serviceID
       JOIN account_tbl u ON a.accID = u.accId
-      JOIN scheduleTIme_tbl st ON a.scheduledTimeID = st.scheduledTimeID
+      JOIN scheduletime_tbl st ON a.scheduledTimeID = st.scheduledTimeID
       JOIN appointment_status_tbl ast ON a.statusID = ast.statusID
       WHERE a.accID = ?
-      ORDER BY a.appointmentDate DESC, st.scheduleTIme DESC;
+      ORDER BY a.appointmentDate DESC, st.scheduleTime DESC;
       `,
       [userId]
     );

@@ -6,6 +6,7 @@ import ClientLayout from "../ClientLayout";
 import ViewDetailsModal from "../components/home/ViewDetailsModal"; 
 import SuccessToast from "../../template/SuccessToast";
 import socket from "../../socket"; // 👈 ADD THIS IMPORT
+import { buildMediaUrl } from "../../utils/runtimeUrls";
 
 // Import the tab components
 import AppointmentTab from "../components/home/AppointmentTab";
@@ -662,7 +663,7 @@ function PetDetails() {
             <div className="relative">
               <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-[#00B8D4] bg-gray-200 flex items-center justify-center">
                 <img
-                  src={`http://localhost:5000${pet.image}`}
+                  src={buildMediaUrl(pet.image)}
                   alt={pet.name || "Pet"}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -828,7 +829,7 @@ function PetDetails() {
                   <div className="relative">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-3 border-[#00B8D4] bg-gray-200 flex items-center justify-center mb-2 sm:mb-3">
                       <img
-                        src={previewImage || `http://localhost:5000${pet.image}`}
+                        src={previewImage || buildMediaUrl(pet.image)}
                         alt={pet.name || "Pet"}
                         className="w-full h-full object-cover"
                         onError={(e) => {

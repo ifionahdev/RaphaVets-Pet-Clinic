@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { format, addMinutes } from "date-fns";
 import api from "../../../api/axios";
+import { buildMediaUrl } from "../../../utils/runtimeUrls";
 
 export default function Step4Review({ 
   selectedService, 
@@ -108,7 +109,7 @@ export default function Step4Review({
           {selectedPet ? (
             <div className="flex items-center gap-3 sm:gap-4 bg-gradient-to-r from-[#E8FBFF] to-[#FDFDFD] border border-[#D6F0F3] rounded-lg sm:rounded-xl p-3 sm:p-4">
               <img
-                src={`http://localhost:5000${selectedPet.image}`}
+                src={buildMediaUrl(selectedPet.image)}
                 alt={selectedPet.name}
                 onError={(e) => {
                           e.target.src = "/images/dog-profile.png";

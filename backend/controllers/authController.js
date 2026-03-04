@@ -65,8 +65,14 @@ export const forgotPassword = async (req, res) => {
       [resetToken, resetTokenExpiry, user.accId]
     );
 
-    // Create reset link - using localhost for development
-    const resetLink = `http://localhost:3000/change-password?token=${resetToken}`;
+    const frontendBaseUrl = process.env.FRONTEND_URL || process.env.CLINIC_URL;
+    if (!frontendBaseUrl) {
+      return res.status(500).json({
+        success: false,
+        message: "Frontend URL is not configured",
+      });
+    }
+    const resetLink = `${frontendBaseUrl}/change-password?token=${resetToken}`;
 
     // Send email
     const mailOptions = {

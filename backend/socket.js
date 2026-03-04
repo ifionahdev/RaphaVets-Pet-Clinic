@@ -5,9 +5,15 @@ import { registerSocketSession, removeSocketSession } from './controllers/notifi
 let io;
 
 export const initializeSocket = (server) => {
+    const frontendOrigin = process.env.FRONTEND_URL || process.env.CLINIC_URL;
+
+    if (!frontendOrigin) {
+        throw new Error("FRONTEND_URL (or CLINIC_URL) is required for Socket.IO CORS origin");
+    }
+
     io = new Server(server, {
         cors: {
-            origin: process.env.FRONTEND_URL || "http://localhost:3000",
+            origin: frontendOrigin,
             credentials: true
         }
     });

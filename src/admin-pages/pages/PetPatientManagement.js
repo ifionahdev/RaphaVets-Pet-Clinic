@@ -7,6 +7,7 @@ import AddPetModal from "../components/petpatient-management/AddPetModal";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
 import socket from "../../socket";
+import { buildMediaUrl } from "../../utils/runtimeUrls";
 
 import PetOwnersTab from "../components/petpatient-management/PetOwnersTab";
 import PetsTab from "../components/petpatient-management/PetsTab";
@@ -189,7 +190,7 @@ const PetPatientManagement = () => {
             note: p.note,
             owner: owner.name,
             accID: owner.id, // Add accID for medical records
-            image: p.imageName ? `http://localhost:5000/api/pets/images/${p.imageName}` : "/images/sad-dog.png"
+            image: p.imageName ? buildMediaUrl(`/api/pets/images/${p.imageName}`) : "/images/sad-dog.png"
           }))
         )
       );

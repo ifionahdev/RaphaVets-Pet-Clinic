@@ -439,7 +439,7 @@ export const createOwner = async (req, res) => {
               </div>
               
               <div style="text-align: center; margin-top: 25px;">
-                <a href="${process.env.CLINIC_URL || 'http://localhost:3000'}" 
+                <a href="${process.env.CLINIC_URL || process.env.FRONTEND_URL || '#'}" 
                    style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                   Login to Your Account
                 </a>

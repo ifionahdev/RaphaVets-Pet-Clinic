@@ -14,7 +14,10 @@ router.post("/predict/breed", upload.single("file"), async (req, res) => {
     const formData = new FormData();
     formData.append("file", req.file.buffer, req.file.originalname);
 
-    const mlUrl = process.env.ML_URL || "http://localhost:5001";
+    const mlUrl = process.env.ML_URL;
+    if (!mlUrl) {
+      return res.status(500).json({ error: "ML_URL is not configured." });
+    }
     const response = await axios.post(`${mlUrl}/breed/predict`, formData, {
       headers: formData.getHeaders(),
       maxBodyLength: Infinity,

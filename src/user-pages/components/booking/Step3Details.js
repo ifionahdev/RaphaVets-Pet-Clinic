@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import api from "../../../api/axios";
+import { buildMediaUrl } from "../../../utils/runtimeUrls";
 
 export default function Step3Details({ goToStep, selectedPet, setSelectedPet }) {
   const [userData, setUserData] = useState({
@@ -123,7 +124,7 @@ export default function Step3Details({ goToStep, selectedPet, setSelectedPet }) 
                     <div className="flex flex-col items-center text-center">
                       <div className="relative mb-3">
                         <img
-                          src={`http://localhost:5000${pet.image}`}
+                          src={buildMediaUrl(pet.image)}
                           alt={pet.name}
                           onError={(e) => {
                             e.target.src = "/images/dog-profile.png";
