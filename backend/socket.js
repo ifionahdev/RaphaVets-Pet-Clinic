@@ -6,16 +6,16 @@ let io;
 
 export const initializeSocket = (server) => {
     const frontendOrigin = process.env.FRONTEND_URL || process.env.CLINIC_URL;
+    const corsConfig = frontendOrigin
+        ? { origin: frontendOrigin, credentials: true }
+        : { origin: true, credentials: true };
 
     if (!frontendOrigin) {
-        throw new Error("FRONTEND_URL (or CLINIC_URL) is required for Socket.IO CORS origin");
+        console.warn("⚠️ FRONTEND_URL/CLINIC_URL not set; Socket.IO CORS is using dynamic origin fallback.");
     }
 
     io = new Server(server, {
-        cors: {
-            origin: frontendOrigin,
-            credentials: true
-        }
+        cors: corsConfig
     });
 
     io.on('connection', (socket) => {

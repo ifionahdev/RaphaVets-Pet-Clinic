@@ -213,9 +213,9 @@ const normalizeToLocalPhone = (rawValue) => {
 
 // Email transporter configuration
 const emailTransporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
@@ -435,7 +435,7 @@ export const createOwner = async (req, res) => {
 
           console.log(`📧 Queueing owner credentials email to ${normalizedEmail}`);
           const info = await emailTransporter.sendMail({
-            from: process.env.SMTP_FROM || '"RaphaVets Clinic" <markmapili29@gmail.com>',
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
             to: normalizedEmail,
             subject: 'Your RaphaVets Clinic Account Login Credentials',
             html: `
