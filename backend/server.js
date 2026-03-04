@@ -70,4 +70,8 @@ app.get("/api/test", (req, res) => {
 });
 app.use("/api/ml", breedDetectRoute);
 
-server.listen(5000, () => console.log("✅ Server running on port 5000"));
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => 
+  console.log(`✅_inches Server running on port ${PORT}`)
+);
