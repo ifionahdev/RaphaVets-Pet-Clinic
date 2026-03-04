@@ -3,6 +3,7 @@
 fastapi==0.129.0
 uvicorn[standard]==0.41.0
 python-multipart==0.0.22
+ipython==8.38.0
 
 fastai==2.8.7
 numpy==1.26.4
