@@ -8,8 +8,32 @@ from fastapi import HTTPException
 ml_service_root = Path(__file__).resolve().parents[1]
 MODEL_PATH = ml_service_root / "models" / "breed_model.pkl"
 
-# Load the model once
-learn = load_learner(MODEL_PATH)
+learn = None
+model_load_error = None
+
+
+def get_learner():
+    global learn, model_load_error
+
+    if learn is not None:
+        return learn
+
+    if model_load_error is not None:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Model failed to load: {model_load_error}",
+        )
+
+    try:
+        learn = load_learner(MODEL_PATH)
+        return learn
+    except Exception as error:
+        model_load_error = str(error)
+        print("ML model load error:", error)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Model failed to load: {model_load_error}",
+        )
 
 def predict_breed_from_bytes(file_bytes: bytes) -> dict:
     try:
@@ -19,9 +43,10 @@ def predict_breed_from_bytes(file_bytes: bytes) -> dict:
         """
         # Convert bytes to PIL Image
         img = Image.open(BytesIO(file_bytes))
+        learner = get_learner()
         
         # Predict
-        pred_class, pred_idx, probs = learn.predict(np.array(img))
+        pred_class, pred_idx, probs = learner.predict(np.array(img))
 
         #Clean up the output for JSON response
 
