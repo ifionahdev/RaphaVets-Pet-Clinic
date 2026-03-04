@@ -4,9 +4,10 @@ import { connect } from "socket.io-client";
 
 // Schedule the task to run every day at midnight
 const markMissedAppointments = async () => {
-  const connection = await db.getConnection();
+  let connection;
   try {
-    connection.beginTransaction();
+    connection = await db.getConnection();
+    await connection.beginTransaction();
 
     // Fetch status IDs for "Upcoming", "Pending", and "Missed"
     const [statusRows] = await connection.query(
@@ -23,7 +24,7 @@ const markMissedAppointments = async () => {
     )?.statusID;
 
     if (!pendingStatusID || !missedStatusID) {
-      connection.rollback();
+      await connection.rollback();
       throw new Error(
         "Pending or Missed status not found in appointment_status_tbl",
       );
@@ -44,12 +45,16 @@ const markMissedAppointments = async () => {
     if (result.affectedRows > 0) {
       console.log(`✅ Marked ${result.affectedRows} appointments as missed`);
     }
-    connection.commit();
+    await connection.commit();
   } catch (err) {
-    connection.rollback();
+    if (connection) {
+      await connection.rollback();
+    }
     console.error("❌ Error marking missed appointments:", err);
   } finally {
-    connection.release();
+    if (connection) {
+      connection.release();
+    }
   }
 };
 
