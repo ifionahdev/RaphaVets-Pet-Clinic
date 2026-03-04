@@ -30,9 +30,7 @@ import adminSettingsRoute from './routes/admin_routes/adminSettingsRoute.js';
 // ----------------------
 // ENVIRONMENT CONFIG
 // ----------------------
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env.local";
-dotenv.config({ path: envFile });
-console.log(`✅ Using env file: ${envFile}`);
+dotenv.config({ path: ".env.production" }); 
 
 const app = express();
 const server = createServer(app);
