@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 04, 2026 at 07:18 AM
+-- Generation Time: Mar 04, 2026 at 08:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,13 +51,13 @@ CREATE TABLE `account_tbl` (
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`, `resetToken`, `resetTokenExpiry`) VALUES
 (2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2026-02-26 17:26:56', '2025-11-09 12:21:30', '2026-02-26 17:26:43', '2026-02-26 17:26:56', 0, '205676104592a4bdda5ae79ab8b33f59d772d71ba631da7c9af8e03be2ba39c5', '2026-02-02 11:07:19'),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '2025-11-22 12:57:36', '2025-11-09 12:21:30', '2025-11-22 12:57:36', '2025-11-09 12:20:21', 0, NULL, NULL),
-(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$LMTrRhOAEKAweVGBy1NXQeGCWEzgN2d5WueonGDiRibvDGER08YVe', '0000-00-00 00:00:00', '2026-03-04 10:58:05', '2025-11-09 12:21:30', '2026-03-04 10:58:05', '2026-03-03 22:20:53', 0, NULL, NULL),
+(5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$Y8.14qoE4rlZJX7z4lfDEODwiSFvspaR7/T4S1eVYu2PEQmBe8pIq', '0000-00-00 00:00:00', '2026-03-04 14:51:39', '2026-03-04 14:51:17', '2026-03-04 14:51:39', '2026-03-04 14:51:22', 0, NULL, NULL),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1, NULL, NULL),
 (8, 1, 'Vanerie', 'Parcon', 'vnaerie@gmail.com', '', '2025-11-16 00:09:49', '2025-11-16 14:50:13', '2025-11-16 00:09:49', '2025-11-16 00:09:49', '2025-11-16 00:09:49', 1, NULL, NULL),
 (9, 1, 'Marvin', 'Tomales', 'marvin@gmail.com09123456789', '', '2025-11-16 00:15:22', '2026-02-26 14:48:02', '2025-11-16 00:15:22', '2025-11-16 00:15:22', '2025-11-16 00:15:22', 1, NULL, NULL),
 (15, 1, 'Mark', 'Mapili', 'markmam@gmail.com', '$2b$10$HtvFEFf/H6rlr5R109DxCu5UXMYAcoVnnkCRZZckloDTavRFUmh62', '2025-11-16 13:46:52', '2025-11-22 14:52:23', '2025-11-16 13:46:52', '2025-11-16 13:46:52', '2025-11-16 13:46:52', 1, NULL, NULL),
-(17, 1, 'Mark', 'Operaa', 'markmapili2004@gmail.com', '$2b$10$CI2dPBXHpUJh1CyNdY6E2uFQtvdVqRPrx9gCMDkWqEPWkmQ4kF9Ry', '2025-11-18 09:28:29', '2026-03-04 13:50:32', '2026-02-22 14:48:49', '2026-03-03 22:27:58', '2026-03-03 23:09:20', 0, '4df04bfc545c3761ec093b9526c8a7c79d4da93498fd1fa64f7e06081f1d057a', '2026-02-28 15:50:56'),
-(18, 1, 'Fionah Irish', 'Beltran', 'beltran.fionahirish@gmail.com', '$2b$10$7jPfNY9j1xAcyTepUT1.pOGUPDrAWQuKdxboD6kzYpU7ppvBAv6mS', '2025-11-22 12:58:29', '2026-03-04 14:18:11', '2025-11-22 12:58:29', '2026-03-03 22:27:30', '2026-03-03 22:27:48', 0, NULL, NULL),
+(17, 1, 'Mark', 'Operaa', 'markmapili2004@gmail.com', '$2b$10$CI2dPBXHpUJh1CyNdY6E2uFQtvdVqRPrx9gCMDkWqEPWkmQ4kF9Ry', '2025-11-18 09:28:29', '2026-03-04 14:26:58', '2026-02-22 14:48:49', '2026-03-04 14:26:58', '2026-03-04 14:23:41', 0, '4df04bfc545c3761ec093b9526c8a7c79d4da93498fd1fa64f7e06081f1d057a', '2026-02-28 15:50:56'),
+(18, 1, 'Fionah Irish', 'Beltran', 'beltran.fionahirish@gmail.com', '$2b$10$7jPfNY9j1xAcyTepUT1.pOGUPDrAWQuKdxboD6kzYpU7ppvBAv6mS', '2025-11-22 12:58:29', '2026-03-04 14:55:23', '2025-11-22 12:58:29', '2026-03-04 14:55:23', '2026-03-03 22:27:48', 0, NULL, NULL),
 (19, 1, 'Miguel', 'Rojero', 'miguelrojero69@gmail.com', '$2b$10$CrixfkN3x78yFOYF9EH2ru83ijs9PEMAggIu3baKFo3T.j.mD/Uoi', '2026-03-01 19:00:01', '2026-03-01 19:00:01', '2026-03-01 19:00:01', '2026-03-01 19:00:01', '2026-03-01 19:00:01', 0, NULL, NULL),
 (23, 2, 'TJ', 'Magpantayu', 'tjmagpanta@gmail.com', '$2b$10$Gwz9vwx4SJM1TB8pSxmkJuJ4xsTuSYaVvUURKN0kAoirSgpK/dlBy', '2026-03-04 13:14:06', '2026-03-04 14:00:13', '2026-03-04 13:14:06', '2026-03-04 13:14:06', '2026-03-04 13:14:06', 0, NULL, NULL),
 (24, 3, 'Nikkie', 'Natividad', 'Nik@test.com', '$2b$10$DhGK4OBS1Vy/gpDzQarVauHjjGXBBlqWbbMEFePL5hwsqUVaKVcQa', '2026-03-04 13:16:19', '2026-03-04 13:58:49', '2026-03-04 13:16:19', '2026-03-04 13:16:19', '2026-03-04 13:16:19', 0, NULL, NULL);
@@ -482,11 +482,6 @@ INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`, `isDelet
 (60, 49, 'image-1772160483962-878502811.png', 0),
 (61, 49, 'image-1772160483967-400546848.jpg', 0),
 (62, 50, 'image-1772164780241-618760903.png', 0),
-(63, 51, 'image-1772184670829-535026719.webp', 0),
-(64, 51, 'image-1772184670833-837453151.webp', 0),
-(65, 51, 'image-1772184670838-69121994.png', 0),
-(66, 51, 'image-1772184670866-378090102.png', 0),
-(67, 51, 'image-1772184670885-775123681.png', 0),
 (68, 52, 'image-1772184739458-264875400.png', 0),
 (69, 53, 'image-1772547733449-172407002.webp', 0),
 (70, 53, 'image-1772547733452-480629732.webp', 0),
@@ -497,11 +492,10 @@ INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`, `isDelet
 (75, 56, 'image-1772547960614-58743693.webp', 0),
 (76, 57, 'image-1772547994218-142696557.png', 0),
 (77, 58, 'image-1772548109297-517088887.png', 0),
-(78, 59, 'image-1772548498355-222339069.jpg', 0),
 (79, 60, 'image-1772548674789-377733323.webp', 0),
 (80, 61, 'image-1772548726729-641509849.png', 1),
 (81, 62, 'image-1772548770168-794520536.jpg', 0),
-(82, 63, 'image-1772549367663-283059274.webp', 0);
+(84, 65, 'image-1772607394509-927795979.webp', 1);
 
 -- --------------------------------------------------------
 
@@ -576,19 +570,17 @@ INSERT INTO `forum_posts_tbl` (`forumID`, `accID`, `postType`, `description`, `c
 (48, 18, 'Found', 'Test29', '09513733696', '', '2026-02-27 10:29:21', '2026-02-27 10:29:21', 0, 0),
 (49, 18, 'Found', 'Test30', '09513733696', '', '2026-02-27 10:48:04', '2026-02-27 10:48:04', 0, 0),
 (50, 17, 'Lost', 'test31', '09513733696', '', '2026-02-27 11:59:40', '2026-02-27 11:59:40', 0, 0),
-(51, 18, 'Lost', 'Lost near acacia street', '09123456789', '', '2026-02-27 17:31:10', '2026-02-27 17:31:10', 0, 0),
 (52, 17, 'Lost', 'Halo', '09513733696', '', '2026-02-27 17:32:19', '2026-02-27 17:32:19', 0, 0),
-(53, 18, 'Found', 'test42', '09123456789', 'test@gmail.com', '2026-03-03 22:22:13', '2026-03-03 22:22:13', 0, 0),
-(54, 18, 'Lost', 'petVideos', '09123456789', 'dfds@gmail.com', '2026-03-03 22:23:09', '2026-03-03 22:23:09', 0, 0),
-(55, 18, 'Lost', 'petVideos', '09123456789', 'petVideos@gmail.com', '2026-03-03 22:23:56', '2026-03-03 22:23:56', 0, 0),
+(53, 18, 'Found', 'test42', '09123456789', 'test@gmail.com', '2026-03-03 22:22:13', '2026-03-04 15:14:33', 0, 1),
+(54, 18, 'Lost', 'petVideos', '09123456789', 'dfds@gmail.com', '2026-03-03 22:23:09', '2026-03-04 15:14:46', 0, 1),
+(55, 18, 'Lost', 'petVideos', '09123456789', 'petVideos@gmail.com', '2026-03-03 22:23:56', '2026-03-04 15:14:39', 0, 1),
 (56, 17, 'Lost', 'test43', '09123456789', 'tys@gmail.com', '2026-03-03 22:26:00', '2026-03-03 22:26:00', 0, 0),
-(57, 18, 'Lost', 'test44', '09123456788', 'test@gmail.com', '2026-03-03 22:26:34', '2026-03-03 22:26:34', 0, 0),
-(58, 18, 'Lost', 'test45', '09123456789', 'test@gmail.com', '2026-03-03 22:28:29', '2026-03-03 22:28:29', 0, 0),
-(59, 18, 'Lost', 'test46', '09123456789', 'test@gmail.cpm', '2026-03-03 22:34:58', '2026-03-03 22:34:58', 0, 0),
-(60, 17, 'Lost', 'test47', '09513733696', 'markmapili@gmail.com', '2026-03-03 22:37:54', '2026-03-03 22:37:54', 0, 0),
-(61, 17, 'Lost', 'test48', '09123456789', 'dsa@gmail.com', '2026-03-03 22:38:46', '2026-03-03 23:03:52', 0, 1),
-(62, 17, 'Lost', 'test49', '09123456789', 'mar@gmail.com', '2026-03-03 22:39:30', '2026-03-03 22:39:30', 0, 0),
-(63, 18, 'Lost', 'saadsadsa', '+639123456789', 'markmapil@gmail.com', '2026-03-03 22:49:27', '2026-03-03 22:49:27', 0, 0);
+(57, 18, 'Lost', 'test44', '09123456788', 'test@gmail.com', '2026-03-03 22:26:34', '2026-03-04 15:14:23', 0, 1),
+(58, 18, 'Lost', 'test45', '09123456789', 'test@gmail.com', '2026-03-03 22:28:29', '2026-03-04 15:13:25', 0, 1),
+(60, 17, 'Lost', 'test47', '09513733696', 'markmapili@gmail.com', '2026-03-03 22:37:54', '2026-03-04 15:11:20', 0, 1),
+(61, 17, 'Lost', 'test48', '09123456789', 'dsa@gmail.com', '2026-03-03 22:38:46', '2026-03-04 15:11:15', 0, 1),
+(62, 17, 'Lost', 'test49', '09123456789', 'mar@gmail.com', '2026-03-03 22:39:30', '2026-03-04 15:10:46', 0, 1),
+(65, 17, 'Found', 'Fiona', '+639513733696', 'markmapili2004@gmail.com', '2026-03-04 14:56:34', '2026-03-04 14:56:46', 0, 1);
 
 -- --------------------------------------------------------
 
@@ -733,7 +725,7 @@ INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `mess
 (70, 4, 'Appointment Upcoming', 'Your appointment for 2/27/2026 is now Upcoming', '{\"appointmentId\":129,\"status\":\"Upcoming\",\"date\":\"2026-02-26T16:00:00.000Z\"}', 129, 'appointment_tbl', 'specific', NULL, 5, '2026-02-27 17:10:52'),
 (71, 4, 'Appointment Cancelled', 'Your appointment for 2/27/2026 is now Cancelled', '{\"appointmentId\":129,\"status\":\"Cancelled\",\"date\":\"2026-02-26T16:00:00.000Z\"}', 129, 'appointment_tbl', 'specific', NULL, 5, '2026-02-27 17:12:49'),
 (72, 4, 'Appointment Rejected', 'Your appointment for 2/27/2026 is now Rejected', '{\"appointmentId\":129,\"status\":\"Rejected\",\"date\":\"2026-02-26T16:00:00.000Z\"}', 129, 'appointment_tbl', 'specific', NULL, 5, '2026-02-27 17:14:17'),
-(73, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: Lost near acacia street...', '{\"forumId\":51,\"postType\":\"Lost\",\"isAnonymous\":false}', 51, 'forum_posts_tbl', 'all', NULL, 18, '2026-02-27 17:31:10'),
+(73, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: Lost near acacia street...', '{\"forumId\":51,\"postType\":\"Lost\",\"isAnonymous\":false}', 51, 'forum_posts_tbl', 'specific', NULL, 18, '2026-02-27 17:31:10'),
 (74, 1, 'New Lost Pet', 'Mark Mapili reported a lost pet: Halo...', '{\"forumId\":52,\"postType\":\"Lost\",\"isAnonymous\":false}', 52, 'forum_posts_tbl', 'all', NULL, 17, '2026-02-27 17:32:19'),
 (75, 4, 'Appointment Completed', 'Your appointment for 11/9/2025 is now Completed', '{\"appointmentId\":84,\"status\":\"Completed\",\"date\":\"2025-11-08T16:00:00.000Z\"}', 84, 'appointment_tbl', 'specific', NULL, 5, '2026-02-27 17:40:03'),
 (76, 4, 'Appointment Cancelled', 'Your appointment for 12/2/2025 is now Cancelled', '{\"appointmentId\":94,\"status\":\"Cancelled\",\"date\":\"2025-12-01T16:00:00.000Z\"}', 94, 'appointment_tbl', 'specific', NULL, 5, '2026-02-27 17:50:55'),
@@ -877,9 +869,9 @@ INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `mess
 (214, 4, 'Appointment Upcoming', 'Your appointment for 2/9/2026 is now Upcoming', '{\"appointmentId\":122,\"status\":\"Upcoming\",\"date\":\"2026-02-08T16:00:00.000Z\"}', 122, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
 (215, 4, 'Appointment Upcoming', 'Your appointment for 2/13/2026 is now Upcoming', '{\"appointmentId\":124,\"status\":\"Upcoming\",\"date\":\"2026-02-12T16:00:00.000Z\"}', 124, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
 (216, 4, 'Appointment Upcoming', 'Your appointment for 2/15/2026 is now Upcoming', '{\"appointmentId\":125,\"status\":\"Upcoming\",\"date\":\"2026-02-14T16:00:00.000Z\"}', 125, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
-(217, 4, 'Appointment Upcoming', 'Your appointment for 2/18/2026 is now Upcoming', '{\"appointmentId\":126,\"status\":\"Upcoming\",\"date\":\"2026-02-17T16:00:00.000Z\"}', 126, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
-(218, 4, 'Appointment Upcoming', 'Your appointment for 2/20/2026 is now Upcoming', '{\"appointmentId\":127,\"status\":\"Upcoming\",\"date\":\"2026-02-19T16:00:00.000Z\"}', 127, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49');
+(217, 4, 'Appointment Upcoming', 'Your appointment for 2/18/2026 is now Upcoming', '{\"appointmentId\":126,\"status\":\"Upcoming\",\"date\":\"2026-02-17T16:00:00.000Z\"}', 126, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49');
 INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `message`, `data`, `referenceID`, `referenceTable`, `targetType`, `targetRoleID`, `createdBy`, `createdAt`) VALUES
+(218, 4, 'Appointment Upcoming', 'Your appointment for 2/20/2026 is now Upcoming', '{\"appointmentId\":127,\"status\":\"Upcoming\",\"date\":\"2026-02-19T16:00:00.000Z\"}', 127, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
 (219, 4, 'Appointment Upcoming', 'Your appointment for 2/26/2026 is now Upcoming', '{\"appointmentId\":128,\"status\":\"Upcoming\",\"date\":\"2026-02-25T16:00:00.000Z\"}', 128, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
 (220, 4, 'Appointment Upcoming', 'Your appointment for 2/27/2026 is now Upcoming', '{\"appointmentId\":129,\"status\":\"Upcoming\",\"date\":\"2026-02-26T16:00:00.000Z\"}', 129, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
 (221, 4, 'Appointment Upcoming', 'Your appointment for 3/1/2026 is now Upcoming', '{\"appointmentId\":130,\"status\":\"Upcoming\",\"date\":\"2026-02-28T16:00:00.000Z\"}', 130, 'appointment_tbl', 'specific', NULL, 5, '2026-03-01 18:22:49'),
@@ -1053,12 +1045,12 @@ INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `mess
 (389, 4, 'Appointment Cancelled', 'Your appointment for 3/2/2026 is now Cancelled', '{\"appointmentId\":138,\"status\":\"Cancelled\",\"date\":\"2026-03-01T16:00:00.000Z\"}', 138, 'appointment_tbl', 'specific', NULL, 5, '2026-03-02 00:33:08'),
 (390, 4, 'Appointment Upcoming', 'Your appointment for 3/2/2026 is now Upcoming', '{\"appointmentId\":140,\"status\":\"Upcoming\",\"date\":\"2026-03-02\"}', 140, 'appointment_tbl', 'specific', NULL, 5, '2026-03-02 17:47:12'),
 (391, 4, 'Appointment Upcoming', 'Your appointment for 3/4/2026 is now Upcoming', '{\"appointmentId\":141,\"status\":\"Upcoming\",\"date\":\"2026-03-03T16:00:00.000Z\"}', 141, 'appointment_tbl', 'specific', NULL, 5, '2026-03-02 19:15:02'),
-(392, 1, 'New Found Pet', 'Fionah Irish  Beltran reported a found pet: test42...', '{\"forumId\":53,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test42\"}', 53, 'forum_posts_tbl', 'all', NULL, 18, '2026-03-03 22:22:13'),
-(393, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: petVideos...', '{\"forumId\":54,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"petVideos\"}', 54, 'forum_posts_tbl', 'all', NULL, 18, '2026-03-03 22:23:09'),
-(394, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: petVideos...', '{\"forumId\":55,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"petVideos\"}', 55, 'forum_posts_tbl', 'all', NULL, 18, '2026-03-03 22:23:56'),
+(392, 1, 'New Found Pet', 'Fionah Irish  Beltran reported a found pet: test42...', '{\"forumId\":53,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"test42\"}', 53, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:22:13'),
+(393, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: petVideos...', '{\"forumId\":54,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"petVideos\"}', 54, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:23:09'),
+(394, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: petVideos...', '{\"forumId\":55,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"petVideos\"}', 55, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:23:56'),
 (395, 1, 'New Lost Pet', 'Mark Mapili reported a lost pet: test43...', '{\"forumId\":56,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test43\"}', 56, 'forum_posts_tbl', 'all', NULL, 17, '2026-03-03 22:26:00'),
-(396, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: test44...', '{\"forumId\":57,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test44\"}', 57, 'forum_posts_tbl', 'all', NULL, 18, '2026-03-03 22:26:34'),
-(397, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: test45...', '{\"forumId\":58,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test45\"}', 58, 'forum_posts_tbl', 'all', NULL, 18, '2026-03-03 22:28:29'),
+(396, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: test44...', '{\"forumId\":57,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test44\"}', 57, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:26:34'),
+(397, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: test45...', '{\"forumId\":58,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test45\"}', 58, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:28:29'),
 (398, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: test46...', '{\"forumId\":59,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test46\"}', 59, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:34:58'),
 (399, 1, 'New Lost Pet', 'Mark Mapili reported a lost pet: test47...', '{\"forumId\":60,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test47\"}', 60, 'forum_posts_tbl', 'specific', NULL, 17, '2026-03-03 22:37:54'),
 (400, 1, 'New Lost Pet', 'Mark Mapili reported a lost pet: test48...', '{\"forumId\":61,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"test48\"}', 61, 'forum_posts_tbl', 'specific', NULL, 17, '2026-03-03 22:38:46'),
@@ -1066,7 +1058,10 @@ INSERT INTO `notifications_tbl` (`notificationID`, `notifTypeID`, `title`, `mess
 (402, 1, 'New Lost Pet', 'Fionah Irish  Beltran reported a lost pet: saadsadsa...', '{\"forumId\":63,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"saadsadsa\"}', 63, 'forum_posts_tbl', 'specific', NULL, 18, '2026-03-03 22:49:28'),
 (403, 2, 'New Pet Care Tip', 'Title', '{\"petCareId\":17,\"shortDescription\":\"sadsada\"}', 17, 'pet_care_tips_content_tbl', 'specific', NULL, 5, '2026-03-03 23:11:28'),
 (404, 2, 'New Pet Care Tip', 'Title', '{\"petCareId\":17,\"shortDescription\":\"sadsada\"}', 17, 'pet_care_tips_content_tbl', 'specific', NULL, 5, '2026-03-03 23:12:18'),
-(405, 2, 'New Pet Care Tip', 'Title', '{\"petCareId\":17,\"shortDescription\":\"sadsada\"}', 17, 'pet_care_tips_content_tbl', 'specific', NULL, 5, '2026-03-03 23:14:33');
+(405, 2, 'New Pet Care Tip', 'Title', '{\"petCareId\":17,\"shortDescription\":\"sadsada\"}', 17, 'pet_care_tips_content_tbl', 'specific', NULL, 5, '2026-03-03 23:14:33'),
+(406, 1, 'New Lost Pet', 'Mark Operaa reported a lost pet: Mark Angel O. Mapili...', '{\"forumId\":64,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"Mark Angel O. Mapili\"}', 64, 'forum_posts_tbl', 'specific', NULL, 17, '2026-03-04 14:43:53'),
+(407, 1, 'New Found Pet', 'Mark Operaa reported a found pet: Fiona...', '{\"forumId\":65,\"postType\":\"Found\",\"isAnonymous\":false,\"description\":\"Fiona\"}', 65, 'forum_posts_tbl', 'specific', NULL, 17, '2026-03-04 14:56:34'),
+(408, 1, 'New Lost Pet', 'Mark Operaa reported a lost pet: Fionah...', '{\"forumId\":66,\"postType\":\"Lost\",\"isAnonymous\":false,\"description\":\"Fionah\"}', 66, 'forum_posts_tbl', 'specific', NULL, 17, '2026-03-04 14:57:29');
 
 -- --------------------------------------------------------
 
@@ -1467,7 +1462,7 @@ CREATE TABLE `userpreference_tbl` (
 INSERT INTO `userpreference_tbl` (`userprefID`, `accId`, `appointmentReminders`, `petHealthUpd`, `petCareTips`, `petVideos`, `forumPost`) VALUES
 (1, 2, 0, 0, 1, 0, 0),
 (2, 17, 1, 1, 1, 1, 0),
-(3, 18, 1, 1, 1, 1, 0);
+(3, 18, 1, 1, 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -1601,8 +1596,8 @@ INSERT INTO `user_notifications_tbl` (`userNotifID`, `accID`, `notificationID`, 
 (126, 18, 70, 1, '2026-02-27 17:30:44', 0, '2026-02-27 17:10:52'),
 (127, 18, 71, 1, '2026-02-27 17:30:44', 0, '2026-02-27 17:12:49'),
 (128, 18, 72, 1, '2026-02-27 17:30:44', 0, '2026-02-27 17:14:17'),
-(129, 17, 73, 1, '2026-02-27 17:31:33', 0, '2026-02-27 17:31:10'),
-(130, 18, 73, 1, '2026-02-27 17:31:10', 0, '2026-02-27 17:31:10'),
+(129, 17, 73, 1, '2026-02-27 17:31:33', 1, '2026-02-27 17:31:10'),
+(130, 18, 73, 1, '2026-02-27 17:31:10', 1, '2026-02-27 17:31:10'),
 (131, 18, 74, 1, '2026-03-03 22:25:34', 0, '2026-02-27 17:32:19'),
 (132, 17, 74, 1, '2026-02-27 17:32:19', 0, '2026-02-27 17:32:19'),
 (133, 17, 75, 1, '2026-02-27 17:50:04', 0, '2026-02-27 17:40:03'),
@@ -1947,36 +1942,36 @@ INSERT INTO `user_notifications_tbl` (`userNotifID`, `accID`, `notificationID`, 
 (472, 17, 389, 1, '2026-03-03 22:23:29', 0, '2026-03-02 00:33:08'),
 (473, 17, 390, 1, '2026-03-03 22:23:29', 0, '2026-03-02 17:47:12'),
 (474, 17, 391, 1, '2026-03-03 22:23:29', 0, '2026-03-02 19:15:02'),
-(475, 17, 392, 1, '2026-03-03 22:23:29', 0, '2026-03-03 22:22:13'),
-(476, 19, 392, 0, NULL, 0, '2026-03-03 22:22:13'),
-(477, 18, 392, 1, '2026-03-03 22:22:13', 0, '2026-03-03 22:22:13'),
-(478, 17, 393, 1, '2026-03-03 22:23:29', 0, '2026-03-03 22:23:09'),
-(479, 19, 393, 0, NULL, 0, '2026-03-03 22:23:09'),
-(480, 18, 393, 1, '2026-03-03 22:23:09', 0, '2026-03-03 22:23:09'),
-(481, 17, 394, 1, '2026-03-03 22:25:38', 0, '2026-03-03 22:23:56'),
-(482, 19, 394, 0, NULL, 0, '2026-03-03 22:23:56'),
-(483, 18, 394, 1, '2026-03-03 22:23:56', 0, '2026-03-03 22:23:56'),
+(475, 17, 392, 1, '2026-03-03 22:23:29', 1, '2026-03-03 22:22:13'),
+(476, 19, 392, 0, NULL, 1, '2026-03-03 22:22:13'),
+(477, 18, 392, 1, '2026-03-03 22:22:13', 1, '2026-03-03 22:22:13'),
+(478, 17, 393, 1, '2026-03-03 22:23:29', 1, '2026-03-03 22:23:09'),
+(479, 19, 393, 0, NULL, 1, '2026-03-03 22:23:09'),
+(480, 18, 393, 1, '2026-03-03 22:23:09', 1, '2026-03-03 22:23:09'),
+(481, 17, 394, 1, '2026-03-03 22:25:38', 1, '2026-03-03 22:23:56'),
+(482, 19, 394, 0, NULL, 1, '2026-03-03 22:23:56'),
+(483, 18, 394, 1, '2026-03-03 22:23:56', 1, '2026-03-03 22:23:56'),
 (484, 18, 395, 0, NULL, 0, '2026-03-03 22:26:00'),
 (485, 19, 395, 0, NULL, 0, '2026-03-03 22:26:00'),
 (486, 17, 395, 1, '2026-03-03 22:26:00', 0, '2026-03-03 22:26:00'),
-(487, 17, 396, 0, NULL, 0, '2026-03-03 22:26:34'),
-(488, 19, 396, 0, NULL, 0, '2026-03-03 22:26:34'),
-(489, 18, 396, 1, '2026-03-03 22:26:34', 0, '2026-03-03 22:26:34'),
-(490, 17, 397, 0, NULL, 0, '2026-03-03 22:28:29'),
-(491, 19, 397, 0, NULL, 0, '2026-03-03 22:28:29'),
-(492, 18, 397, 1, '2026-03-03 22:28:29', 0, '2026-03-03 22:28:29'),
-(493, 19, 398, 0, NULL, 0, '2026-03-03 22:34:58'),
-(494, 18, 398, 1, '2026-03-03 22:34:58', 0, '2026-03-03 22:34:58'),
-(495, 18, 399, 0, NULL, 0, '2026-03-03 22:37:54'),
-(496, 19, 399, 0, NULL, 0, '2026-03-03 22:37:54'),
-(497, 17, 399, 1, '2026-03-03 22:37:54', 0, '2026-03-03 22:37:54'),
+(487, 17, 396, 0, NULL, 1, '2026-03-03 22:26:34'),
+(488, 19, 396, 0, NULL, 1, '2026-03-03 22:26:34'),
+(489, 18, 396, 1, '2026-03-03 22:26:34', 1, '2026-03-03 22:26:34'),
+(490, 17, 397, 0, NULL, 1, '2026-03-03 22:28:29'),
+(491, 19, 397, 0, NULL, 1, '2026-03-03 22:28:29'),
+(492, 18, 397, 1, '2026-03-03 22:28:29', 1, '2026-03-03 22:28:29'),
+(493, 19, 398, 0, NULL, 1, '2026-03-03 22:34:58'),
+(494, 18, 398, 1, '2026-03-03 22:34:58', 1, '2026-03-03 22:34:58'),
+(495, 18, 399, 0, NULL, 1, '2026-03-03 22:37:54'),
+(496, 19, 399, 0, NULL, 1, '2026-03-03 22:37:54'),
+(497, 17, 399, 1, '2026-03-03 22:37:54', 1, '2026-03-03 22:37:54'),
 (498, 18, 400, 0, NULL, 1, '2026-03-03 22:38:46'),
 (499, 19, 400, 0, NULL, 1, '2026-03-03 22:38:46'),
 (500, 17, 400, 1, '2026-03-03 22:38:46', 1, '2026-03-03 22:38:46'),
-(501, 19, 401, 0, NULL, 0, '2026-03-03 22:39:30'),
-(502, 17, 401, 1, '2026-03-03 22:39:30', 0, '2026-03-03 22:39:30'),
-(503, 19, 402, 0, NULL, 0, '2026-03-03 22:49:28'),
-(504, 18, 402, 1, '2026-03-03 22:49:28', 0, '2026-03-03 22:49:28'),
+(501, 19, 401, 0, NULL, 1, '2026-03-03 22:39:30'),
+(502, 17, 401, 1, '2026-03-03 22:39:30', 1, '2026-03-03 22:39:30'),
+(503, 19, 402, 0, NULL, 1, '2026-03-03 22:49:28'),
+(504, 18, 402, 1, '2026-03-03 22:49:28', 1, '2026-03-03 22:49:28'),
 (505, 17, 403, 0, NULL, 1, '2026-03-03 23:11:28'),
 (506, 18, 403, 0, NULL, 1, '2026-03-03 23:11:28'),
 (507, 19, 403, 0, NULL, 1, '2026-03-03 23:11:28'),
@@ -1985,7 +1980,15 @@ INSERT INTO `user_notifications_tbl` (`userNotifID`, `accID`, `notificationID`, 
 (510, 19, 404, 0, NULL, 1, '2026-03-03 23:12:18'),
 (511, 17, 405, 0, NULL, 1, '2026-03-03 23:14:33'),
 (512, 18, 405, 0, NULL, 1, '2026-03-03 23:14:33'),
-(513, 19, 405, 0, NULL, 1, '2026-03-03 23:14:33');
+(513, 19, 405, 0, NULL, 1, '2026-03-03 23:14:33'),
+(514, 19, 406, 0, NULL, 1, '2026-03-04 14:43:53'),
+(515, 17, 406, 1, '2026-03-04 14:43:53', 1, '2026-03-04 14:43:53'),
+(516, 18, 407, 0, NULL, 1, '2026-03-04 14:56:34'),
+(517, 19, 407, 0, NULL, 1, '2026-03-04 14:56:34'),
+(518, 17, 407, 1, '2026-03-04 14:56:34', 1, '2026-03-04 14:56:34'),
+(519, 18, 408, 0, NULL, 0, '2026-03-04 14:57:29'),
+(520, 19, 408, 0, NULL, 0, '2026-03-04 14:57:29'),
+(521, 17, 408, 1, '2026-03-04 14:57:29', 0, '2026-03-04 14:57:29');
 
 -- --------------------------------------------------------
 
@@ -2152,7 +2155,7 @@ INSERT INTO `user_websocket_sessions_tbl` (`sessionID`, `accID`, `socketID`, `co
 (768, 18, 'R2wMvxg7jA_eJg86AAAB', '2026-03-03 23:06:13', '2026-03-03 23:06:13', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::ffff:127.0.0.1'),
 (769, 18, '0BPquUSTtzrl1FavAAAB', '2026-03-03 23:08:57', '2026-03-03 23:09:38', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
 (770, 5, 'ahW8OFdCTp5dKKwmAAAD', '2026-03-03 23:09:30', '2026-03-03 23:09:48', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
-(775, 18, '3WfMPJdzC7xgZoByAAAI', '2026-03-03 23:14:29', '2026-03-03 23:14:29', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(775, 18, '3WfMPJdzC7xgZoByAAAI', '2026-03-03 23:14:29', '2026-03-03 23:14:29', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
 (776, 5, 'QS6TY1Jrwo51An_sAAAD', '2026-03-03 23:15:42', '2026-03-03 23:15:43', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
 (778, 5, 'tnB5spSOIVr4KhJ2AAAI', '2026-03-03 23:18:36', '2026-03-03 23:18:37', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
 (780, 17, 'rJUdC5YzzR2NfUg2AAAC', '2026-03-04 10:56:12', '2026-03-04 10:56:12', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
@@ -2183,9 +2186,23 @@ INSERT INTO `user_websocket_sessions_tbl` (`sessionID`, `accID`, `socketID`, `co
 (826, 5, 'AsYrXbU0bvaj3PqvAAAF', '2026-03-04 13:48:46', '2026-03-04 13:48:57', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
 (829, 5, 'Wgb2fNAHCUINNOSTAAAI', '2026-03-04 13:49:21', '2026-03-04 13:49:21', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
 (830, 17, 'BBpS01WQQxq4gC8hAAAL', '2026-03-04 13:50:27', '2026-03-04 13:50:27', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
-(833, 17, 'a5u_s2CC8Pp85Aa_AAAB', '2026-03-04 13:51:30', '2026-03-04 13:58:24', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::ffff:127.0.0.1'),
+(833, 17, 'a5u_s2CC8Pp85Aa_AAAB', '2026-03-04 13:51:30', '2026-03-04 13:58:24', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::ffff:127.0.0.1'),
 (836, 5, '1fbfWceITbAFYhA_AAAB', '2026-03-04 14:15:57', '2026-03-04 14:16:04', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
-(840, 5, 'VbpxAoYsq8Jeq9B3AAAG', '2026-03-04 14:17:25', '2026-03-04 14:17:25', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1');
+(840, 5, 'VbpxAoYsq8Jeq9B3AAAG', '2026-03-04 14:17:25', '2026-03-04 14:17:25', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(841, 17, '5oqG-w7Qqm2p9WYgAAAF', '2026-03-04 14:26:59', '2026-03-04 14:27:04', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
+(846, 17, 'fv-MN4SvMcfYS-WuAAAB', '2026-03-04 14:28:49', '2026-03-04 14:28:49', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::ffff:127.0.0.1'),
+(847, 17, '8SreOrUadpgypJKkAAAE', '2026-03-04 14:29:14', '2026-03-04 14:29:14', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::1'),
+(848, 17, 'oMNnbF47YBW2-dB9AAAB', '2026-03-04 14:37:11', '2026-03-04 14:43:24', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::ffff:127.0.0.1'),
+(850, 5, 'TvxoIYLcz89inK3FAAAF', '2026-03-04 14:49:08', '2026-03-04 14:51:40', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(852, 17, 'jNwaSTKpiZWSg3nIAAAB', '2026-03-04 14:53:54', '2026-03-04 14:56:10', 0, 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36', '::ffff:127.0.0.1'),
+(857, 18, 'RjvVPCLdI0Nnvs28AAAH', '2026-03-04 14:55:24', '2026-03-04 14:55:48', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(870, 18, 'Ycu24Zq3ZfHmcJ4IAAAK', '2026-03-04 14:55:56', '2026-03-04 14:55:56', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(874, 17, 'rAOAFRnXnRwbDbF0AAAP', '2026-03-04 15:01:06', '2026-03-04 15:01:06', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(875, 17, 'Z3j_sDnm8obIIsWCAAAR', '2026-03-04 15:02:52', '2026-03-04 15:02:52', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(876, 17, '9E5CbklGzKLkyqPKAAAT', '2026-03-04 15:02:59', '2026-03-04 15:02:59', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(877, 18, 'jTKauUH7XvD_H02RAAAD', '2026-03-04 15:07:47', '2026-03-04 15:10:06', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(880, 18, 'aslTRwXxW0N7IBxuAAAL', '2026-03-04 15:13:54', '2026-03-04 15:13:54', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(882, 5, 'pHzlDGwOgqCDwKePAAAI', '2026-03-04 15:15:06', '2026-03-04 15:15:06', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1');
 
 -- --------------------------------------------------------
 
@@ -2573,13 +2590,13 @@ ALTER TABLE `feedbacks_tbl`
 -- AUTO_INCREMENT for table `forum_images_tbl`
 --
 ALTER TABLE `forum_images_tbl`
-  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `forumImageID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `forum_posts_tbl`
 --
 ALTER TABLE `forum_posts_tbl`
-  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+  MODIFY `forumID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `icon_tbl`
@@ -2597,7 +2614,7 @@ ALTER TABLE `labtype_tbl`
 -- AUTO_INCREMENT for table `notifications_tbl`
 --
 ALTER TABLE `notifications_tbl`
-  MODIFY `notificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=406;
+  MODIFY `notificationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=409;
 
 --
 -- AUTO_INCREMENT for table `notification_type_tbl`
@@ -2675,13 +2692,13 @@ ALTER TABLE `userpreference_tbl`
 -- AUTO_INCREMENT for table `user_notifications_tbl`
 --
 ALTER TABLE `user_notifications_tbl`
-  MODIFY `userNotifID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=514;
+  MODIFY `userNotifID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=522;
 
 --
 -- AUTO_INCREMENT for table `user_websocket_sessions_tbl`
 --
 ALTER TABLE `user_websocket_sessions_tbl`
-  MODIFY `sessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=841;
+  MODIFY `sessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=884;
 
 --
 -- AUTO_INCREMENT for table `vet_table`

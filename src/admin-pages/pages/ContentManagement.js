@@ -3,6 +3,7 @@ import Header from "../template/Header";
 import { Video, FileText, MessageSquare, Archive, ChevronDown, ChevronUp } from "lucide-react";
 import api from "../../api/axios";
 import { useAlert } from "../hooks/useAlert";
+import socket from "../../socket";
 
 // Import components from organized structure
 import {
@@ -152,6 +153,30 @@ const ContentManagement = () => {
     fetchIcons();
     fetchPublicationStatuses();
     fetchForumPosts();
+  }, []);
+
+  useEffect(() => {
+    const onForumPostDeleted = ({ postId }) => {
+      const id = Number(postId);
+      if (!id) return;
+      setForumPosts((prev) => prev.filter((post) => post.id !== id));
+    };
+
+    const onForumPostStatusUpdated = ({ postId, status }) => {
+      const id = Number(postId);
+      if (!id || !status) return;
+      setForumPosts((prev) =>
+        prev.map((post) => (post.id === id ? { ...post, status } : post))
+      );
+    };
+
+    socket.on('delete_forum_post', onForumPostDeleted);
+    socket.on('forum_post_status_updated', onForumPostStatusUpdated);
+
+    return () => {
+      socket.off('delete_forum_post', onForumPostDeleted);
+      socket.off('forum_post_status_updated', onForumPostStatusUpdated);
+    };
   }, []);
 
   // Update stats when data changes

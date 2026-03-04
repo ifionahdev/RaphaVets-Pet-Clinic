@@ -166,20 +166,13 @@ function Forum() {
       setShowViewModal(false);
       setSelectedPost(null);
     }
-    
-    // Show a notification
-    setSuccessMessage("A post was deleted");
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setSuccessMessage("");
-    }, 2000);
   });
 
     // Cleanup listener on component unmount
     return () => {
       console.log('🔌 Cleaning up real-time forum post listener');
       socket.off('new_forum_post');
+      socket.off('delete_forum_post');
     };
   }, []);
 

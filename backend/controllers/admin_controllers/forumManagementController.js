@@ -1,6 +1,8 @@
 import db from '../../config/db.js';
 import fs from 'fs';
 import path from 'path';
+import { getIO } from '../../socket.js';
+import { removeNotificationsByReference } from '../notificationController.js';
 
 export const getAllForumPostsAdmin = async (req, res) => {
   try {
@@ -77,6 +79,29 @@ export const updateForumPostStatusAdmin = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Forum post not found' });
     }
 
+    if (status === 'archived') {
+      try {
+        const io = getIO();
+        io.emit('delete_forum_post', { postId: Number(id) });
+        io.emit('forum_post_status_updated', { postId: Number(id), status: 'archived' });
+      } catch (socketError) {
+        console.error('Failed to emit archive forum socket events:', socketError.message);
+      }
+
+      try {
+        await removeNotificationsByReference('forum_posts_tbl', Number(id));
+      } catch (notifError) {
+        console.error('Failed to remove forum notifications on archive:', notifError);
+      }
+    } else {
+      try {
+        const io = getIO();
+        io.emit('forum_post_status_updated', { postId: Number(id), status: 'active' });
+      } catch (socketError) {
+        console.error('Failed to emit restore forum socket event:', socketError.message);
+      }
+    }
+
     return res.status(200).json({ success: true, message: 'Forum post status updated' });
   } catch (error) {
     console.error('Error updating forum post status:', error);
@@ -116,6 +141,21 @@ export const deleteForumPostAdmin = async (req, res) => {
     }
 
     await dbConn.commit();
+
+    try {
+      await removeNotificationsByReference('forum_posts_tbl', Number(id));
+    } catch (notifError) {
+      console.error('Failed to remove forum notifications on delete:', notifError);
+    }
+
+    try {
+      const io = getIO();
+      io.emit('delete_forum_post', { postId: Number(id) });
+      io.emit('forum_post_deleted', { postId: Number(id) });
+    } catch (socketError) {
+      console.error('Failed to emit delete forum socket event:', socketError.message);
+    }
+
     return res.status(200).json({ success: true, message: 'Forum post deleted successfully' });
   } catch (error) {
     await dbConn.rollback();

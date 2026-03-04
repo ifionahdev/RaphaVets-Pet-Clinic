@@ -238,7 +238,6 @@ const ForumPostsSection = ({
                 onClick={() => {
                   onArchive(post.id, post.status === "archived" ? "active" : "archived");
                   onClose();
-                  showSuccess(`Post ${post.status === 'archived' ? 'restored' : 'archived'} successfully!`);
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
                   post.status === "archived" 
@@ -260,19 +259,8 @@ const ForumPostsSection = ({
               </button>
               <button
                 onClick={() => {
-                  showConfirm(
-                    'Are you sure you want to delete this post? This action cannot be undone.',
-                    () => {
-                      onDelete(post.id);
-                      onClose();
-                      showSuccess('Post deleted successfully!');
-                    },
-                    {
-                      title: 'Delete Forum Post',
-                      confirmText: 'Delete',
-                      cancelText: 'Cancel'
-                    }
-                  );
+                  onDelete(post.id);
+                  onClose();
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 text-sm font-medium"
               >
@@ -448,7 +436,6 @@ const ForumPostsSection = ({
                         e.stopPropagation();
                         const newStatus = post?.status === "archived" ? "active" : "archived";
                         onArchive(post?.id, newStatus);
-                        showSuccess(`Post ${newStatus === 'active' ? 'restored' : 'archived'} successfully!`);
                       }}
                       className={`p-1.5 rounded-lg transition-colors ${
                         post?.status === "archived" 
@@ -465,18 +452,7 @@ const ForumPostsSection = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        showConfirm(
-                          'Are you sure you want to delete this forum post? This action cannot be undone.',
-                          () => {
-                            onDelete(post?.id);
-                            showSuccess('Post deleted successfully!');
-                          },
-                          {
-                            title: 'Delete Forum Post',
-                            confirmText: 'Delete',
-                            cancelText: 'Cancel'
-                          }
-                        );
+                        onDelete(post?.id);
                       }}
                       className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
                     >
