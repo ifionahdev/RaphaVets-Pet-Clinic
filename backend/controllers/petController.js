@@ -1,4 +1,19 @@
 import db from "../config/db.js";
+import fs from "fs";
+import {
+  buildOptimizedImageUrlFromStoredName,
+  uploadImageFromPath,
+} from "../utils/cloudinary.js";
+
+const resolvePetImageUrl = (imageName) => {
+  if (!imageName) return "/images/dog-profile.png";
+  if (/^https?:\/\//i.test(imageName)) return imageName;
+
+  const optimizedUrl = buildOptimizedImageUrlFromStoredName(imageName);
+  if (optimizedUrl) return optimizedUrl;
+
+  return `/api/pets/images/${imageName}`;
+};
 
 // Helper to compute age
 const calculateAge = (dob) => {
@@ -56,9 +71,7 @@ export const getUserPets = async (req, res) => {
       gender: p.petGender,
       breed: p.breed,
       age: calculateAge(p.dateOfBirth),
-      image: p.imageName
-        ? `/api/pets/images/${p.imageName}`
-        : "/images/dog-profile.png",
+      image: resolvePetImageUrl(p.imageName),
       weight: p.weight_kg,
       color: p.color,
       note: p.note
@@ -134,9 +147,7 @@ export const getPetDetails = async (req, res) => {
       lastCheck,
       color: pet.color,
       note: pet.note,
-      image: pet.imageName
-        ? `/api/pets/images/${pet.imageName}`
-        : "/images/dog-profile.png",
+      image: resolvePetImageUrl(pet.imageName),
       appointments,
     });
 
@@ -154,7 +165,11 @@ export const uploadPetImage = async (req, res) => {
     if (!req.file)
       return res.status(400).json({ message: "❌ No image uploaded" });
 
-    const imageName = req.file.filename;
+    const uploadedImage = await uploadImageFromPath(req.file.path, {
+      scope: "pets",
+      originalName: req.file.originalname,
+    });
+    const imageName = uploadedImage.storedName;
 
     // Check if pet exists and belongs to the authenticated user
     const [petRows] = await db.query(
@@ -171,11 +186,19 @@ export const uploadPetImage = async (req, res) => {
       petID,
     ]);
 
+    // Remove temporary local file after upload to Cloudinary.
+    if (req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
     res.json({
       message: "✅ Image uploaded successfully",
-      imageUrl: `/api/pets/images/${imageName}`,
+      imageUrl: resolvePetImageUrl(imageName),
     });
   } catch (err) {
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     console.error("❌ uploadPetImage Error:", err);
     res.status(500).json({ message: "Server error" });
   }

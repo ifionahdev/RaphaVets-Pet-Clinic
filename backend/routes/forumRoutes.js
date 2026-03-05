@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'path';
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { createMulter } from '../middleware/multer.js';
+import { buildOptimizedImageUrlFromStoredName } from '../utils/cloudinary.js';
+import { FORUM_UPLOADS_DIR } from '../utils/uploadPaths.js';
 import {
     createPost,
     getAllPosts,
@@ -19,7 +21,12 @@ router.delete('/:id', verifyToken, deletePost);
 
 router.get('/images/:filename', (req, res) => {
     const filename = decodeURIComponent(req.params.filename);
-    const imagePath = path.join(process.cwd(), '..', 'uploads/forum', filename);
+    const optimizedUrl = buildOptimizedImageUrlFromStoredName(filename);
+    if (optimizedUrl) {
+        return res.redirect(optimizedUrl);
+    }
+
+    const imagePath = path.join(FORUM_UPLOADS_DIR, filename);
     res.sendFile(imagePath, err => {
         if (err) {
             res.status(404).send('Image not found' + err.message);

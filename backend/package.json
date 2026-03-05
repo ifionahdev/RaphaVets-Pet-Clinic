@@ -16,6 +16,7 @@
     "@headlessui/react": "^2.2.9",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
     "cron": "^4.4.0",
     "date-fns": "^4.1.0",

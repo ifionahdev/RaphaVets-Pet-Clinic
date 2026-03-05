@@ -4,8 +4,32 @@ import fs from "fs";
 import e from "express";
 import { em } from "framer-motion/client";
 import { log } from "console";
+import {
+  buildOptimizedImageUrlFromStoredName,
+  deleteCloudinaryAssetByStoredName,
+  uploadImageFromPath,
+} from "../utils/cloudinary.js";
+import { FORUM_UPLOADS_DIR } from "../utils/uploadPaths.js";
 
 import { createForumPostNotification, removeNotificationsByReference } from "./notificationController.js";
+
+const resolveForumImageUrl = (imageName, req) => {
+  if (!imageName) return "";
+  if (/^https?:\/\//i.test(imageName)) return imageName;
+
+  const optimizedUrl = buildOptimizedImageUrlFromStoredName(imageName);
+  if (optimizedUrl) return optimizedUrl;
+
+  return `${req.protocol}://${req.get('host')}/api/forum/images/${encodeURIComponent(imageName)}`;
+};
+
+const removeTempFiles = (files = []) => {
+  for (const file of files) {
+    if (file?.path && fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+  }
+};
 
 
 export const createPost = async (req, res) => {
@@ -47,13 +71,25 @@ export const createPost = async (req, res) => {
 
       const forumID = result.insertId;
 
-      if (req.files?.length > 0) {
-          const imageData = req.files.map(file => [forumID, file.filename, 0]);
+        if (req.files?.length > 0) {
+          const imageData = [];
+          for (const file of req.files) {
+            const uploadedImage = await uploadImageFromPath(file.path, {
+              scope: "forum",
+              originalName: file.originalname,
+            });
+            imageData.push([forumID, uploadedImage.storedName, 0]);
+
+            if (file.path && fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+          }
+
           await dbConn.query(
-            "INSERT INTO forum_images_tbl (forumID, imageName, isDeleted) VALUES ?",
-              [imageData]
+          "INSERT INTO forum_images_tbl (forumID, imageName, isDeleted) VALUES ?",
+            [imageData]
           );
-      }
+        }
 
       await dbConn.commit();
 
@@ -104,7 +140,7 @@ export const createPost = async (req, res) => {
           anonymous: Boolean(newPostData[0].isAnonymous),
           images: postImages.map(img => ({
             id: img.id,
-            url: `${req.protocol}://${req.get('host')}/api/forum/images/${img.imageName}`,
+            url: resolveForumImageUrl(img.imageName, req),
             imageName: img.imageName,
           }))
         };
@@ -166,6 +202,7 @@ export const createPost = async (req, res) => {
       });
 
   } catch (error) {
+    removeTempFiles(req.files || []);
     await dbConn.rollback();
     console.error("❌ Error creating post:", error);
     res.status(500).json({ message: "Server error" });
@@ -238,7 +275,7 @@ export const getAllPosts = async (req, res) => {
           .filter(img => img.forumID === post.forumID)
           .map(img => ({
             id: img.forumImageID,
-            url: `${req.protocol}://${req.get('host')}/api/forum/images/${img.imageName}`,
+            url: resolveForumImageUrl(img.imageName, req),
             imageName: img.imageName,
           })),
         desc: post.description,
@@ -352,21 +389,36 @@ export const updatePost = async (req, res) => {
               [imgId, forumID]
           );
           if (imgRows.length) {
-              const imagePath = path.join(process.cwd(), '..', 'uploads/forum', imgRows[0].imageName);
-              if (fs.existsSync(imagePath)) {
+              const imageName = imgRows[0].imageName;
+              if (buildOptimizedImageUrlFromStoredName(imageName)) {
+                await deleteCloudinaryAssetByStoredName(imageName, "image");
+              } else {
+                  const imagePath = path.join(FORUM_UPLOADS_DIR, imageName);
+                if (fs.existsSync(imagePath)) {
                   fs.unlink(imagePath, (err) => {
-                      if (err) {
-                          console.error(`❌ Error deleting image file ${imgRows[0].imageName}:`, err);
-                      } else {
-                          console.log(`✅ Deleted image file: ${imgRows[0].imageName}`);
-                      }
+                    if (err) {
+                      console.error(`❌ Error deleting image file ${imageName}:`, err);
+                    } else {
+                      console.log(`✅ Deleted image file: ${imageName}`);
+                    }
                   });
+                }
               }
           }
       }  
       //Handle new images
       if (newImages.length > 0) {
-          const imageData = newImages.map(file => [forumID, file.filename, 0]);
+            const imageData = [];
+            for (const file of newImages) {
+              const uploadedImage = await uploadImageFromPath(file.path, {
+                scope: "forum",
+                originalName: file.originalname,
+              });
+              imageData.push([forumID, uploadedImage.storedName, 0]);
+              if (file.path && fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+              }
+            }
           await dbConn.query(
             "INSERT INTO forum_images_tbl (forumID, imageName, isDeleted) VALUES ?",
               [imageData]
@@ -430,7 +482,7 @@ export const updatePost = async (req, res) => {
           anonymous: Boolean(updatedPostData[0].isAnonymous),
           images: postImages.map(img => ({
             id: img.id,
-            url: `${req.protocol}://${req.get('host')}/api/forum/images/${img.imageName}`,
+            url: resolveForumImageUrl(img.imageName, req),
             imageName: img.imageName,
           }))
         };
@@ -447,6 +499,7 @@ export const updatePost = async (req, res) => {
 
       res.status(200).json({ message: "✅ Post updated successfully." });
     } catch (error) {
+      removeTempFiles(newImages);
       await dbConn.rollback();
       console.error("❌ Error updating post:", error);
       res.status(500).json({ message: "Server error" });
@@ -477,17 +530,22 @@ export const deletePost = async (req, res) => {
         );
 
         for (const img of images) {
-            const imagePath = path.join(process.cwd(), '..', 'uploads/forum', img.imageName);
-            if (!fs.existsSync(imagePath)) continue;
-            fs.unlink(imagePath, async (err) => {
-                if (err) {
-                    console.error(`❌ Error deleting image file ${img.imageName}:`, err);
-                    await dbConn.rollback();
-                    return res.status(500).json({ message: "❌ Error deleting image file: " + err.message });
-                } else {
-                    console.log(`✅ Deleted image file: ${img.imageName}`);
-                }
-            });
+          if (buildOptimizedImageUrlFromStoredName(img.imageName)) {
+            await deleteCloudinaryAssetByStoredName(img.imageName, "image");
+            continue;
+          }
+
+            const imagePath = path.join(FORUM_UPLOADS_DIR, img.imageName);
+          if (!fs.existsSync(imagePath)) continue;
+          fs.unlink(imagePath, async (err) => {
+            if (err) {
+              console.error(`❌ Error deleting image file ${img.imageName}:`, err);
+              await dbConn.rollback();
+              return res.status(500).json({ message: "❌ Error deleting image file: " + err.message });
+            } else {
+              console.log(`✅ Deleted image file: ${img.imageName}`);
+            }
+          });
         }
         await dbConn.commit();
 

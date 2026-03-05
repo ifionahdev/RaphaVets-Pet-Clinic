@@ -1,4 +1,15 @@
 import db from "../../config/db.js";
+import { buildOptimizedImageUrlFromStoredName } from "../../utils/cloudinary.js";
+
+const resolvePetImageUrl = (imageName) => {
+  if (!imageName) return "/images/dog-profile.png";
+  if (/^https?:\/\//i.test(imageName)) return imageName;
+
+  const optimizedUrl = buildOptimizedImageUrlFromStoredName(imageName);
+  if (optimizedUrl) return optimizedUrl;
+
+  return `/api/pets/images/${imageName}`;
+};
 import bcrypt from "bcryptjs";
 
 // GET /vet/dashboard/stats - Get vet profile info and dashboard stats
@@ -257,7 +268,7 @@ export const getRecentPatients = async (req, res) => {
     // Format image URLs
     const formattedPatients = patients.map(patient => ({
       ...patient,
-      image: patient.image ? `/api/pets/images/${patient.image}` : "/images/dog-profile.png"
+      image: resolvePetImageUrl(patient.image)
     }));
 
     res.json(formattedPatients);

@@ -1,7 +1,19 @@
 import db from "../../config/db.js";
 import path from 'path';
 import fs from 'fs';
+import axios from 'axios';
 import { createMedicalRecordNotification } from "../notificationController.js";
+import {
+  buildOptimizedPdfUrlFromStoredName,
+  deleteCloudinaryAssetByStoredName,
+  uploadPdfFromPath,
+} from "../../utils/cloudinary.js";
+
+const removeTempFile = (filePath) => {
+  if (filePath && fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+};
 
 export const uploadMedicalRecord = async (req, res) => {
   let connection;
@@ -14,7 +26,7 @@ export const uploadMedicalRecord = async (req, res) => {
     // Validation
     if (!petID || !recordTitle || !labTypeID) {
       if (file) {
-        fs.unlinkSync(file.path);
+        removeTempFile(file.path);
       }
       return res.status(400).json({ 
         success: false, 
@@ -31,7 +43,7 @@ export const uploadMedicalRecord = async (req, res) => {
 
     if (!req.user || !req.user.id) {
       if (file) {
-        fs.unlinkSync(file.path);
+        removeTempFile(file.path);
       }
       return res.status(401).json({ 
         success: false, 
@@ -49,7 +61,7 @@ export const uploadMedicalRecord = async (req, res) => {
 
     if (petCheck.length === 0) {
       await connection.rollback();
-      fs.unlinkSync(file.path);
+      removeTempFile(file.path);
       return res.status(404).json({ 
         success: false, 
         message: 'Pet not found' 
@@ -67,7 +79,7 @@ export const uploadMedicalRecord = async (req, res) => {
 
     if (labTypeCheck.length === 0) {
       await connection.rollback();
-      fs.unlinkSync(file.path);
+      removeTempFile(file.path);
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid lab type' 
@@ -84,15 +96,22 @@ export const uploadMedicalRecord = async (req, res) => {
 
     const petMedicalID = medicalResult.insertId;
 
+    const uploadedPdf = await uploadPdfFromPath(file.path, {
+      scope: "medical_record",
+      originalName: file.originalname,
+    });
+    const optimizedPdfUrl = buildOptimizedPdfUrlFromStoredName(uploadedPdf.storedName);
+
     // Insert file record
     await connection.execute(
       `INSERT INTO petmedical_file_tbl 
        (petmedicalID, originalName, storedName, filePath, uploadedOn, uploadedBy, isDeleted) 
        VALUES (?, ?, ?, ?, NOW(), ?, 0)`,
-      [petMedicalID, file.originalname, file.filename, file.path, req.user.id]
+      [petMedicalID, file.originalname, uploadedPdf.storedName, optimizedPdfUrl, req.user.id]
     );
 
     await connection.commit();
+    removeTempFile(file.path);
 
     // ===========================================
     // 🔔 EMIT SOCKET EVENT for real-time updates
@@ -175,7 +194,7 @@ export const uploadMedicalRecord = async (req, res) => {
       message: 'Medical record uploaded successfully',
       data: {
         petMedicalID: petMedicalID,
-        fileName: file.filename,
+        fileName: uploadedPdf.storedName,
         recordTitle,
         uploadedOn: new Date(),
         notificationSent: true
@@ -186,9 +205,7 @@ export const uploadMedicalRecord = async (req, res) => {
     if (connection) {
       await connection.rollback();
     }
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
+    removeTempFile(req.file?.path);
     console.error('Upload medical record error:', error);
     res.status(500).json({ 
       success: false, 
@@ -375,7 +392,7 @@ export const updateMedicalRecord = async (req, res) => {
 
     if (!recordTitle || !labTypeID) {
       if (file) {
-        fs.unlinkSync(file.path);
+        removeTempFile(file.path);
       }
       return res.status(400).json({ 
         success: false, 
@@ -387,7 +404,7 @@ export const updateMedicalRecord = async (req, res) => {
 
     // Get current record and file with pet owner info
     const [currentRecord] = await connection.execute(`
-      SELECT pm.petMedicalID, pmf.fileID, pmf.filePath, p.accID as petOwnerId
+      SELECT pm.petMedicalID, pmf.fileID, pmf.filePath, pmf.storedName, p.accID as petOwnerId
       FROM petmedical_tbl pm
       INNER JOIN pet_tbl p ON pm.petID = p.petID
       LEFT JOIN petmedical_file_tbl pmf ON pm.petMedicalID = pmf.petmedicalID AND pmf.isDeleted = 0
@@ -396,7 +413,7 @@ export const updateMedicalRecord = async (req, res) => {
 
     if (currentRecord.length === 0) {
       await connection.rollback();
-      if (file) fs.unlinkSync(file.path);
+      removeTempFile(file.path);
       return res.status(404).json({ 
         success: false, 
         message: 'Medical record not found' 
@@ -413,7 +430,7 @@ export const updateMedicalRecord = async (req, res) => {
 
     if (labTypeCheck.length === 0) {
       await connection.rollback();
-      if (file) fs.unlinkSync(file.path);
+      removeTempFile(file.path);
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid lab type' 
@@ -431,11 +448,18 @@ export const updateMedicalRecord = async (req, res) => {
     // If new file uploaded, update file record
     if (file) {
       const currentFile = currentRecord[0];
-      
-      // Delete old file from filesystem
-      if (currentFile.filePath && fs.existsSync(currentFile.filePath)) {
+
+      if (currentFile.storedName && buildOptimizedPdfUrlFromStoredName(currentFile.storedName)) {
+        await deleteCloudinaryAssetByStoredName(currentFile.storedName, "raw");
+      } else if (currentFile.filePath && fs.existsSync(currentFile.filePath)) {
         fs.unlinkSync(currentFile.filePath);
       }
+
+      const uploadedPdf = await uploadPdfFromPath(file.path, {
+        scope: "medical_record",
+        originalName: file.originalname,
+      });
+      const optimizedPdfUrl = buildOptimizedPdfUrlFromStoredName(uploadedPdf.storedName);
 
       // Update or insert file record
       if (currentFile.fileID) {
@@ -443,16 +467,18 @@ export const updateMedicalRecord = async (req, res) => {
           `UPDATE petmedical_file_tbl 
            SET originalName = ?, storedName = ?, filePath = ?, uploadedOn = NOW() 
            WHERE fileID = ?`,
-          [file.originalname, file.filename, file.path, currentFile.fileID]
+          [file.originalname, uploadedPdf.storedName, optimizedPdfUrl, currentFile.fileID]
         );
       } else {
         await connection.execute(
           `INSERT INTO petmedical_file_tbl 
            (petmedicalID, originalName, storedName, filePath, uploadedOn, uploadedBy, isDeleted) 
            VALUES (?, ?, ?, ?, NOW(), ?, 0)`,
-          [id, file.originalname, file.filename, file.path, req.user?.id]
+          [id, file.originalname, uploadedPdf.storedName, optimizedPdfUrl, req.user?.id]
         );
       }
+
+      removeTempFile(file.path);
     }
 
     await connection.commit();
@@ -512,9 +538,7 @@ export const updateMedicalRecord = async (req, res) => {
     if (connection) {
       await connection.rollback();
     }
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
+    removeTempFile(req.file?.path);
     console.error('Update medical record error:', error);
     res.status(500).json({ 
       success: false, 
@@ -538,7 +562,7 @@ export const deleteMedicalRecord = async (req, res) => {
 
     // Get file path and pet owner info before deletion
     const [record] = await connection.execute(`
-      SELECT pmf.filePath, p.accID as petOwnerId
+      SELECT pmf.filePath, pmf.storedName, p.accID as petOwnerId
       FROM petmedical_tbl pm
       INNER JOIN pet_tbl p ON pm.petID = p.petID
       LEFT JOIN petmedical_file_tbl pmf ON pm.petMedicalID = pmf.petmedicalID AND pmf.isDeleted = 0
@@ -566,6 +590,10 @@ export const deleteMedicalRecord = async (req, res) => {
       'UPDATE petmedical_file_tbl SET isDeleted = 1 WHERE petmedicalID = ?',
       [id]
     );
+
+    if (record[0].storedName && buildOptimizedPdfUrlFromStoredName(record[0].storedName)) {
+      await deleteCloudinaryAssetByStoredName(record[0].storedName, "raw");
+    }
 
     await connection.commit();
 
@@ -606,12 +634,12 @@ export const deleteMedicalRecord = async (req, res) => {
 
 export const serveMedicalRecord = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const filename = decodeURIComponent(req.params.filename);
     
     console.log('Serving medical record file:', filename);
     
     const [fileRecords] = await db.execute(
-      'SELECT filePath, originalName FROM petmedical_file_tbl WHERE storedName = ? AND isDeleted = 0',
+      'SELECT filePath, originalName, storedName FROM petmedical_file_tbl WHERE storedName = ? AND isDeleted = 0',
       [filename]
     );
 
@@ -623,6 +651,16 @@ export const serveMedicalRecord = async (req, res) => {
     }
 
     const fileRecord = fileRecords[0];
+    const cloudinaryPdfUrl = buildOptimizedPdfUrlFromStoredName(fileRecord.storedName);
+
+    if (cloudinaryPdfUrl) {
+      const response = await axios.get(cloudinaryPdfUrl, { responseType: 'arraybuffer' });
+      res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${fileRecord.originalName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(Buffer.from(response.data));
+    }
+
     const filePath = fileRecord.filePath;
 
     if (!fs.existsSync(filePath)) {

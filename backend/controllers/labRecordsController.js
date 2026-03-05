@@ -1,7 +1,9 @@
 import db from '../config/db.js';
 import path from 'path';
 import fs from 'fs';
+import axios from 'axios';
 import { fileURLToPath } from 'url';
+import { buildOptimizedPdfUrlFromStoredName } from '../utils/cloudinary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -154,6 +156,14 @@ export const downloadMedicalRecord = async (req, res) => {
     
     const file = files[0];
     console.log("📄 File details:", file);
+
+    const cloudinaryPdfUrl = buildOptimizedPdfUrlFromStoredName(file.storedName, { attachment: true });
+    if (cloudinaryPdfUrl) {
+      const response = await axios.get(cloudinaryPdfUrl, { responseType: 'arraybuffer' });
+      res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+      res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
+      return res.send(Buffer.from(response.data));
+    }
     
     // FIX: Use filePath directly - it's already the full path including filename
     const filePath = file.filePath;

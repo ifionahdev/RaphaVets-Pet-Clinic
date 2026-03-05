@@ -3,6 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { removeNotificationsByReference } from '../notificationController.js';
+import {
+  buildOptimizedImageUrlFromStoredName,
+  deleteCloudinaryAssetByStoredName,
+} from '../../utils/cloudinary.js';
+import { FORUM_UPLOADS_DIR } from '../../utils/uploadPaths.js';
+
+const resolveForumImageUrl = (imageName, req) => {
+  if (!imageName) return '';
+  if (/^https?:\/\//i.test(imageName)) return imageName;
+
+  const optimizedUrl = buildOptimizedImageUrlFromStoredName(imageName);
+  if (optimizedUrl) return optimizedUrl;
+
+  return `${req.protocol}://${req.get('host')}/api/forum/images/${encodeURIComponent(imageName)}`;
+};
 
 export const getAllForumPostsAdmin = async (req, res) => {
   try {
@@ -48,7 +63,7 @@ export const getAllForumPostsAdmin = async (req, res) => {
       status: row.isDeleted ? 'archived' : 'active',
       images: imageRows
         .filter((img) => img.forumID === row.forumID)
-        .map((img) => `${req.protocol}://${req.get('host')}/api/forum/images/${img.imageName}`),
+        .map((img) => resolveForumImageUrl(img.imageName, req)),
     }));
 
     return res.status(200).json({ success: true, data });
@@ -130,7 +145,12 @@ export const deleteForumPostAdmin = async (req, res) => {
     }
 
     for (const img of images) {
-      const imagePath = path.join(process.cwd(), '..', 'uploads/forum', img.imageName);
+      if (buildOptimizedImageUrlFromStoredName(img.imageName)) {
+        await deleteCloudinaryAssetByStoredName(img.imageName, 'image');
+        continue;
+      }
+
+      const imagePath = path.join(FORUM_UPLOADS_DIR, img.imageName);
       if (fs.existsSync(imagePath)) {
         try {
           fs.unlinkSync(imagePath);

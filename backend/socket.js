@@ -4,18 +4,46 @@ import { registerSocketSession, removeSocketSession } from './controllers/notifi
 
 let io;
 
-export const initializeSocket = (server) => {
-    const frontendOrigin = process.env.FRONTEND_URL || process.env.CLINIC_URL;
-    const corsConfig = frontendOrigin
-        ? { origin: frontendOrigin, credentials: true }
-        : { origin: true, credentials: true };
+const normalizeOrigin = (origin) => {
+    if (!origin) return '';
+    return String(origin).trim().replace(/\/+$/, '').toLowerCase();
+};
 
-    if (!frontendOrigin) {
-        console.warn("⚠️ FRONTEND_URL/CLINIC_URL not set; Socket.IO CORS is using dynamic origin fallback.");
+const getAllowedOrigins = () => {
+    const configured = [
+        process.env.FRONTEND_URL,
+        process.env.CLINIC_URL,
+        ...(process.env.SOCKET_ALLOWED_ORIGINS || '').split(','),
+    ];
+
+    return [...new Set(configured.map(normalizeOrigin).filter(Boolean))];
+};
+
+export const initializeSocket = (server) => {
+    const allowedOrigins = getAllowedOrigins();
+
+    if (allowedOrigins.length === 0) {
+        console.warn('⚠️ No socket CORS origins configured; allowing any origin. Set FRONTEND_URL/CLINIC_URL/SOCKET_ALLOWED_ORIGINS in production.');
+    } else {
+        console.log('✅ Socket CORS allowed origins:', allowedOrigins.join(', '));
     }
 
     io = new Server(server, {
-        cors: corsConfig
+        cors: {
+            credentials: true,
+            origin: (origin, callback) => {
+                if (!origin || allowedOrigins.length === 0) {
+                    return callback(null, true);
+                }
+
+                const normalizedIncomingOrigin = normalizeOrigin(origin);
+                if (allowedOrigins.includes(normalizedIncomingOrigin)) {
+                    return callback(null, true);
+                }
+
+                return callback(new Error(`Socket origin not allowed: ${origin}`), false);
+            },
+        }
     });
 
     io.on('connection', (socket) => {
