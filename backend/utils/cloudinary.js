@@ -150,6 +150,7 @@ export const buildOptimizedPdfUrlFromStoredName = (storedName, { attachment = fa
     secure: true,
     resource_type: "raw",
     type: "upload",
+    format: "pdf",
     flags: attachment ? "attachment" : undefined,
   });
 };
