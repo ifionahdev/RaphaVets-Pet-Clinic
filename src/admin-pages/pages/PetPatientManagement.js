@@ -492,37 +492,39 @@ const PetPatientManagement = () => {
           </div>
 
           {/* Render Active Tab */}
-          {activeTab === "Pet Owners" && (
-            <PetOwnersTab
-              filteredOwners={filteredOwners}
-              setSelectedOwner={setSelectedOwner}
-              handleEdit={handleEdit}
-              setDeleteTarget={setDeleteTarget}
-              setShowDeleteModal={setShowDeleteModal}
-              isVetView={isVet}
-            />
-          )}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {activeTab === "Pet Owners" && (
+              <PetOwnersTab
+                filteredOwners={filteredOwners}
+                setSelectedOwner={setSelectedOwner}
+                handleEdit={handleEdit}
+                setDeleteTarget={setDeleteTarget}
+                setShowDeleteModal={setShowDeleteModal}
+                isVetView={isVet}
+              />
+            )}
 
-          {activeTab === "Pets" && (
-            <PetsTab
-              filteredPets={filteredPets}
-              setSelectedPet={setSelectedPet}
-              handleEdit={handleEdit}
-              setDeleteTarget={setDeleteTarget}
-              setShowDeleteModal={setShowDeleteModal}
-              isVetView={isVet}
-            />
-          )}
+            {activeTab === "Pets" && (
+              <PetsTab
+                filteredPets={filteredPets}
+                setSelectedPet={setSelectedPet}
+                handleEdit={handleEdit}
+                setDeleteTarget={setDeleteTarget}
+                setShowDeleteModal={setShowDeleteModal}
+                isVetView={isVet}
+              />
+            )}
 
-          {activeTab === "Lab/Medical Records" && (
-            <RecordsTab
-              records={filteredRecords}
-              setSelectedRecord={setSelectedRecord}
-              handleEditRecord={handleEditRecord}
-              handleDeleteRecordClick={handleDeleteRecordClick}
-              isVetView={isVet}
-            />
-          )}
+            {activeTab === "Lab/Medical Records" && (
+              <RecordsTab
+                records={filteredRecords}
+                setSelectedRecord={setSelectedRecord}
+                handleEditRecord={handleEditRecord}
+                handleDeleteRecordClick={handleDeleteRecordClick}
+                isVetView={isVet}
+              />
+            )}
+          </div>
         </div>
 
         {/* Right Panel Component */}
