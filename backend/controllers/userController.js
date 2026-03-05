@@ -469,9 +469,10 @@ const formatDate = (dateString) => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'Asia/Manila'
     };
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleString('en-US', options);
   } catch (error) {
     console.error("Date formatting error:", error);
     return null;

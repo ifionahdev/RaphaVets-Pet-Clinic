@@ -136,9 +136,10 @@ const RightPanel = ({
 
   const resolvePetImage = (pet) => {
     if (!pet) return "/images/sad-dog.png";
-    if (pet.image) return pet.image;
+    if (pet.image && /^https?:\/\//i.test(pet.image)) return pet.image;
+    if (pet.image && pet.image.startsWith("/")) return buildMediaUrl(pet.image);
     if (pet.imageUrl) return pet.imageUrl;
-    if (pet.imageName) return buildMediaUrl(`/api/pets/images/${pet.imageName}`);
+    if (pet.imageName) return buildMediaUrl(`/api/pets/images/${encodeURIComponent(pet.imageName)}`);
     return "/images/sad-dog.png";
   };
 

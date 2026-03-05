@@ -250,7 +250,7 @@ export const createOwner = async (req, res) => {
 
     // ✅ CHECK IF EMAIL EXISTS AND IS NOT DELETED
     const [existingAccount] = await db.execute(
-      "SELECT accId, isDeleted FROM account_tbl WHERE email = ?",
+      "SELECT accId, roleID, isDeleted FROM account_tbl WHERE email = ?",
       [normalizedEmail]
     );
 
@@ -264,11 +264,14 @@ export const createOwner = async (req, res) => {
         });
       }
       
-      // If account exists but IS deleted, we can proceed with recreation
-      console.log(`⚠️ Found deleted account with email ${normalizedEmail}. Proceeding with recreation.`);
-      
-      // Optionally: You might want to hard delete or archive the old account data
-      // For now, we'll proceed with creating a new account
+      // Do not allow reusing emails from deleted non-client accounts.
+      if (account.roleID !== 1) {
+        return res.status(400).json({
+          message: "Email belongs to a deleted staff account. Please use a different email."
+        });
+      }
+
+      console.log(`⚠️ Found deleted client account with email ${normalizedEmail}. Proceeding with client recreation.`);
     }
 
     // Generate random password
@@ -304,7 +307,7 @@ export const createOwner = async (req, res) => {
 
       // Check if there's a deleted account we want to "reactivate"
       const [deletedAccount] = await connection.execute(
-        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1",
+        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1 AND roleID = 1",
         [normalizedEmail]
       );
 
@@ -593,20 +596,62 @@ export const updateOwner = async (req, res) => {
 };
 
 export const softDeleteOwner = async (req, res) => {
+  let connection;
   try {
     const { ownerId } = req.params;
+    connection = await db.getConnection();
+    await connection.beginTransaction();
 
-    const [result] = await db.execute(
-      'UPDATE account_tbl SET isDeleted = 1 WHERE accId = ? AND roleID = 1',
+    const [result] = await connection.execute(
+      'UPDATE account_tbl SET isDeleted = 1, lastUpdatedAt = NOW() WHERE accId = ? AND roleID = 1',
       [ownerId]
     );
 
     if (result.affectedRows === 0) {
+      await connection.rollback();
+      connection.release();
       return res.status(404).json({ message: 'Owner not found' });
     }
 
+    // Delete client-linked data for deleted clients.
+    const [petRows] = await connection.execute(
+      'SELECT petID FROM pet_tbl WHERE accID = ?',
+      [ownerId]
+    );
+    const petIds = petRows.map((pet) => pet.petID).filter(Boolean);
+
+    if (petIds.length > 0) {
+      const placeholders = petIds.map(() => '?').join(',');
+      await connection.execute(
+        `DELETE FROM petmedical_file_tbl WHERE petmedicalID IN (
+          SELECT petMedicalID FROM petmedical_tbl WHERE petID IN (${placeholders})
+        )`,
+        petIds
+      );
+      await connection.execute(
+        `DELETE FROM petmedical_tbl WHERE petID IN (${placeholders})`,
+        petIds
+      );
+    }
+
+    await connection.execute('DELETE FROM appointment_tbl WHERE accID = ?', [ownerId]);
+    await connection.execute('DELETE FROM pet_tbl WHERE accID = ?', [ownerId]);
+    await connection.execute('DELETE FROM clientinfo_tbl WHERE accId = ?', [ownerId]);
+    await connection.execute('DELETE FROM userpreference_tbl WHERE accId = ?', [ownerId]);
+
+    await connection.commit();
+    connection.release();
+
     res.status(200).json({ message: 'Owner soft deleted successfully' });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Rollback failed in softDeleteOwner:', rollbackError);
+      }
+      connection.release();
+    }
     console.error('Error soft deleting owner:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -9,6 +9,12 @@ import ErrorToast from "../../template/ErrorToast";
 import socket from "../../socket";
 import { buildMediaUrl } from "../../utils/runtimeUrls";
 
+const resolveAdminPetImage = (imageName) => {
+  if (!imageName) return "/images/sad-dog.png";
+  if (/^https?:\/\//i.test(imageName)) return imageName;
+  return buildMediaUrl(`/api/pets/images/${encodeURIComponent(imageName)}`);
+};
+
 import PetOwnersTab from "../components/petpatient-management/PetOwnersTab";
 import PetsTab from "../components/petpatient-management/PetsTab";
 import RecordsTab from "../components/petpatient-management/RecordsTab";
@@ -194,7 +200,8 @@ const PetPatientManagement = () => {
             note: p.note,
             owner: owner.name,
             accID: owner.id, // Add accID for medical records
-            image: p.imageName ? buildMediaUrl(`/api/pets/images/${p.imageName}`) : "/images/sad-dog.png"
+            image: resolveAdminPetImage(p.imageName),
+            imageName: p.imageName || ""
           }))
         )
       );
