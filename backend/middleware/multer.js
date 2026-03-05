@@ -1,6 +1,11 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOADS_ROOT = path.resolve(__dirname, "..", "..", "uploads");
 
 const createFileFilter = (allowedTypes) => {
   return (req, file, cb) => {
@@ -20,7 +25,7 @@ const createFileFilter = (allowedTypes) => {
 export const createMulter = (folderName, allowedTypes, maxSizeMB) => {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      const uploadPath = path.join(process.cwd(), "..", "uploads", folderName);
+      const uploadPath = path.join(UPLOADS_ROOT, folderName);
       fs.mkdirSync(uploadPath, { recursive: true }); // ensure folder exists
       cb(null, uploadPath);
     },
