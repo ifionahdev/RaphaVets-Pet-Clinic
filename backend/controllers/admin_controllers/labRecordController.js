@@ -17,6 +17,10 @@ const removeTempFile = (filePath) => {
   }
 };
 
+const getMedicalRecordScope = (labTypeID) => {
+  return Number(labTypeID) === 1 ? "lab_records" : "medical_history";
+};
+
 export const uploadMedicalRecord = async (req, res) => {
   let connection;
   let uploadLockKey = "";
@@ -109,7 +113,7 @@ export const uploadMedicalRecord = async (req, res) => {
     const petMedicalID = medicalResult.insertId;
 
     const uploadedPdf = await uploadPdfFromPath(file.path, {
-      scope: "medical_record",
+      scope: getMedicalRecordScope(labTypeID),
       originalName: file.originalname,
     });
     const optimizedPdfUrl = buildOptimizedPdfUrlFromStoredName(uploadedPdf.storedName);
@@ -469,7 +473,7 @@ export const updateMedicalRecord = async (req, res) => {
       }
 
       const uploadedPdf = await uploadPdfFromPath(file.path, {
-        scope: "medical_record",
+        scope: getMedicalRecordScope(labTypeID),
         originalName: file.originalname,
       });
       const optimizedPdfUrl = buildOptimizedPdfUrlFromStoredName(uploadedPdf.storedName);

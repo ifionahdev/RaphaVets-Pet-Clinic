@@ -1,12 +1,6 @@
 import db from '../config/db.js';
-import path from 'path';
-import fs from 'fs';
 import axios from 'axios';
-import { fileURLToPath } from 'url';
 import { buildOptimizedPdfUrlFromStoredName, buildPrivatePdfUrlFromStoredName } from '../utils/cloudinary.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Get all medical records for a user (across all their pets)
 export const getMedicalRecordsByUser = async (req, res) => {
@@ -182,7 +176,7 @@ export const downloadMedicalRecord = async (req, res) => {
         res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
         return res.send(Buffer.from(response.data));
       } catch (cloudinaryError) {
-        console.warn('Cloudinary download failed, trying local fallback:', cloudinaryError?.message);
+        console.warn('Cloudinary download failed, trying private signed URL:', cloudinaryError?.message);
       }
     }
 
@@ -194,41 +188,14 @@ export const downloadMedicalRecord = async (req, res) => {
         res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
         return res.send(Buffer.from(response.data));
       } catch (privateFetchError) {
-        console.warn('Cloudinary private signed download failed, trying local fallback:', privateFetchError?.message);
+        console.warn('Cloudinary private signed download failed:', privateFetchError?.message);
       }
     }
-    
-    // FIX: Use filePath directly - it's already the full path including filename
-    const filePath = file.filePath;
-    
-    console.log("📍 Final file path:", filePath);
-    
-    if (!fs.existsSync(filePath)) {
-      console.log("❌ File not found at path:", filePath);
-      return res.status(404).json({
-        success: false,
-        message: 'File not found on server'
-      });
-    }
-    
-    console.log("✅ File exists, proceeding with download...");
-    
-    // Determine content type based on file extension
-    const ext = path.extname(file.originalName).toLowerCase();
-    const contentTypes = {
-      '.pdf': 'application/pdf',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    };
-    
-    res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
-    res.setHeader('Content-Type', contentTypes[ext] || 'application/octet-stream');
-    
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
+
+    return res.status(404).json({
+      success: false,
+      message: 'File not available from Cloudinary'
+    });
     
   } catch (error) {
     console.error('❌ Error downloading medical record:', error);

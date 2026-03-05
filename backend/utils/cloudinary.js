@@ -3,6 +3,14 @@ import { v2 as cloudinary } from "cloudinary";
 
 const CLOUDINARY_PREFIX = "cld__";
 
+const SCOPE_FOLDER_MAP = {
+  forum: "forum_posts",
+  pets: "pet_pictures",
+  medical_record: "medical_history",
+  medical_history: "medical_history",
+  lab_records: "lab_records",
+};
+
 // Apply explicit optimization before storing images in Cloudinary.
 const DEFAULT_IMAGE_UPLOAD_TRANSFORMATION = [
   {
@@ -64,8 +72,10 @@ const sanitizePart = (value) => {
 
 export const buildPublicId = (scope, fileName = "file") => {
   const base = sanitizePart(path.parse(fileName).name || "file");
+  const normalizedScope = sanitizePart(scope || "misc");
+  const folder = SCOPE_FOLDER_MAP[normalizedScope] || normalizedScope;
   const suffix = `${Date.now()}_${Math.floor(Math.random() * 1e8)}`;
-  return `${sanitizePart(scope)}_${base}_${suffix}`;
+  return `${folder}/${base}_${suffix}`;
 };
 
 export const toStoredName = (publicId) => `${CLOUDINARY_PREFIX}${publicId}`;
