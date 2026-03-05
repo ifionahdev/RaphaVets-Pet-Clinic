@@ -41,9 +41,9 @@ const MedicalReportsTab = ({ records, onDownload, loading }) => {
             <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 flex items-center gap-1">
               <i className="fa-regular fa-calendar"></i> {record.date}
             </p>
-            {record.fileID ? (
+            {(record.fileID || record.storedName || record.fileName) ? (
               <button
-                onClick={() => onDownload(record.fileID, record.originalName)}
+                onClick={() => onDownload(record.fileID || record.storedName || record.fileName, record.originalName || record.fileName || 'medical-record.pdf')}
                 className="bg-[#5EE6FE] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm hover:bg-[#3ecbe0] transition-all w-full"
               >
                 <i className="fa-solid fa-download mr-1 sm:mr-2"></i>Download PDF

@@ -216,10 +216,15 @@ function Home() {
     }
   };
 
-  const handleDownload = async (fileID, fileName) => {
+  const handleDownload = async (fileRef, fileName) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await api.get(`/medical-records/download/${fileID}`, {
+      if (!fileRef) {
+        alert('File is not available for download');
+        return;
+      }
+
+      const response = await api.get(`/medical-records/download/${encodeURIComponent(String(fileRef))}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });

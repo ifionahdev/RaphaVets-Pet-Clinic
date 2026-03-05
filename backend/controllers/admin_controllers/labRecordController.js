@@ -646,14 +646,29 @@ export const deleteMedicalRecord = async (req, res) => {
 
 export const serveMedicalRecord = async (req, res) => {
   try {
-    const filename = decodeURIComponent(req.params.filename);
+    const filename = decodeURIComponent(req.params.filename || '');
+    const numericFileId = Number.parseInt(filename, 10);
     
     console.log('Serving medical record file:', filename);
     
-    const [fileRecords] = await db.execute(
-      'SELECT filePath, originalName, storedName FROM petmedical_file_tbl WHERE storedName = ? AND isDeleted = 0',
-      [filename]
-    );
+    let fileRecords = [];
+    if (Number.isFinite(numericFileId) && String(numericFileId) === filename) {
+      const [rows] = await db.execute(
+        'SELECT filePath, originalName, storedName FROM petmedical_file_tbl WHERE fileID = ? AND isDeleted = 0',
+        [numericFileId]
+      );
+      fileRecords = rows;
+    }
+
+    if (fileRecords.length === 0) {
+      const [rows] = await db.execute(
+        `SELECT filePath, originalName, storedName
+         FROM petmedical_file_tbl
+         WHERE (storedName = ? OR originalName = ?) AND isDeleted = 0`,
+        [filename, filename]
+      );
+      fileRecords = rows;
+    }
 
     if (fileRecords.length === 0) {
       return res.status(404).json({ 

@@ -132,22 +132,39 @@ export const getMedicalRecordsByPet = async (req, res) => {
 // In medicalRecordsController.js - downloadMedicalRecord function
 export const downloadMedicalRecord = async (req, res) => {
   try {
-    const { fileID } = req.params;
+    const { fileID: rawFileRef } = req.params;
+    const fileRef = decodeURIComponent(String(rawFileRef || '').trim());
+    const numericFileId = Number.parseInt(fileRef, 10);
     
-    console.log("🔍 Download request for fileID:", fileID);
+    console.log("🔍 Download request for file ref:", fileRef);
     
-    const query = `
+    const queryById = `
       SELECT originalName, storedName, filePath 
       FROM petmedical_file_tbl 
       WHERE fileID = ? AND isDeleted = 0
     `;
-    
-    const [files] = await db.execute(query, [fileID]);
+
+    const queryByStoredName = `
+      SELECT originalName, storedName, filePath
+      FROM petmedical_file_tbl
+      WHERE storedName = ? AND isDeleted = 0
+    `;
+
+    let files = [];
+    if (Number.isFinite(numericFileId) && String(numericFileId) === fileRef) {
+      const [rows] = await db.execute(queryById, [numericFileId]);
+      files = rows;
+    }
+
+    if (files.length === 0) {
+      const [rows] = await db.execute(queryByStoredName, [fileRef]);
+      files = rows;
+    }
     
     console.log("📁 Files found:", files);
     
     if (files.length === 0) {
-      console.log("❌ No file found with ID:", fileID);
+      console.log("❌ No file found for ref:", fileRef);
       return res.status(404).json({
         success: false,
         message: 'File not found'
@@ -159,10 +176,14 @@ export const downloadMedicalRecord = async (req, res) => {
 
     const cloudinaryPdfUrl = buildOptimizedPdfUrlFromStoredName(file.storedName, { attachment: true });
     if (cloudinaryPdfUrl) {
-      const response = await axios.get(cloudinaryPdfUrl, { responseType: 'arraybuffer' });
-      res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
-      res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
-      return res.send(Buffer.from(response.data));
+      try {
+        const response = await axios.get(cloudinaryPdfUrl, { responseType: 'arraybuffer' });
+        res.setHeader('Content-Disposition', `attachment; filename="${file.originalName}"`);
+        res.setHeader('Content-Type', response.headers['content-type'] || 'application/pdf');
+        return res.send(Buffer.from(response.data));
+      } catch (cloudinaryError) {
+        console.warn('Cloudinary download failed, trying local fallback:', cloudinaryError?.message);
+      }
     }
     
     // FIX: Use filePath directly - it's already the full path including filename

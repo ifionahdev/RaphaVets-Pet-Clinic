@@ -11,13 +11,18 @@ export const saveMessage = async (userId, role, message) => {
 
 // Get recent messages
 export const getRecentMessages = async (userId, limit = 8) => {
-  const [rows] = await db.execute(
+  const parsedLimit = Number.parseInt(limit, 10);
+  const safeLimit = Number.isFinite(parsedLimit)
+    ? Math.min(Math.max(parsedLimit, 1), 100)
+    : 8;
+
+  const [rows] = await db.query(
     `SELECT role, message, created_at
      FROM chat_messages
      WHERE user_id = ?
      ORDER BY created_at DESC
-     LIMIT ?`,
-    [userId, limit]
+     LIMIT ${safeLimit}`,
+    [userId]
   );
 
   // reverse so GPT reads conversation correctly

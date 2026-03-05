@@ -16,10 +16,10 @@ const RecordsTab = ({
   };
 
   return (
-    <div className="flex flex-1 gap-4 min-h-0">
-      <div className="flex-1 overflow-auto">
+    <div className="h-full min-h-0 overflow-y-auto">
+      <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
+          <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0 z-10">
             <tr>
               <th className="p-2 text-sm text-gray-600 dark:text-gray-300">ID</th>
               <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Pet Name</th>

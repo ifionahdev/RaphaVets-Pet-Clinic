@@ -25,10 +25,10 @@ const RightPanel = ({
   };
 
   // Fetch PDF as blob
-  const fetchPdfAsBlob = async (fileName) => {
+  const fetchPdfAsBlob = async (fileToken) => {
     try {
       setPdfError(false);
-      const response = await api.get(`/admin/pet-records/file/${fileName}`, {
+      const response = await api.get(`/admin/pet-records/file/${encodeURIComponent(fileToken)}`, {
         responseType: 'blob',
         timeout: 30000 // 30 second timeout
       });
@@ -49,8 +49,15 @@ const RightPanel = ({
 
   // Fetch PDF when selectedRecord changes
   useEffect(() => {
+    const resolveRecordFileToken = (record) => {
+      if (!record) return null;
+      return record.storedName || record.fileName || (record.fileID ? String(record.fileID) : null);
+    };
+
     const fetchPdf = async () => {
-      if (selectedRecord && (selectedRecord.fileName || selectedRecord.storedName || selectedRecord.filePath)) {
+      const fileToken = resolveRecordFileToken(selectedRecord);
+
+      if (selectedRecord && fileToken) {
         setLoadingPdf(true);
         setPdfError(false);
         
@@ -58,8 +65,7 @@ const RightPanel = ({
         cleanupBlobUrl();
         
         try {
-          const fileName = selectedRecord.fileName || selectedRecord.storedName || selectedRecord.filePath;
-          const blobUrl = await fetchPdfAsBlob(fileName);
+          const blobUrl = await fetchPdfAsBlob(fileToken);
           
           if (blobUrl) {
             currentBlobUrlRef.current = blobUrl;
@@ -378,9 +384,9 @@ const RightPanel = ({
                       className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                       onClick={() => {
                         // Retry loading the PDF
-                        const fileName = selectedRecord.fileName || selectedRecord.storedName || selectedRecord.filePath;
-                        if (fileName) {
-                          fetchPdfAsBlob(fileName).then(blobUrl => {
+                        const fileToken = selectedRecord?.storedName || selectedRecord?.fileName || (selectedRecord?.fileID ? String(selectedRecord.fileID) : null);
+                        if (fileToken) {
+                          fetchPdfAsBlob(fileToken).then(blobUrl => {
                             if (blobUrl) {
                               cleanupBlobUrl();
                               currentBlobUrlRef.current = blobUrl;

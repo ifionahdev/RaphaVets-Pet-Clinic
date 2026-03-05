@@ -2,6 +2,42 @@
 import { useState, useEffect } from 'react';
 import api from '../../../api/axios';
 
+const getPetAgeLabel = (pet) => {
+  if (!pet) return 'Age unknown';
+  if (pet.age && typeof pet.age === 'string' && pet.age.trim()) return pet.age;
+
+  const rawDob = pet.dateOfBirth || pet.dob;
+  if (!rawDob) return 'Age unknown';
+
+  const birth = new Date(rawDob);
+  if (Number.isNaN(birth.getTime())) return 'Age unknown';
+
+  const today = new Date();
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  let days = today.getDate() - birth.getDate();
+
+  if (days < 0) {
+    months--;
+    const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += lastMonth.getDate();
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  if (years > 0) return `${years} yrs old`;
+  if (months > 0) return `${months} mos old`;
+  return `${Math.max(days, 0)} days old`;
+};
+
+const getPetSpeciesLabel = (pet) => {
+  if (!pet) return 'Unknown species';
+  return pet.species || pet.petType || 'Unknown species';
+};
+
 const UploadRecordModal = ({
   isOpen,
   onClose,
@@ -230,7 +266,7 @@ const UploadRecordModal = ({
                       </span>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {pet.breed} • {pet.species}
+                      {(pet.breed || 'Unknown breed')} • {getPetAgeLabel(pet)} • {getPetSpeciesLabel(pet)}
                     </div>
                   </li>
                 ))}
@@ -259,7 +295,7 @@ const UploadRecordModal = ({
               <div className="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
                 {editingItem ? 
                   `Type: ${editingItem.type}` : 
-                  `${selectedPet.breed} • ${selectedPet.species}`
+                  `${selectedPet.breed || 'Unknown breed'} • ${getPetAgeLabel(selectedPet)} • ${getPetSpeciesLabel(selectedPet)}`
                 }
               </div>
               {editingItem && (

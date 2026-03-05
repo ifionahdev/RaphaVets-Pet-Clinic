@@ -40,9 +40,9 @@ const LabRecordsTab = ({ records, onDownload, loading }) => {
             <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4 flex items-center gap-1">
               <i className="fa-regular fa-calendar"></i> {lab.date}
             </p>
-            {lab.fileID ? (
+            {(lab.fileID || lab.storedName || lab.fileName) ? (
               <button
-                onClick={() => onDownload(lab.fileID, lab.originalName)}
+                onClick={() => onDownload(lab.fileID || lab.storedName || lab.fileName, lab.originalName || lab.fileName || 'lab-record.pdf')}
                 className="bg-[#FFB6C1] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm hover:bg-[#ff9aab] transition-all w-full"
               >
                 <i className="fa-solid fa-download mr-1 sm:mr-2"></i>Download PDF
