@@ -5,6 +5,17 @@ import pool from "../config/db.js";
 import crypto from "crypto";
 import { getDefaultFromAddress, isResendConfigured, sendResendEmail } from "../utils/resendEmail.js";
 
+const normalizeHttpUrl = (value) => {
+  if (!value) return "";
+  try {
+    const url = new URL(String(value).trim());
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+};
+
 export const checkEmailExists = async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: "Email is required" });
@@ -23,11 +34,19 @@ export const checkEmailExists = async (req, res) => {
 };
 
 export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const { email, frontendUrl, domain } = req.body;
+  const normalizedEmail = String(email || "").trim();
+
+  if (!normalizedEmail) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required"
+    });
+  }
 
   try {
     // Check if user exists
-    const [users] = await pool.query("SELECT * FROM account_tbl WHERE email = ?", [email]);
+    const [users] = await pool.query("SELECT * FROM account_tbl WHERE email = ?", [normalizedEmail]);
     if (users.length === 0) {
       return res.status(400).json({ 
         success: false,
@@ -47,13 +66,19 @@ export const forgotPassword = async (req, res) => {
       [resetToken, resetTokenExpiry, user.accId]
     );
 
-    const frontendBaseUrl = process.env.FRONTEND_URL || process.env.CLINIC_URL;
+    const frontendBaseUrl =
+      normalizeHttpUrl(frontendUrl) ||
+      normalizeHttpUrl(domain) ||
+      normalizeHttpUrl(process.env.FRONTEND_URL) ||
+      normalizeHttpUrl(process.env.CLINIC_URL);
+
     if (!frontendBaseUrl) {
       return res.status(500).json({
         success: false,
         message: "Frontend URL is not configured",
       });
     }
+
     const resetLink = `${frontendBaseUrl}/change-password?token=${resetToken}`;
 
     // Send email
@@ -66,7 +91,7 @@ export const forgotPassword = async (req, res) => {
 
     const info = await sendResendEmail({
       from: process.env.RESEND_AUTH_FROM || getDefaultFromAddress(),
-      to: email,
+      to: normalizedEmail,
       subject: 'Password Reset Request - RaphaVets Pet Clinic',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -89,7 +114,7 @@ export const forgotPassword = async (req, res) => {
       `
     });
     console.log('✅ Forgot password email send result', {
-      to: email,
+      to: normalizedEmail,
       emailId: info?.id,
     });
 

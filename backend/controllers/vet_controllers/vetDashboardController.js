@@ -546,6 +546,13 @@ export const changeVetPassword = async (req, res) => {
       });
     }
 
+    const isSameAsCurrent = await bcrypt.compare(newPassword, userRows[0].password);
+    if (isSameAsCurrent) {
+      return res.status(400).json({
+        message: "New password is the same with current password"
+      });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedNewPassword = await bcrypt.hash(newPassword, salt);
 

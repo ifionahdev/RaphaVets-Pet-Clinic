@@ -79,7 +79,10 @@ function LoginPage() {
       }
 
       // Send password reset email
-      const res = await api.post("/auth/forgot-password", { email: fpEmail });
+      const res = await api.post("/auth/forgot-password", {
+        email: fpEmail,
+        frontendUrl: window.location.origin,
+      });
       
       if (res.data.success) {
         setEmailMessage({ message: "✅ Password reset link sent to your email!", type: "success" });

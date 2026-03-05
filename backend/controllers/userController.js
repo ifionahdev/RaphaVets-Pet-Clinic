@@ -246,6 +246,12 @@ export const changeUserPassword = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Current password is incorrect" });
     }
+
+    const isSameAsCurrent = await bcrypt.compare(newPassword, storedHashedPassword);
+    if (isSameAsCurrent) {
+      return res.status(400).json({ message: "New password is the same with current password" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedNewPassword = await bcrypt.hash(newPassword, salt);
     
@@ -350,7 +356,7 @@ export const getUserActivityLog = async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Get the most recent login activity
+    // Get the most recent login activity - FIXED
     const [loginActivity] = await db.query(
       `
       SELECT 
@@ -360,14 +366,16 @@ export const getUserActivityLog = async (req, res) => {
         'fa-right-to-bracket' as icon,
         '#5EE6FE' as color
       FROM account_tbl 
-      WHERE accId = ? AND logInAt IS NOT NULL AND logInAt != '0000-00-00 00:00:00'
+      WHERE accId = ? 
+        AND logInAt IS NOT NULL 
+        AND logInAt > '1970-01-01 00:00:00'  /* Changed from != '0000-00-00' */
       ORDER BY logInAt DESC
       LIMIT 1
       `,
       [id]
     );
 
-    // Get the most recent logout activity
+    // Get the most recent logout activity - FIXED
     const [logoutActivity] = await db.query(
       `
       SELECT 
@@ -377,14 +385,16 @@ export const getUserActivityLog = async (req, res) => {
         'fa-right-from-bracket' as icon,
         '#E85D5D' as color
       FROM account_tbl 
-      WHERE accId = ? AND logOutAt IS NOT NULL AND logOutAt != '0000-00-00 00:00:00'
+      WHERE accId = ? 
+        AND logOutAt IS NOT NULL 
+        AND logOutAt > '1970-01-01 00:00:00'  /* Changed from != '0000-00-00' */
       ORDER BY logOutAt DESC
       LIMIT 1
       `,
       [id]
     );
 
-    // Get the most recent password change activity
+    // Get the most recent password change activity - FIXED
     const [passwordActivity] = await db.query(
       `
       SELECT 
@@ -394,14 +404,16 @@ export const getUserActivityLog = async (req, res) => {
         'fa-lock' as icon,
         '#16C47F' as color
       FROM account_tbl 
-      WHERE accId = ? AND passwordChangeAt IS NOT NULL AND passwordChangeAt != '0000-00-00 00:00:00'
+      WHERE accId = ? 
+        AND passwordChangeAt IS NOT NULL 
+        AND passwordChangeAt > '1970-01-01 00:00:00'  /* Changed from != '0000-00-00' */
       ORDER BY passwordChangeAt DESC
       LIMIT 1
       `,
       [id]
     );
 
-    // Get ONLY the most recent pet addition
+    // Get ONLY the most recent pet addition - FIXED
     const [latestPet] = await db.query(
       `
       SELECT 
@@ -411,7 +423,10 @@ export const getUserActivityLog = async (req, res) => {
         'fa-paw' as icon,
         '#F9AE16' as color
       FROM pet_tbl 
-      WHERE accID = ? AND isDeleted = 0 AND createdAt IS NOT NULL
+      WHERE accID = ? 
+        AND isDeleted = 0 
+        AND createdAt IS NOT NULL
+        AND createdAt > '1970-01-01 00:00:00'  /* Added this check */
       ORDER BY createdAt DESC
       LIMIT 1
       `,
@@ -421,30 +436,15 @@ export const getUserActivityLog = async (req, res) => {
     // Create activities array in FIXED ORDER: Login, Pet Added, Password Change, Logout
     const activities = [];
     
-    // 1. Add Login (if exists)
-    if (loginActivity.length > 0) {
-      activities.push(loginActivity[0]);
-    }
-    
-    // 2. Add Pet Added (if exists)
-    if (latestPet.length > 0) {
-      activities.push(latestPet[0]);
-    }
-    
-    // 3. Add Password Change (if exists)
-    if (passwordActivity.length > 0) {
-      activities.push(passwordActivity[0]);
-    }
-    
-    // 4. Add Logout (if exists)
-    if (logoutActivity.length > 0) {
-      activities.push(logoutActivity[0]);
-    }
+    if (loginActivity.length > 0) activities.push(loginActivity[0]);
+    if (latestPet.length > 0) activities.push(latestPet[0]);
+    if (passwordActivity.length > 0) activities.push(passwordActivity[0]);
+    if (logoutActivity.length > 0) activities.push(logoutActivity[0]);
 
-    // Format dates for display
+    // Format dates for display - FIXED with null check
     const formattedActivities = activities.map(activity => ({
       ...activity,
-      date: formatDate(activity.date)
+      date: activity.date ? formatDate(activity.date) : null
     }));
 
     res.status(200).json(formattedActivities);
@@ -454,16 +454,26 @@ export const getUserActivityLog = async (req, res) => {
   }
 };
 
-// Helper function to format date
+// Helper function to format date - ADDED null check
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const options = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  };
-  return date.toLocaleDateString('en-US', options);
+  if (!dateString) return null;
+  
+  try {
+    const date = new Date(dateString);
+    // Check if date is valid
+    if (isNaN(date.getTime())) return null;
+    
+    const options = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+    return date.toLocaleDateString('en-US', options);
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return null;
+  }
 };

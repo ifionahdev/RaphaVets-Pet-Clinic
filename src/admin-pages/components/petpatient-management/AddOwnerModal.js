@@ -197,7 +197,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
     newErrors.phone = validateRequired(ownerData.phone, "Phone number");
     newErrors.sex = validateRequired(ownerData.sex, "Gender");
     newErrors.dob = validateRequired(ownerData.dob, "Date of birth");
-    newErrors.address = validateRequired(ownerData.address, "Address");
     
     // Date of birth validation (optional but if provided, must be valid)
     if (ownerData.dob) {
@@ -220,7 +219,6 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
       newErrors.petBreed = validateRequired(petData.breed, "Breed");
       newErrors.petSex = validateRequired(petData.sex, "Pet gender");
       newErrors.petWeight = validateRequired(petData.weight, "Weight");
-      newErrors.petColor = validateRequired(petData.color, "Color");
       newErrors.petDob = validateRequired(petData.dob, "Pet date of birth");
 
       // Date of birth validation for pet
@@ -316,8 +314,11 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
         // Editing - just close the modal after success
         handleClose();
       } else {
-        // Creating new owner - close immediately after successful save
-        handleClose();
+        // Creating new owner - show success state briefly before closing.
+        setStep("success");
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
       }
       
     } catch (error) {
@@ -538,7 +539,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-700">Address *</label>
+                      <label className="text-xs font-medium text-gray-700">Address</label>
                       <input 
                         type="text" 
                         value={ownerData.address} 
@@ -722,7 +723,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
                       
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700">Color *</label>
+                          <label className="text-xs font-medium text-gray-700">Color</label>
                           <input 
                             type="text" 
                             value={petData.color} 

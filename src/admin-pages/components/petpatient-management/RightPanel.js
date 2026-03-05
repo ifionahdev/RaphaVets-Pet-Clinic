@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../../../api/axios";
+import { buildMediaUrl } from "../../../utils/runtimeUrls";
 
 const RightPanel = ({ 
   activeTab, 
@@ -133,6 +134,14 @@ const RightPanel = ({
     return phone;
   };
 
+  const resolvePetImage = (pet) => {
+    if (!pet) return "/images/sad-dog.png";
+    if (pet.image) return pet.image;
+    if (pet.imageUrl) return pet.imageUrl;
+    if (pet.imageName) return buildMediaUrl(`/api/pets/images/${pet.imageName}`);
+    return "/images/sad-dog.png";
+  };
+
   return (
     <div className="w-1/3 bg-white dark:bg-[#181818] rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 p-6 flex flex-col min-h-0 overflow-y-auto">
       {/* Pet Owners Details */}
@@ -217,7 +226,7 @@ const RightPanel = ({
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-4">
                 <img
-                  src={selectedPet.imageName || selectedPet.image || "/images/sad-dog.png"}
+                  src={resolvePetImage(selectedPet)}
                   alt={selectedPet.petName || selectedPet.name}
                   className="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm"
                   onError={(e) => {
