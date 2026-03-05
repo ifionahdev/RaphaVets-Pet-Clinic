@@ -160,13 +160,25 @@ export const createAdminSettingsUser = async (req, res) => {
     const safeEmail = email.trim();
     const safePhone = phone.trim();
 
+    // ✅ Check if email exists and its deletion status
     const [existing] = await db.execute(
-      'SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 0 LIMIT 1',
+      'SELECT accId, isDeleted FROM account_tbl WHERE email = ? LIMIT 1',
       [safeEmail]
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ success: false, message: 'Email already exists' });
+      const account = existing[0];
+      
+      // If account exists and is NOT deleted, reject
+      if (account.isDeleted === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Email already exists and is active' 
+        });
+      }
+      
+      // If account exists but IS deleted, we can proceed with reactivation
+      console.log(`⚠️ Found deleted account with email ${safeEmail}. Proceeding with reactivation.`);
     }
 
     const plainPassword = generateRandomPassword(10);
@@ -178,28 +190,94 @@ export const createAdminSettingsUser = async (req, res) => {
     try {
       await connection.beginTransaction();
 
-      const [insertResult] = await connection.execute(
-        `INSERT INTO account_tbl
-         (roleID, firstName, lastName, email, password, isDeleted)
-         VALUES (?, ?, ?, ?, ?, 0)`,
-        [roleID, safeFirstName, safeLastName, safeEmail, hashedPassword]
+      // Check if there's a deleted account we can reactivate
+      const [deletedAccount] = await connection.execute(
+        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1",
+        [safeEmail]
       );
 
-      newUserId = insertResult.insertId;
-      const phoneNumber = normalizePhoneForDb(safePhone);
+      if (deletedAccount.length > 0) {
+        // Reactivate the deleted account
+        const oldAccId = deletedAccount[0].accId;
+        
+        await connection.execute(
+          `UPDATE account_tbl 
+           SET roleID = ?, firstName = ?, lastName = ?, password = ?, 
+               isDeleted = 0, lastUpdatedAt = NOW()
+           WHERE accId = ?`,
+          [roleID, safeFirstName, safeLastName, hashedPassword, oldAccId]
+        );
+        
+        newUserId = oldAccId;
+        
+        // Update or insert role-specific info
+        const phoneNumber = normalizePhoneForDb(safePhone);
+        
+        if (roleID === 2) {
+          // Check if admin info exists
+          const [existingAdmin] = await connection.execute(
+            "SELECT * FROM admin_info_tbl WHERE accID = ?",
+            [oldAccId]
+          );
+          
+          if (existingAdmin.length > 0) {
+            await connection.execute(
+              "UPDATE admin_info_tbl SET phone_number = ? WHERE accID = ?",
+              [phoneNumber, oldAccId]
+            );
+          } else {
+            await connection.execute(
+              "INSERT INTO admin_info_tbl (accID, phone_number) VALUES (?, ?)",
+              [oldAccId, phoneNumber]
+            );
+          }
+        } else if (roleID === 3) {
+          // Check if vet info exists
+          const [existingVet] = await connection.execute(
+            "SELECT * FROM vet_table WHERE accId = ?",
+            [oldAccId]
+          );
+          
+          if (existingVet.length > 0) {
+            await connection.execute(
+              "UPDATE vet_table SET phone_number = ? WHERE accId = ?",
+              [phoneNumber, oldAccId]
+            );
+          } else {
+            await connection.execute(
+              "INSERT INTO vet_table (accId, phone_number) VALUES (?, ?)",
+              [oldAccId, phoneNumber]
+            );
+          }
+        }
+        
+        console.log(`✅ Reactivated deleted account with ID: ${oldAccId}`);
+        
+      } else {
+        // Create new account
+        const [insertResult] = await connection.execute(
+          `INSERT INTO account_tbl
+           (roleID, firstName, lastName, email, password, isDeleted)
+           VALUES (?, ?, ?, ?, ?, 0)`,
+          [roleID, safeFirstName, safeLastName, safeEmail, hashedPassword]
+        );
 
-      if (roleID === 2) {
-        await connection.execute(
-          `INSERT INTO admin_info_tbl (accID, phone_number)
-           VALUES (?, ?)`,
-          [newUserId, phoneNumber]
-        );
-      } else if (roleID === 3) {
-        await connection.execute(
-          `INSERT INTO vet_table (accId, phone_number)
-           VALUES (?, ?)`,
-          [newUserId, phoneNumber]
-        );
+        newUserId = insertResult.insertId;
+        const phoneNumber = normalizePhoneForDb(safePhone);
+
+        if (roleID === 2) {
+          await connection.execute(
+            `INSERT INTO admin_info_tbl (accID, phone_number)
+             VALUES (?, ?)`,
+            [newUserId, phoneNumber]
+          );
+        } else if (roleID === 3) {
+          await connection.execute(
+            `INSERT INTO vet_table (accId, phone_number)
+             VALUES (?, ?)`,
+            [newUserId, phoneNumber]
+          );
+        }
       }
 
       await connection.commit();

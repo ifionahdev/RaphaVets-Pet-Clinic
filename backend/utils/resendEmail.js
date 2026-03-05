@@ -2,8 +2,14 @@ import { Resend } from "resend";
 
 let resendClient = null;
 
+const normalizeEnvValue = (value) => {
+  if (value === undefined || value === null) return "";
+  // Trim invisible whitespace and tolerate accidental wrapped quotes.
+  return String(value).trim().replace(/^['\"]|['\"]$/g, "");
+};
+
 const getResendClient = () => {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = normalizeEnvValue(process.env.RESEND_API_KEY);
   if (!apiKey) return null;
 
   if (!resendClient) {
@@ -14,11 +20,14 @@ const getResendClient = () => {
 };
 
 export const isResendConfigured = () => {
-  return Boolean(process.env.RESEND_API_KEY && (process.env.RESEND_FROM || process.env.RESEND_FROM_EMAIL));
+  return Boolean(
+    normalizeEnvValue(process.env.RESEND_API_KEY) &&
+    (normalizeEnvValue(process.env.RESEND_FROM) || normalizeEnvValue(process.env.RESEND_FROM_EMAIL))
+  );
 };
 
 export const getDefaultFromAddress = () => {
-  return process.env.RESEND_FROM || process.env.RESEND_FROM_EMAIL || "";
+  return normalizeEnvValue(process.env.RESEND_FROM) || normalizeEnvValue(process.env.RESEND_FROM_EMAIL) || "";
 };
 
 export const sendResendEmail = async ({ to, subject, html, from, replyTo, headers }) => {
