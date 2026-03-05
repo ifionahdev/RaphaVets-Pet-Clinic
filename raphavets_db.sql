@@ -240,7 +240,37 @@ CREATE TABLE `breed_tbl` (
 
 INSERT INTO `breed_tbl` (`breedID`, `breedName`, `species`) VALUES
 (1, 'Persian', 'Cat'),
-(2, 'Labrador', 'Dog');
+(2, 'Labrador', 'Dog'),
+(3, 'Siamese', 'Cat'),
+(4, 'Maine Coon', 'Cat'),
+(5, 'British Shorthair', 'Cat'),
+(6, 'Ragdoll', 'Cat'),
+(7, 'Bengal', 'Cat'),
+(8, 'Sphynx', 'Cat'),
+(9, 'Scottish Fold', 'Cat'),
+(10, 'American Shorthair', 'Cat'),
+(11, 'Abyssinian', 'Cat'),
+(12, 'Domestic Shorthair', 'Cat'),
+(13, 'Domestic Longhair', 'Cat'),
+(14, 'Russian Blue', 'Cat'),
+(15, 'Norwegian Forest Cat', 'Cat'),
+(16, 'Birman', 'Cat'),
+(17, 'Mixed Breed', 'Cat'),
+(18, 'Labrador Retriever', 'Dog'),
+(19, 'Golden Retriever', 'Dog'),
+(20, 'German Shepherd', 'Dog'),
+(21, 'Shih Tzu', 'Dog'),
+(22, 'Chihuahua', 'Dog'),
+(23, 'Pomeranian', 'Dog'),
+(24, 'Aspin', 'Dog'),
+(25, 'Beagle', 'Dog'),
+(26, 'Poodle', 'Dog'),
+(27, 'French Bulldog', 'Dog'),
+(28, 'Siberian Husky', 'Dog'),
+(29, 'Dachshund', 'Dog'),
+(30, 'Rottweiler', 'Dog'),
+(31, 'Mixed Breed', 'Dog'),
+(32, 'Border Collie', 'Dog');
 
 -- --------------------------------------------------------
 
@@ -2560,7 +2590,7 @@ ALTER TABLE `appointment_tbl`
 -- AUTO_INCREMENT for table `breed_tbl`
 --
 ALTER TABLE `breed_tbl`
-  MODIFY `breedID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `breedID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `chat_messages`
