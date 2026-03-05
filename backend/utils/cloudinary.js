@@ -3,6 +3,35 @@ import { v2 as cloudinary } from "cloudinary";
 
 const CLOUDINARY_PREFIX = "cld__";
 
+// Apply explicit optimization before storing images in Cloudinary.
+const DEFAULT_IMAGE_UPLOAD_TRANSFORMATION = [
+  {
+    width: 1920,
+    height: 1920,
+    crop: "limit",
+    fetch_format: "auto",
+    quality: "auto:good",
+    flags: "progressive",
+  },
+];
+
+// Forum images are typically viewed in feed/cards, so use a smaller cap and stronger compression.
+const FORUM_IMAGE_UPLOAD_TRANSFORMATION = [
+  {
+    width: 1280,
+    height: 1280,
+    crop: "limit",
+    fetch_format: "auto",
+    quality: "auto:eco",
+    flags: "progressive",
+  },
+];
+
+const getUploadTransformationForScope = (scope) => {
+  if (scope === "forum") return FORUM_IMAGE_UPLOAD_TRANSFORMATION;
+  return DEFAULT_IMAGE_UPLOAD_TRANSFORMATION;
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -52,12 +81,14 @@ export const isCloudinaryStoredName = (storedName) => Boolean(getPublicIdFromSto
 export const uploadImageFromPath = async (filePath, { scope = "image", originalName = "file" } = {}) => {
   ensureCloudinaryConfigured();
   const publicId = buildPublicId(scope, originalName);
+  const transformation = getUploadTransformationForScope(scope);
 
   const result = await cloudinary.uploader.upload(filePath, {
     resource_type: "image",
     public_id: publicId,
     overwrite: true,
     unique_filename: false,
+    transformation,
   });
 
   return {

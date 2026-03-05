@@ -47,12 +47,22 @@ export const chatWithGPT = async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
   if (!message || !message.trim()) return res.status(400).json({ error: "Message is required" });
 
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(503).json({
+      error: "AI service is not configured. Please set OPENAI_API_KEY on the server.",
+    });
+  }
+
   try {
     // 1️⃣ Save user message
     await saveMessage(userId, "user", message);
 
-    // 2️⃣ Fetch recent chat history (last 6 messages)
-    const historyRaw = await getRecentMessages(userId, 6);
+    // 2️⃣ Fetch independent data in parallel to reduce latency.
+    const [historyRaw, faqs, memoryFromDb] = await Promise.all([
+      getRecentMessages(userId, 6),
+      getAllFAQs(),
+      getMemory(userId),
+    ]);
 
     // Sanitize roles for OpenAI
     const history = historyRaw
@@ -62,29 +72,31 @@ export const chatWithGPT = async (req, res) => {
         content: m.content
       }));
 
-    // 3️⃣ Fetch FAQs from DB
-    const faqs = await getAllFAQs();
-
     // 4️⃣ Generate embedding for user question
-    const userEmbRes = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: message,
-    });
-    const userVector = userEmbRes.data[0]?.embedding || [];
+    let faqText = "No relevant FAQ found.";
+    try {
+      const userEmbRes = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: message,
+      });
+      const userVector = userEmbRes.data[0]?.embedding || [];
 
-    // 5️⃣ Find top 3 similar FAQs
-    const topFAQs = faqs
-      .filter(f => f.embedding)
-      .map(f => ({ ...f, score: cosineSimilarity(userVector, f.embedding) }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
+      // 5️⃣ Find top 3 similar FAQs
+      const topFAQs = faqs
+        .filter((f) => Array.isArray(f.embedding) && f.embedding.length === userVector.length)
+        .map((f) => ({ ...f, score: cosineSimilarity(userVector, f.embedding) }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
 
-    const faqText = topFAQs.length
-      ? topFAQs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")
-      : "No relevant FAQ found.";
+      faqText = topFAQs.length
+        ? topFAQs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")
+        : "No relevant FAQ found.";
+    } catch (embeddingError) {
+      console.error("Embedding step failed, continuing without FAQ similarity:", embeddingError?.message || embeddingError);
+    }
 
     // 6️⃣ Load user memory
-    let memory = await getMemory(userId);
+    let memory = memoryFromDb;
 
     // Summarize conversation if too long
     if (history.length >= 20) {
@@ -141,7 +153,7 @@ RULES:
       usage: completion.usage,
     });
   } catch (error) {
-    console.error("GPT ERROR:", error);
+    console.error("GPT ERROR:", error?.message || error);
     res.status(500).json({ error: "AI service temporarily unavailable" });
   }
 };

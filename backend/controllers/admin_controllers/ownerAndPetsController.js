@@ -44,10 +44,17 @@ const normalizeToLocalPhone = (rawValue) => {
       WHERE p.isDeleted = 0
     `);
 
-    // group pets to their owner
-    const results = owners.map(owner => ({
+    // Group pets by owner once to avoid O(owners * pets) filtering.
+    const petsByOwner = pets.reduce((acc, pet) => {
+      const ownerId = pet.accID;
+      if (!acc.has(ownerId)) acc.set(ownerId, []);
+      acc.get(ownerId).push(pet);
+      return acc;
+    }, new Map());
+
+    const results = owners.map((owner) => ({
       ...owner,
-      pets: pets.filter(p => p.accID === owner.accId)
+      pets: petsByOwner.get(owner.accId) || [],
     }));
 
     res.status(200).json(results);
@@ -61,7 +68,7 @@ const normalizeToLocalPhone = (rawValue) => {
   export const getBreed = async (req, res) => {
     try {
       const speciesQuery = req.query.species; // expects 'Canine' or 'Feline'
-      let query = "SELECT * FROM breed_tbl";
+      let query = "SELECT breedName FROM breed_tbl";
       const params = [];
 
       if (speciesQuery) {

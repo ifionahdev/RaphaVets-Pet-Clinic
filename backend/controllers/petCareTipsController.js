@@ -73,8 +73,30 @@ export const getAllPetCareTips = async (req, res) => {
 // Get random published pet care tips for dashboard
 export const getRandomPetCareTips = async (req, res) => {
   try {
-    const { count = 2 } = req.query; // Default to 2 tips
-    
+    const requestedCount = Number.parseInt(req.query.count, 10);
+    const limit = Number.isFinite(requestedCount)
+      ? Math.min(Math.max(requestedCount, 1), 10)
+      : 2;
+
+    const [countRows] = await db.execute(
+      `SELECT COUNT(*) AS total
+       FROM pet_care_tips_content_tbl
+       WHERE isDeleted = 0 AND pubStatusID = 2`
+    );
+
+    const total = countRows[0]?.total || 0;
+    if (total === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        count: 0,
+      });
+    }
+
+    const safeLimit = Math.min(limit, total);
+    const maxOffset = Math.max(total - safeLimit, 0);
+    const randomOffset = maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0;
+
     const query = `
       SELECT 
         pc.petCareID,
@@ -93,11 +115,11 @@ export const getRandomPetCareTips = async (req, res) => {
       INNER JOIN pet_care_category_tbl pcc ON pc.petCareCategoryID = pcc.petCareCategoryID
       INNER JOIN account_tbl a ON pc.accID = a.accId
       WHERE pc.isDeleted = 0 AND pc.pubStatusID = 2
-      ORDER BY RAND()
-      LIMIT ?
+      ORDER BY pc.petCareID
+      LIMIT ? OFFSET ?
     `;
 
-    const [results] = await db.execute(query, [parseInt(count)]);
+    const [results] = await db.execute(query, [safeLimit, randomOffset]);
     
     const tips = results.map(tip => ({
       id: tip.petCareID,

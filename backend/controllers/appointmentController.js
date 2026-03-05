@@ -1,7 +1,35 @@
 import db from "../config/db.js";
+
+const AUTO_CANCEL_INTERVAL_MS = 10 * 60 * 1000;
+let lastAutoCancelRunAt = 0;
+
+const TIME_SLOTS_CACHE_TTL_MS = 10 * 60 * 1000;
+const timeSlotsCache = {
+  data: null,
+  expiresAt: 0,
+};
+
+const getCachedTimeSlots = async () => {
+  if (Array.isArray(timeSlotsCache.data) && Date.now() < timeSlotsCache.expiresAt) {
+    return timeSlotsCache.data;
+  }
+
+  const [rows] = await db.query(
+    "SELECT scheduledTimeID, scheduleTime, endTime FROM scheduletime_tbl ORDER BY scheduleTime"
+  );
+
+  timeSlotsCache.data = rows;
+  timeSlotsCache.expiresAt = Date.now() + TIME_SLOTS_CACHE_TTL_MS;
+  return rows;
+};
+
 // Helper function to cancel past pending appointments
 const cancelPastPendingAppointments = async () => {
+  const now = Date.now();
+  if (now - lastAutoCancelRunAt < AUTO_CANCEL_INTERVAL_MS) return;
+
   try {
+    lastAutoCancelRunAt = now;
     // Get all pending appointments with past dates
     const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
     
@@ -79,17 +107,24 @@ export const getBookedSlots = async (req, res) => {
     // Auto-cancel past pending appointments first
     await cancelPastPendingAppointments();
 
+    const allTimeSlots = await getCachedTimeSlots();
+    const scheduleTimeById = new Map(
+      allTimeSlots.map((slot) => [slot.scheduledTimeID, slot.scheduleTime])
+    );
+
     // Get all booked slots for the date
     const [bookedRows] = await db.query(
-      `SELECT st.scheduleTime 
+      `SELECT a.scheduledTimeID
        FROM appointment_tbl a
-       JOIN scheduletime_tbl st ON a.scheduledTimeID = st.scheduledTimeID
        WHERE a.appointmentDate = ? 
-       AND a.statusID != 4 and a.statusID != 3`,
+       AND a.statusID != 4 and a.statusID != 3
+       AND a.isDeleted = 0`,
       [date]
     );
 
-    const bookedSlots = bookedRows.map(row => row.scheduleTime);
+    const bookedSlots = bookedRows
+      .map((row) => scheduleTimeById.get(row.scheduledTimeID))
+      .filter(Boolean);
     
     // Check if the requested date is today
     const today = new Date().toISOString().split('T')[0];
@@ -104,9 +139,6 @@ export const getBookedSlots = async (req, res) => {
       const currentHour = phTime.getHours();
       const currentMinute = phTime.getMinutes();
       const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}:00`;
-      
-      // Get all time slots and filter those that are in the past
-      const [allTimeSlots] = await db.query("SELECT scheduleTime FROM scheduletime_tbl");
       
       pastSlots = allTimeSlots
         .map(slot => slot.scheduleTime)
@@ -128,9 +160,7 @@ export const getBookedSlots = async (req, res) => {
 
 export const getAllTime = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM scheduletime_tbl");
-    
-    console.log('Raw time slots from DB:', rows);
+    const rows = await getCachedTimeSlots();
     
     // Return the raw time format - let frontend handle formatting
     const timeSlots = rows.map(row => ({
