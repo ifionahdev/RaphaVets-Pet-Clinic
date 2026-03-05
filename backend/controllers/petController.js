@@ -4,6 +4,7 @@ import {
   buildOptimizedImageUrlFromStoredName,
   uploadImageFromPath,
 } from "../utils/cloudinary.js";
+import { acquireUploadLock, releaseUploadLock } from "../utils/uploadGuard.js";
 
 const resolvePetImageUrl = (imageName) => {
   if (!imageName) return "/images/dog-profile.png";
@@ -159,9 +160,14 @@ export const getPetDetails = async (req, res) => {
 
 // Upload a single pet image
 export const uploadPetImage = async (req, res) => {
-  try {
-    const petID = req.params.id;
+  const petID = req.params.id;
+  const uploadLockKey = `pet:${req.user?.id || "anon"}:${petID}`;
 
+  if (!acquireUploadLock(uploadLockKey)) {
+    return res.status(429).json({ message: "Upload already in progress. Please wait and try again." });
+  }
+
+  try {
     if (!req.file)
       return res.status(400).json({ message: "❌ No image uploaded" });
 
@@ -201,5 +207,7 @@ export const uploadPetImage = async (req, res) => {
     }
     console.error("❌ uploadPetImage Error:", err);
     res.status(500).json({ message: "Server error" });
+  } finally {
+    releaseUploadLock(uploadLockKey);
   }
 };

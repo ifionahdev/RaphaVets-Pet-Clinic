@@ -8,6 +8,7 @@ import {
   deleteCloudinaryAssetByStoredName,
   uploadPdfFromPath,
 } from "../../utils/cloudinary.js";
+import { acquireUploadLock, releaseUploadLock } from "../../utils/uploadGuard.js";
 
 const removeTempFile = (filePath) => {
   if (filePath && fs.existsSync(filePath)) {
@@ -17,11 +18,21 @@ const removeTempFile = (filePath) => {
 
 export const uploadMedicalRecord = async (req, res) => {
   let connection;
+  let uploadLockKey = "";
   
   try {
     connection = await db.getConnection();
     const { petID, recordTitle, labTypeID } = req.body;
     const file = req.file;
+    uploadLockKey = `medical:${req.user?.id || "anon"}:${petID || "none"}`;
+
+    if (!acquireUploadLock(uploadLockKey)) {
+      removeTempFile(file?.path);
+      return res.status(429).json({
+        success: false,
+        message: 'Upload already in progress. Please wait and try again.'
+      });
+    }
 
     // Validation
     if (!petID || !recordTitle || !labTypeID) {
@@ -212,6 +223,7 @@ export const uploadMedicalRecord = async (req, res) => {
       message: 'Internal server error' 
     });
   } finally {
+    releaseUploadLock(uploadLockKey);
     if (connection) {
       connection.release();
     }

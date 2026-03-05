@@ -10,6 +10,7 @@ import {
   uploadImageFromPath,
 } from "../utils/cloudinary.js";
 import { FORUM_UPLOADS_DIR } from "../utils/uploadPaths.js";
+import { acquireUploadLock, releaseUploadLock } from "../utils/uploadGuard.js";
 
 import { createForumPostNotification, removeNotificationsByReference } from "./notificationController.js";
 
@@ -35,6 +36,11 @@ const removeTempFiles = (files = []) => {
 export const createPost = async (req, res) => {
     const {postType, description, contact, email, isAnonymous} = req.body;
     const accID = req.user.id;
+    const uploadLockKey = `forum-create:${accID}`;
+
+    if (!acquireUploadLock(uploadLockKey)) {
+      return res.status(429).json({ message: "Upload already in progress. Please wait and try again." });
+    }
 
     // Validate required fields
     if(!postType || !['Lost', 'Found'].includes(postType)){
@@ -207,6 +213,7 @@ export const createPost = async (req, res) => {
     console.error("❌ Error creating post:", error);
     res.status(500).json({ message: "Server error" });
   } finally {
+    releaseUploadLock(uploadLockKey);
     dbConn.release();
   }
 };
@@ -341,6 +348,12 @@ export const updatePost = async (req, res) => {
         return res.status(400).json({ message: "❌ No updates detected." });
     }
     const dbConn = await db.getConnection();
+    const uploadLockKey = `forum-update:${req.user?.id || "anon"}:${forumID}`;
+
+    if (!acquireUploadLock(uploadLockKey)) {
+      dbConn.release();
+      return res.status(429).json({ message: "Upload already in progress. Please wait and try again." });
+    }
 
     let setClause = Object.keys(updates).map(key => `${key} = ?`).join(', ');
     const values = Object.values(updates);
@@ -504,6 +517,7 @@ export const updatePost = async (req, res) => {
       console.error("❌ Error updating post:", error);
       res.status(500).json({ message: "Server error" });
     } finally {
+      releaseUploadLock(uploadLockKey);
       dbConn.release();
     } 
 };
