@@ -2,10 +2,33 @@ import { Resend } from "resend";
 
 let resendClient = null;
 
+const EMAIL_ONLY_REGEX = /^[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+$/;
+const NAME_AND_EMAIL_REGEX = /^(.*)<\s*([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)\s*>$/;
+
 const normalizeEnvValue = (value) => {
   if (value === undefined || value === null) return "";
-  // Trim invisible whitespace and tolerate accidental wrapped quotes.
-  return String(value).trim().replace(/^['\"]|['\"]$/g, "");
+  // Trim invisible whitespace and tolerate accidental wrapped quotes/backticks.
+  return String(value).trim().replace(/^[`'\"]+|[`'\"]+$/g, "").trim();
+};
+
+const normalizeFromAddress = (value) => {
+  const raw = normalizeEnvValue(value);
+  if (!raw) return "";
+
+  // Remove stray quoting characters that often come from copied env values.
+  const cleaned = raw.replace(/[`'\"]/g, "").trim();
+  if (!cleaned) return "";
+
+  if (EMAIL_ONLY_REGEX.test(cleaned)) {
+    return cleaned;
+  }
+
+  const nameEmailMatch = cleaned.match(NAME_AND_EMAIL_REGEX);
+  if (!nameEmailMatch) return "";
+
+  const name = nameEmailMatch[1].trim();
+  const email = nameEmailMatch[2].trim();
+  return name ? `${name} <${email}>` : email;
 };
 
 const getResendClient = () => {
@@ -22,12 +45,12 @@ const getResendClient = () => {
 export const isResendConfigured = () => {
   return Boolean(
     normalizeEnvValue(process.env.RESEND_API_KEY) &&
-    (normalizeEnvValue(process.env.RESEND_FROM) || normalizeEnvValue(process.env.RESEND_FROM_EMAIL))
+    (normalizeFromAddress(process.env.RESEND_FROM) || normalizeFromAddress(process.env.RESEND_FROM_EMAIL))
   );
 };
 
 export const getDefaultFromAddress = () => {
-  return normalizeEnvValue(process.env.RESEND_FROM) || normalizeEnvValue(process.env.RESEND_FROM_EMAIL) || "";
+  return normalizeFromAddress(process.env.RESEND_FROM) || normalizeFromAddress(process.env.RESEND_FROM_EMAIL) || "";
 };
 
 export const sendResendEmail = async ({ to, subject, html, from, replyTo, headers }) => {
@@ -36,9 +59,9 @@ export const sendResendEmail = async ({ to, subject, html, from, replyTo, header
     throw new Error("Resend is not configured. Missing RESEND_API_KEY.");
   }
 
-  const finalFrom = from || getDefaultFromAddress();
+  const finalFrom = normalizeFromAddress(from) || getDefaultFromAddress();
   if (!finalFrom) {
-    throw new Error("Resend sender is not configured. Missing RESEND_FROM or RESEND_FROM_EMAIL.");
+    throw new Error("Resend sender is not configured or has invalid format. Use email@example.com or Name <email@example.com>.");
   }
 
   const payload = {
