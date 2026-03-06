@@ -1,85 +1,141 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../../api/axios";
 
-const faqs = [
-  {
-    id: 1,
-    question: "How do I sign up for an account?",
-    answer: "Signing up is easy! Just click the Get Started button on top and follow the prompts. You can use your email address or Google to create your account.",
-    category: "Getting Started"
-  },
-  {
-    id: 2,
-    question: "Do I need an account to use the clinic's services?",
-    answer: "No, you can still visit the clinic and avail walk-in services, but having an account helps you keep records, book appointments, and track your pet's health history. You could also use some of our features by using guest account.",
-    category: "Basic Information"
-  },
-  {
-    id: 3,
-    question: "Can I register multiple pets under one account?",
-    answer: "Absolutely! You can register and manage multiple pets under a single account for easier record keeping and appointment scheduling.",
-    category: "Basic Information"
-  },
-  {
-    id: 4,
-    question: "I forgot my password. What should I do?",
-    answer: "Click on Forgot Password on the login page, then follow the instructions sent to your registered email address to reset your password.",
-    category: "Basic Information"
-  },
-  {
-    id: 5,
-    question: "What payment methods do you accept?",
-    answer: "We accept cash, credit/debit cards, and online transfers. We provide transparent pricing estimates before any procedure.",
-    category: "Pricing"
-  },
-  {
-    id: 6,
-    question: "How do I book an appointment?",
-    answer: "You can book through our website portal. Online bookings are available 24/7. Walk-ins are also accepted but we recommend booking to ensure minimal waiting time.",
-    category: "Booking"
-  },
-  {
-    id: 7,
-    question: "Can I reschedule or cancel my booking?",
-    answer: "Yes, you can reschedule or cancel up to 24 hours before your appointment without any charges through your booking dashboard.",
-    category: "Booking"
-  },
-  {
-    id: 8,
-    question: "What are your clinic hours?",
-    answer: "We're open Monday to Saturday from 9:00 AM to 9:00 PM, and Sundays from 1:00 PM to 9:00 PM.",
-    category: "General"
-  },
-  {
-    id: 9,
-    question: "Where is RaphaVets located?",
-    answer: "Our clinic is located at Block 3, Lot 22 Camia, Pembo, Taguig City. Get Direction now.",
-    category: "General"
-  },
-  {
-    id: 10,
-    question: "Is my personal information safe?",
-    answer: "Absolutely. We use encrypted systems and follow strict data protection protocols in compliance with privacy laws.",
-    category: "Privacy"
-  },
-  {
-    id: 11,
-    question: "How is my pet's medical record handled?",
-    answer: "Medical records are stored securely in our digital system and are only accessible to authorized veterinary staff for treatment purposes.",
-    category: "Privacy"
-  }
-];
+const fallbackFaqs = [];
 
-// Get unique categories
-const categories = ["All", ...new Set(faqs.map(faq => faq.category))];
+// const fallbackFaqs = [
+//   {
+//     id: 1,
+//     question: "How do I sign up for an account?",
+//     answer: "Signing up is easy! Just click the Get Started button on top and follow the prompts. You can use your email address or Google to create your account.",
+//     category: "Getting Started"
+//   },
+//   {
+//     id: 2,
+//     question: "Do I need an account to use the clinic's services?",
+//     answer: "No, you can still visit the clinic and avail walk-in services, but having an account helps you keep records, book appointments, and track your pet's health history. You could also use some of our features by using guest account.",
+//     category: "Basic Information"
+//   },
+//   {
+//     id: 3,
+//     question: "Can I register multiple pets under one account?",
+//     answer: "Absolutely! You can register and manage multiple pets under a single account for easier record keeping and appointment scheduling.",
+//     category: "Basic Information"
+//   },
+//   {
+//     id: 4,
+//     question: "I forgot my password. What should I do?",
+//     answer: "Click on Forgot Password on the login page, then follow the instructions sent to your registered email address to reset your password.",
+//     category: "Basic Information"
+//   },
+//   {
+//     id: 5,
+//     question: "What payment methods do you accept?",
+//     answer: "We accept cash, credit/debit cards, and online transfers. We provide transparent pricing estimates before any procedure.",
+//     category: "Pricing"
+//   },
+//   {
+//     id: 6,
+//     question: "How do I book an appointment?",
+//     answer: "You can book through our website portal. Online bookings are available 24/7. Walk-ins are also accepted but we recommend booking to ensure minimal waiting time.",
+//     category: "Booking"
+//   },
+//   {
+//     id: 7,
+//     question: "Can I reschedule or cancel my booking?",
+//     answer: "Yes, you can reschedule or cancel up to 24 hours before your appointment without any charges through your booking dashboard.",
+//     category: "Booking"
+//   },
+//   {
+//     id: 8,
+//     question: "What are your clinic hours?",
+//     answer: "We're open Monday to Saturday from 9:00 AM to 9:00 PM, and Sundays from 1:00 PM to 9:00 PM.",
+//     category: "General"
+//   },
+//   {
+//     id: 9,
+//     question: "Where is RaphaVets located?",
+//     answer: "Our clinic is located at Block 3, Lot 22 Camia, Pembo, Taguig City. Get Direction now.",
+//     category: "General"
+//   },
+//   {
+//     id: 10,
+//     question: "Is my personal information safe?",
+//     answer: "Absolutely. We use encrypted systems and follow strict data protection protocols in compliance with privacy laws.",
+//     category: "Privacy"
+//   },
+//   {
+//     id: 11,
+//     question: "How is my pet's medical record handled?",
+//     answer: "Medical records are stored securely in our digital system and are only accessible to authorized veterinary staff for treatment purposes.",
+//     category: "Privacy"
+//   }
+// ];
 
 const FAQSection = () => {
+  const [faqs, setFaqs] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [openFAQ, setOpenFAQ] = useState(null);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    const pickFirstString = (obj, keys) => {
+      for (const key of keys) {
+        const value = obj?.[key];
+        if (typeof value === "string" && value.trim()) return value.trim();
+      }
+      return "";
+    };
+
+    const fetchFaqs = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get("/faqs");
+        const rows = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data?.data)
+            ? response.data.data
+            : Array.isArray(response.data?.value)
+              ? response.data.value
+              : [];
+
+        if (rows.length > 0) {
+          const normalizedFaqs = rows.map((row, index) => ({
+            id: row.id || `${row.question || "faq"}-${index}`,
+            question:
+              pickFirstString(row, ["question", "faqQuestion", "title", "name"]) ||
+              `FAQ ${index + 1}`,
+            answer:
+              pickFirstString(row, ["answer", "faqAnswer", "description", "content"]) ||
+              "Answer will be available soon.",
+            category:
+              pickFirstString(row, ["categoryName", "faqsCategory", "category"]) ||
+              "General",
+          }));
+
+          setFaqs(normalizedFaqs);
+          setLoadError("");
+        } else {
+          setFaqs(fallbackFaqs);
+        }
+      } catch (error) {
+        setFaqs(fallbackFaqs);
+        setLoadError("Live FAQs are currently unavailable. Showing default FAQs.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFaqs();
+  }, []);
+
+  const categories = ["All", ...new Set(faqs.map((faq) => faq.category))];
 
   // Filter FAQs based on category and search
-  const filteredFAQs = faqs.filter(faq => {
+  const filteredFAQs = faqs.filter((faq) => {
     const matchesCategory = activeCategory === "All" || faq.category === activeCategory;
     const matchesSearch = search === "" || 
       faq.question.toLowerCase().includes(search.toLowerCase()) ||
@@ -175,6 +231,12 @@ const FAQSection = () => {
           </p>
         </motion.div>
 
+        {loadError && (
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs sm:text-sm text-amber-800">
+            {loadError}
+          </div>
+        )}
+
         {/* Search Bar */}
         <motion.div
           variants={itemVariants}
@@ -260,21 +322,14 @@ const FAQSection = () => {
         )}
 
         {/* FAQs Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={search ? 'search' : activeCategory}
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            className="w-full"
-          >
-            {filteredFAQs.length > 0 ? (
+        <div key={search ? 'search' : activeCategory} className="w-full">
+            {isLoading ? (
+              <div className="py-16 text-center text-sm text-gray-500">Loading FAQs...</div>
+            ) : filteredFAQs.length > 0 ? (
               <div className="space-y-3 sm:space-y-4">
                 {filteredFAQs.map((faq) => (
-                  <motion.div
+                  <div
                     key={faq.id}
-                    variants={itemVariants}
                     className="border border-gray-200 rounded-lg sm:rounded-xl overflow-hidden hover:border-[#2FA394]/30 transition-colors bg-white"
                   >
                     <button
@@ -316,7 +371,7 @@ const FAQSection = () => {
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -341,8 +396,7 @@ const FAQSection = () => {
                 </button>
               </motion.div>
             )}
-          </motion.div>
-        </AnimatePresence>
+        </div>
 
         {/* Contact CTA */}
         <motion.div
