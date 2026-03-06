@@ -30,6 +30,7 @@ export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, "");
 
 export const SOCKET_URL = (
   ensureProtocol(process.env.REACT_APP_SOCKET_URL || "") || API_ORIGIN
+  ensureProtocol(process.env.REACT_APP_SOCKET_URL || "") || API_ORIGIN
 ).replace(/\/+$/, "");
 
 export const buildMediaUrl = (path) => {

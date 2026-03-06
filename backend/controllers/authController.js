@@ -90,7 +90,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const info = await sendResendEmail({
-      from: process.env.RESEND_AUTH_FROM || getDefaultFromAddress(),
+      from: getDefaultFromAddress(),
       to: normalizedEmail,
       subject: 'Password Reset Request - RaphaVets Pet Clinic',
       html: `
