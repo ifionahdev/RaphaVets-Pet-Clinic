@@ -18,7 +18,11 @@ if (connectionUrl) {
 const isSslEnabled = ["true", "1", "yes"].includes(
   String(process.env.DB_SSL || "").toLowerCase(),
 );
-const useUrlConfig = Boolean(parsedConnectionUrl);
+const isProduction = String(process.env.NODE_ENV || "").toLowerCase() === "production";
+const hasLocalConfig = !isProduction && Boolean(
+  process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME,
+);
+const useUrlConfig = !hasLocalConfig && Boolean(parsedConnectionUrl);
 
 const dbConfig = {
   host: useUrlConfig
