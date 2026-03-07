@@ -147,6 +147,27 @@ export const assignAppointment = async (req, res) => {
     const scheduledTimeID = timeRow[0].scheduledTimeID;
     console.log("Time ID:", scheduledTimeID);
 
+    // Prevent double-booking of a date/time slot for active scheduled appointments.
+    const [conflictRows] = await db.execute(
+      `SELECT a.appointmentID
+       FROM appointment_tbl a
+       JOIN appointment_status_tbl s ON s.statusID = a.statusID
+       WHERE a.appointmentDate = ?
+         AND a.scheduledTimeID = ?
+         AND a.visitType = 'Scheduled'
+         AND a.isDeleted = 0
+         AND s.statusName NOT IN ('Cancelled', 'Rejected', 'Completed', 'Missed')
+       LIMIT 1`,
+      [date, scheduledTimeID],
+    );
+
+    if (conflictRows.length > 0) {
+      return res.status(409).json({
+        message: "This date and time slot is already occupied.",
+        code: "SLOT_OCCUPIED",
+      });
+    }
+
     const [result] = await db.execute(
       `
          INSERT INTO appointment_tbl

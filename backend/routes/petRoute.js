@@ -1,13 +1,11 @@
 import express from "express";
-import path from "path";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { createMulter } from "../middleware/multer.js";
-import { PET_UPLOADS_DIR } from "../utils/uploadPaths.js";
-import { buildOptimizedImageUrlFromStoredName } from "../utils/cloudinary.js";
 import {
   getUserPets,
   getPetDetails,
-  uploadPetImage
+  uploadPetImage,
+  servePetImage,
 } from "../controllers/petController.js";
 
 const router = express.Router();
@@ -21,20 +19,6 @@ router.get("/:id", verifyToken, getPetDetails);
 router.post("/:id/upload", verifyToken, upload.single("petImage"), uploadPetImage);
 
 // Serve pet images
-router.get("/images/:filename", (req, res) => {
-  const filename = decodeURIComponent(req.params.filename);
-  const optimizedUrl = buildOptimizedImageUrlFromStoredName(filename);
-  if (optimizedUrl) {
-    return res.redirect(optimizedUrl);
-  }
-
-  const imagePath = path.join(PET_UPLOADS_DIR, filename);
-  res.sendFile(imagePath, (err) => {
-    if (err) {
-      console.error("❌ Error sending file:", err);
-      res.status(404).send("❌ Image not found");
-    }
-  });
-});
+router.get("/images/:filename", verifyToken, servePetImage);
 
 export default router;

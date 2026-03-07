@@ -71,7 +71,7 @@ const Header = ({ showNavbar }) => {
             transition={{ duration: 0.5 }}
             className="flex-shrink-0"
           >
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/home" className="flex items-center gap-2">
               <img
                 src="/images/rapha-logo.png"
                 alt="RaphaVets Logo"

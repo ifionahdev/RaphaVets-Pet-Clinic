@@ -69,6 +69,10 @@ function Home() {
     }
 
     // Listen for new medical records
+    socket.on('appointments_updated', () => {
+      fetchAppointments();
+    });
+
     socket.on('new_medical_record', (newRecord) => {
       console.log('📨 New medical record received:', newRecord);
       
@@ -134,6 +138,7 @@ function Home() {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('connect_error');
+      socket.off('appointments_updated');
       socket.off('new_medical_record');
       socket.off('medical_record_updated');
       socket.off('medical_record_deleted');
@@ -506,51 +511,50 @@ function Home() {
 
       <AnimatePresence>
         {showExternalTipModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4"
-            onClick={handleCancelTipRedirect}
-          >
+          <div className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-4">
             <motion.div
-              initial={{ y: 10, opacity: 0, scale: 0.96 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 10, opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCancelTipRedirect}
             >
-              <div className="flex items-start gap-3">
-                <div className="mt-1 h-9 w-9 shrink-0 rounded-full bg-[#FFF4E5] text-[#C57A00] flex items-center justify-center">
-                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-gray-900">You are about to leave RVCare</h3>
-                  <p className="mt-1 text-sm text-gray-600">
-                    This tip opens an external website in a new tab. Do you want to continue?
-                  </p>
-                </div>
-              </div>
+            </motion.div>
 
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleCancelTipRedirect}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
+            <motion.div
+              className="relative z-[10002] bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 max-w-sm w-[90%] shadow-2xl text-center"
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-3xl sm:text-4xl mb-3 text-[#2FA394]">
+                <i className="fa-solid fa-link"></i>
+              </div>
+              <p className="text-gray-700 mb-4 text-xs sm:text-sm">
+                You are about to leave RVCare and visit an external website. Do you want to continue?
+              </p>
+              <div className="flex flex-col xs:flex-row justify-center gap-2 sm:gap-3">
+                <motion.button
                   onClick={handleConfirmTipRedirect}
-                  className="rounded-lg bg-[#2FA394] px-4 py-2 text-sm font-medium text-white hover:bg-[#24907e]"
+                  className="bg-[#2FA394] hover:bg-[#24907e] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   Continue
-                </button>
+                </motion.button>
+                <motion.button
+                  onClick={handleCancelTipRedirect}
+                  className="bg-gray-300 hover:bg-gray-400 text-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cancel
+                </motion.button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </ClientLayout>

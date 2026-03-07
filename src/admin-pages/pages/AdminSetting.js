@@ -64,7 +64,8 @@ const AdminSettings = () => {
   };
 
   const formatPhoneDisplay = (digits = '') => {
-    return `+63${digits}`;
+    const normalizedDigits = normalizePhoneInput(digits);
+    return normalizedDigits ? `+63${normalizedDigits}` : '-';
   };
 
   const validateUserPayload = ({ firstName, lastName, email, phone }) => {
@@ -310,7 +311,7 @@ const AdminSettings = () => {
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  {admin.phone}
+                  {formatPhoneDisplay(admin.phone)}
                 </div>
               </td>
               <td className="px-6 py-4">
@@ -386,7 +387,7 @@ const AdminSettings = () => {
               </td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  {vet.phone}
+                  {formatPhoneDisplay(vet.phone)}
                 </div>
               </td>
               <td className="px-6 py-4">

@@ -203,7 +203,7 @@ function PublicForum() {
                   key={post.id}
                   variants={itemVariants}
                   whileHover={{ y: -8 }}
-                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer"
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer h-full flex flex-col"
                   onClick={() => {
                     setSelectedPost(post);
                     setShowViewModal(true);
@@ -243,7 +243,7 @@ function PublicForum() {
                   )}
 
                   {/* Content */}
-                  <div className="p-6">
+                  <div className="p-6 flex-1 flex flex-col">
                     {/* User Info */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E3FAF7] to-[#C5F0E8] flex items-center justify-center text-[#05A1B6] font-bold text-sm flex-shrink-0">
@@ -284,7 +284,7 @@ function PublicForum() {
                     )}
 
                     {/* View Details Button */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 mt-auto">
                       <span className="text-xs text-gray-400">
                         <i className="fa-regular fa-eye mr-1"></i>
                         Click to view details
@@ -359,6 +359,14 @@ function PublicForum() {
             className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/95 text-gray-600 shadow hover:bg-white hover:text-gray-900 transition-all"
+              aria-label="Close post details"
+            >
+              <i className="fa-solid fa-xmark text-lg"></i>
+            </button>
+
             {/* Modal Header with Cover Image if exists */}
             {selectedPost.images?.length > 0 && (
               <div className="relative h-64 overflow-hidden">

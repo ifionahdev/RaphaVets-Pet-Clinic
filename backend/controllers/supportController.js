@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import db from '../config/db.js';
-import { getDefaultFromAddress, isResendConfigured, sendResendEmail } from '../utils/resendEmail.js';
+import { getDefaultFromAddress, isResendConfigured, normalizeRecipientList, sendResendEmail } from '../utils/resendEmail.js';
 
 dotenv.config();
 
@@ -9,8 +9,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normalizeEmail = (value) => String(value || '').trim().replace(/^['"`]+|['"`]+$/g, '');
 
 const parseRecipientList = (rawValue) => {
-  const items = String(rawValue || '')
-    .split(/[;,]/)
+  const items = normalizeRecipientList(rawValue)
     .map((item) => normalizeEmail(item))
     .filter(Boolean);
 

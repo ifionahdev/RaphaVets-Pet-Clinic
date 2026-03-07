@@ -15,8 +15,9 @@ function Forum() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [inputKey, setInputKey] = useState(Date.now());
-  const [isYourPostsOpen, setIsYourPostsOpen] = useState(true); 
+  const [isYourPostsOpen, setIsYourPostsOpen] = useState(true);
   const [lightbox, setLightbox] = useState({ open: false, images: [], index: 0 });
+  const [emailTouched, setEmailTouched] = useState(false);
 
   const openLightbox = (images, startIndex = 0) => {
     setLightbox({ open: true, images, index: startIndex });
@@ -29,7 +30,7 @@ function Forum() {
   const handleToggleMenu = () => {
     setAnimateIcon(true);
     setTimeout(() => {
-      setIsMenuOpen(prev => !prev);
+      setIsMenuOpen((prev) => !prev);
     }, 100);
   };
 
@@ -62,9 +63,7 @@ function Forum() {
   };
 
   const [newPost, setNewPost] = useState({ ...emptyPostTemplate });
-
   const [posts, setPosts] = useState([]);
-
   const fetchedOnce = useRef(false);
 
   const normalizeContactInput = (value = "") => {
@@ -81,6 +80,11 @@ function Forum() {
     }
 
     return digits.slice(0, 10);
+  };
+
+  const isValidEmail = (email = "") => {
+    if (!email.trim()) return true;
+    return /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(email.trim());
   };
 
   const validateForumInputs = () => {
@@ -103,11 +107,11 @@ function Forum() {
       return "❌ Contact number must be 10 digits and start with 9.";
     }
 
-    if (emailValue && !/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(emailValue)) {
+    if (emailValue && !isValidEmail(emailValue)) {
       return "❌ Invalid email format.";
     }
 
-    const imageCount = newPost.images.filter(img => !img.removed).length;
+    const imageCount = newPost.images.filter((img) => !img.removed).length;
     if (imageCount < 1) {
       return "❌ Please provide at least 1 image.";
     }
@@ -137,16 +141,13 @@ function Forum() {
   // 🔌 REAL-TIME SOCKET LISTENER FOR NEW POSTS
   // ===========================================
   useEffect(() => {
-    console.log('🔌 Setting up real-time forum post listener...');
-    
-    // Listen for new forum posts
-    socket.on('new_forum_post', (newPost) => {
-      console.log('📢 [Socket] New real-time post received:', newPost);
-      
-      // Add the new post to the beginning of the posts array
-      setPosts(prevPosts => [newPost, ...prevPosts]);
-      
-      // Show a small notification
+    console.log("🔌 Setting up real-time forum post listener...");
+
+    socket.on("new_forum_post", (newPost) => {
+      console.log("📢 [Socket] New real-time post received:", newPost);
+
+      setPosts((prevPosts) => [newPost, ...prevPosts]);
+
       setSuccessMessage("New post arrived!");
       setShowSuccess(true);
       setTimeout(() => {
@@ -155,38 +156,35 @@ function Forum() {
       }, 2000);
     });
 
-    // Listen for post deletions
-  socket.on('delete_forum_post', ({ postId }) => {
-    console.log('🗑️ [Socket] Post deleted:', postId);
-    
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-    
-    // Also close modal if the deleted post is currently being viewed
-    if (selectedPost?.id === postId) {
-      setShowViewModal(false);
-      setSelectedPost(null);
-    }
-  });
+    socket.on("delete_forum_post", ({ postId }) => {
+      console.log("🗑️ [Socket] Post deleted:", postId);
 
-    // Cleanup listener on component unmount
+      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+
+      if (selectedPost?.id === postId) {
+        setShowViewModal(false);
+        setSelectedPost(null);
+      }
+    });
+
     return () => {
-      console.log('🔌 Cleaning up real-time forum post listener');
-      socket.off('new_forum_post');
-      socket.off('delete_forum_post');
+      console.log("🔌 Cleaning up real-time forum post listener");
+      socket.off("new_forum_post");
+      socket.off("delete_forum_post");
     };
-  }, []);
+  }, [selectedPost]);
 
   useEffect(() => {
     if (fetchedOnce.current) return;
     fetchedOnce.current = true;
     fetchPosts();
   }, []);
-  
+
   useEffect(() => {
     const saved = localStorage.getItem("darkMode");
     if (saved) setDarkMode(saved === "true");
   }, []);
-  
+
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
   }, [darkMode]);
@@ -196,22 +194,19 @@ function Forum() {
     const matchesSearch =
       p.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.user && p.user?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (p.petName &&
-        p.petName?.toLowerCase().includes(searchQuery.toLowerCase()));
+      (p.petName && p.petName?.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesFilter && matchesSearch;
   });
 
   const genId = (prefix = "") =>
-    `${prefix}${Date.now().toString(36)}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`;
+    `${prefix}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
     setNewPost((prev) => {
-      const existingCount = prev.images?.filter(img => !img.removed).length || 0;
+      const existingCount = prev.images?.filter((img) => !img.removed).length || 0;
       const allowed = Math.max(0, 5 - existingCount);
       const toTake = files.slice(0, allowed);
 
@@ -221,7 +216,7 @@ function Forum() {
         name: f.name || "image",
         file: f,
         isDB: false,
-        ...(prev.id && { removed: false })
+        ...(prev.id && { removed: false }),
       }));
 
       return { ...prev, images: [...(prev.images || []), ...created] };
@@ -232,24 +227,20 @@ function Forum() {
   };
 
   const removeImageFromEditing = (imgId) => {
-    setNewPost(prev => ({
+    setNewPost((prev) => ({
       ...prev,
-      images: prev.images.filter(img =>
-        img.isDB ? true : img.id !== imgId
-      ).map(img =>
-        img.isDB && img.id === imgId ? { ...img, removed: true } : img
-      )
+      images: prev.images
+        .filter((img) => (img.isDB ? true : img.id !== imgId))
+        .map((img) => (img.isDB && img.id === imgId ? { ...img, removed: true } : img)),
     }));
   };
 
   const undoRemoveImage = (imgId) => {
-    setNewPost(prev => ({
+    setNewPost((prev) => ({
       ...prev,
-      images: prev.images.map(img =>
-        img.isDB && img.id === imgId
-          ? { ...img, removed: false }
-          : img
-      )
+      images: prev.images.map((img) =>
+        img.isDB && img.id === imgId ? { ...img, removed: false } : img
+      ),
     }));
   };
 
@@ -263,6 +254,8 @@ function Forum() {
   };
 
   const handleCreateOrUpdatePost = () => {
+    setEmailTouched(true);
+
     const validationError = validateForumInputs();
     if (validationError) {
       setErrorMessage(validationError);
@@ -274,13 +267,11 @@ function Forum() {
     const formattedContact = normalizedContact ? `+63${normalizedContact}` : "";
     const normalizedEmail = (newPost.email || "").trim();
 
-    // Check privacy consent for new posts
     if (!newPost.id && !validatePrivacyConsent()) {
       return;
     }
 
-    // Create new post
-    if(!newPost.id){
+    if (!newPost.id) {
       const formData = new FormData();
       formData.append("postType", newPost.type);
       formData.append("description", newPost.desc);
@@ -305,6 +296,7 @@ function Forum() {
           setShowCreateModal(false);
           setNewPost({ ...emptyPostTemplate, user: newPost.user });
           setPrivacyConsent(false);
+          setEmailTouched(false);
           setInputKey(Date.now());
 
           setSuccessMessage("Post created successfully!");
@@ -322,7 +314,7 @@ function Forum() {
         });
       return;
     }
-    // Update existing post
+
     const updates = {};
     const originalContact = normalizeContactInput(originalPost.contact || "");
     const originalEmail = (originalPost.email || "").trim();
@@ -333,53 +325,58 @@ function Forum() {
     if ((newPost.anonymous || false) !== (originalPost.anonymous || false)) {
       updates.isAnonymous = newPost.anonymous ? "1" : "0";
     }
-    
+
     const deletedImages = originalPost.images
-      .filter(orig => newPost.images.some(newImg => newImg.id === orig.id && newImg.removed))
-      .map(img => img.id);
+      .filter((orig) => newPost.images.some((newImg) => newImg.id === orig.id && newImg.removed))
+      .map((img) => img.id);
 
-    const newImages = newPost.images.filter(img => img.file && !img.removed);
+    const newImages = newPost.images.filter((img) => img.file && !img.removed);
 
-
-    if (Object.keys(updates).length === 0 && deletedImages.length === 0 && newImages.length === 0) {
+    if (
+      Object.keys(updates).length === 0 &&
+      deletedImages.length === 0 &&
+      newImages.length === 0
+    ) {
       setErrorMessage("No changes made to the post.");
       setShowErrorModal(true);
       return;
     }
 
     const formData = new FormData();
-    Object.entries(updates).forEach(([key, value]) => { 
+    Object.entries(updates).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    deletedImages.forEach(id => formData.append("deletedImages[]", id));
-    newImages.forEach(img => formData.append("image", img.file));
+    deletedImages.forEach((id) => formData.append("deletedImages[]", id));
+    newImages.forEach((img) => formData.append("image", img.file));
 
-    api.put(`/forum/${newPost.id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-    .then((res) => {
-      const updatedPost = res.data;
-      console.log("Post updated:", updatedPost);
+    api
+      .put(`/forum/${newPost.id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => {
+        const updatedPost = res.data;
+        console.log("Post updated:", updatedPost);
 
-      setShowCreateModal(false);
-      setNewPost({ ...emptyPostTemplate, user: newPost.user });
-      setOriginalPost(null);
-      setPrivacyConsent(false);
-      setInputKey(Date.now());
+        setShowCreateModal(false);
+        setNewPost({ ...emptyPostTemplate, user: newPost.user });
+        setOriginalPost(null);
+        setPrivacyConsent(false);
+        setEmailTouched(false);
+        setInputKey(Date.now());
 
-      setSuccessMessage("Post updated successfully!");
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setSuccessMessage("");
-      }, 3000);
-    })
-    .catch((err) => {
-      const message = err.response?.data?.message || "❌ Error updating post.";
-      console.error(message);
-      setErrorMessage(message);
-      setShowErrorModal(true);
-    });
+        setSuccessMessage("Post updated successfully!");
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setSuccessMessage("");
+        }, 3000);
+      })
+      .catch((err) => {
+        const message = err.response?.data?.message || "❌ Error updating post.";
+        console.error(message);
+        setErrorMessage(message);
+        setShowErrorModal(true);
+      });
   };
 
   const handleEditPost = (post) => {
@@ -387,15 +384,16 @@ function Forum() {
     clone.contact = normalizeContactInput(clone.contact || "");
     clone.email = (clone.email || "").trim();
     if (clone.images) {
-      clone.images = clone.images.map(img => ({
+      clone.images = clone.images.map((img) => ({
         ...img,
-        id: img.id, 
-        removed: false ,
+        id: img.id,
+        removed: false,
         isDB: true,
       }));
     }
     setNewPost(clone);
     setOriginalPost(clone);
+    setEmailTouched(false);
     setInputKey(Date.now());
     setShowCreateModal(true);
   };
@@ -441,8 +439,6 @@ function Forum() {
   const accID = localStorage.getItem("userId");
   const userPosts = posts.filter((p) => p.accID == accID);
 
-
-  // Data Privacy Modal
   const PrivacyPolicyModal = ({ onClose, onAccept }) => {
     return (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-3 sm:p-4">
@@ -451,18 +447,15 @@ function Forum() {
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
               Data Privacy Notice
             </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
               <i className="fa-solid fa-times text-lg sm:text-xl"></i>
             </button>
           </div>
-          
+
           <div className="p-4 sm:p-5 md:p-6 overflow-y-auto max-h-[60vh]">
             <div className="space-y-4 text-xs sm:text-sm text-gray-700">
               <p className="font-medium text-[#2FA394]">Last Updated: February 2026</p>
-              
+
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">1. Information We Collect</h3>
                 <p>When you post in our forum, we may collect:</p>
@@ -487,7 +480,10 @@ function Forum() {
 
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">3. Information Sharing</h3>
-                <p>Your posted information will be visible to other community members. We do not sell your personal data to third parties. We may share information:</p>
+                <p>
+                  Your posted information will be visible to other community members. We do not
+                  sell your personal data to third parties. We may share information:
+                </p>
                 <ul className="list-disc pl-5 mt-1 space-y-1">
                   <li>With veterinary clinics to help identify pets</li>
                   <li>When required by law enforcement</li>
@@ -507,13 +503,18 @@ function Forum() {
 
               <div>
                 <h3 className="font-semibold text-gray-800 mb-2">5. Data Retention</h3>
-                <p>We retain forum posts until you delete them or request removal. Images and descriptions may remain visible to the community until removed.</p>
+                <p>
+                  We retain forum posts until you delete them or request removal. Images and
+                  descriptions may remain visible to the community until removed.
+                </p>
               </div>
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
                 <p className="text-yellow-800 text-xs sm:text-sm">
                   <i className="fa-solid fa-shield-heart mr-2"></i>
-                  By posting in our forum, you acknowledge that your information will be publicly visible to other community members. Please do not share sensitive personal information.
+                  By posting in our forum, you acknowledge that your information will be publicly
+                  visible to other community members. Please do not share sensitive personal
+                  information.
                 </p>
               </div>
             </div>
@@ -555,7 +556,7 @@ function Forum() {
         animateIcon={animateIcon}
       />
 
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-5 px-4 sm:px-6 md:px-8 lg:px-12">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-5 px-4 sm:px-6 md:px-8 lg:px-12">
         <Sidebar
           isMenuOpen={isMenuOpen}
           closeMenuImmediate={() => setIsMenuOpen(false)}
@@ -563,15 +564,12 @@ function Forum() {
         />
 
         <div
-          className={`transition-all duration-300 flex flex-col gap-4 sm:gap-6 w-full ${
-            isMenuOpen ? "lg:w-[calc(100%-260px)]" : "lg:w-full"
+          className={`transition-all duration-500 flex flex-col gap-4 sm:gap-6 w-full ${
+            !isMenuOpen ? "md:w-full" : "md:w-[calc(100%-260px)]"
           }`}
         >
-          {/* Main Content */}
           <div className="flex flex-col lg:grid lg:grid-cols-[2fr_1fr] gap-4 sm:gap-5 md:gap-6 min-h-[calc(100vh-100px)] overflow-y-auto">
-            {/* LEFT COLUMN */}
             <div className="order-2 lg:order-1 flex flex-col gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl overflow-y-auto max-h-[calc(100vh-100px)]">
-              {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-2">
                 <h1 className="font-baloo text-xl sm:text-2xl md:text-3xl">
                   Lost Pets Board
@@ -581,7 +579,6 @@ function Forum() {
                 </p>
               </div>
 
-              {/* Posts */}
               {filteredPosts.length === 0 ? (
                 <div className="text-center py-8 sm:py-12 text-gray-500">
                   <i className="fa-solid fa-paw text-3xl sm:text-4xl mb-3 text-gray-300"></i>
@@ -597,13 +594,14 @@ function Forum() {
                     }}
                     className="bg-white rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer p-3 sm:p-4 md:p-5 border border-gray-100"
                   >
-                    {/* Post Header */}
                     <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#E3FAF7] flex items-center justify-center text-[#05A1B6] font-bold text-xs sm:text-sm flex-shrink-0">
                         {post.user?.[0] || "U"}
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="font-semibold text-sm sm:text-base truncate">{post.user}</span>
+                        <span className="font-semibold text-sm sm:text-base truncate">
+                          {post.user}
+                        </span>
                         <span className="text-[10px] sm:text-xs text-gray-400">{post.date}</span>
                       </div>
                       <span
@@ -617,12 +615,11 @@ function Forum() {
                       </span>
                     </div>
 
-                    {/* Images Grid */}
                     {post.images?.length > 0 && (
                       <div
                         className={`grid gap-1 sm:gap-2 mb-2 sm:mb-3 ${
                           post.images.length === 1
-                            ? "grid-cols-1 max-w-[200px] sm:max-w-[250px] md:max-w-[300px]" // Limit width for single image
+                            ? "grid-cols-1 max-w-[200px] sm:max-w-[250px] md:max-w-[300px]"
                             : post.images.length === 2
                             ? "grid-cols-2"
                             : post.images.length === 3
@@ -638,7 +635,7 @@ function Forum() {
                               className="rounded-lg w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-all"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const urls = post.images.map(x => x.url || x);
+                                const urls = post.images.map((x) => x.url || x);
                                 openLightbox(urls, i);
                               }}
                             />
@@ -647,8 +644,8 @@ function Forum() {
                                 className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center text-white font-semibold text-sm sm:text-base cursor-pointer"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  const urls = post.images.map(x => x.url || x);
-                                  openLightbox(urls, 3); // start at 4th image
+                                  const urls = post.images.map((x) => x.url || x);
+                                  openLightbox(urls, 3);
                                 }}
                               >
                                 +{post.images.length - 4}
@@ -659,12 +656,10 @@ function Forum() {
                       </div>
                     )}
 
-                    {/* Description */}
                     <p className="text-xs sm:text-sm leading-relaxed text-gray-700 break-words line-clamp-3">
                       {post.desc}
                     </p>
-                    
-                    {/* Contact Info */}
+
                     {(post.contact || post.email) && (
                       <div className="mt-2 space-y-0.5">
                         {post.contact && (
@@ -686,9 +681,7 @@ function Forum() {
               )}
             </div>
 
-            {/* RIGHT COLUMN - Sidebar */}
             <div className="order-1 lg:order-2 flex flex-col gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl max-h-[calc(100vh-100px)] overflow-y-auto lg:sticky lg:top-[100px]">
-              {/* Search Bar */}
               <div className="relative mt-1 sm:mt-2">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs sm:text-sm">
                   <i className="fa-solid fa-magnifying-glass"></i>
@@ -702,7 +695,6 @@ function Forum() {
                 />
               </div>
 
-              {/* Filter Tabs */}
               <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-3 flex-wrap">
                 {["All", "Lost", "Found"].map((tab) => (
                   <button
@@ -719,7 +711,6 @@ function Forum() {
                 ))}
               </div>
 
-              {/* Create Post Card */}
               <div className="bg-gradient-to-br from-[#E3FAF7] to-[#FDE2E4] rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 md:p-5 border border-gray-100 mt-2">
                 <h3 className="font-semibold mb-1 sm:mb-2 text-gray-700 text-sm sm:text-base">
                   Create a Post
@@ -731,6 +722,7 @@ function Forum() {
                   onClick={() => {
                     setNewPost({ ...emptyPostTemplate, user: "You" });
                     setPrivacyConsent(false);
+                    setEmailTouched(false);
                     setInputKey(Date.now());
                     setShowCreateModal(true);
                   }}
@@ -740,7 +732,6 @@ function Forum() {
                 </button>
               </div>
 
-              {/* Data Privacy Notice - Sidebar */}
               <div className="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-100">
                 <div className="flex items-start gap-2">
                   <i className="fa-solid fa-shield-heart text-blue-600 text-sm sm:text-base mt-0.5"></i>
@@ -762,10 +753,9 @@ function Forum() {
                 </div>
               </div>
 
-              {/* Your Posts - Collapsible */}
               {userPosts.length > 0 && (
                 <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-3 sm:p-4 md:p-5 border border-gray-100">
-                  <div 
+                  <div
                     className="flex items-center justify-between cursor-pointer"
                     onClick={() => setIsYourPostsOpen(!isYourPostsOpen)}
                   >
@@ -773,10 +763,14 @@ function Forum() {
                       Your Posts ({userPosts.length})
                     </h3>
                     <button className="text-gray-500 hover:text-[#5EE6FE] transition-colors">
-                      <i className={`fa-solid fa-chevron-${isYourPostsOpen ? 'up' : 'down'} text-xs sm:text-sm`}></i>
+                      <i
+                        className={`fa-solid fa-chevron-${
+                          isYourPostsOpen ? "up" : "down"
+                        } text-xs sm:text-sm`}
+                      ></i>
                     </button>
                   </div>
-                  
+
                   {isYourPostsOpen && (
                     <div className="space-y-2 max-h-64 overflow-y-auto mt-3">
                       {userPosts.map((post) => (
@@ -785,9 +779,7 @@ function Forum() {
                           className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 border-b last:border-none pb-2 mb-2"
                         >
                           <span className="text-xs sm:text-sm break-words flex-1">
-                            {post.desc.length > 20
-                              ? `${post.desc.slice(0, 20)}...`
-                              : post.desc}
+                            {post.desc.length > 20 ? `${post.desc.slice(0, 20)}...` : post.desc}
                           </span>
                           <div className="flex gap-2 self-end xs:self-auto">
                             {post.type === "Lost" && (
@@ -836,31 +828,26 @@ function Forum() {
         </div>
       </div>
 
-      {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-[1100px] p-3 sm:p-4 md:p-6 animate-popUp max-h-[95vh] overflow-y-auto">
             <div className="flex flex-col lg:flex-row gap-4 sm:gap-5 md:gap-6">
-              {/* On mobile: Image Upload first, Form second */}
-              {/* On desktop: Form left, Image Upload right */}
-              
-              {/* Image Upload - Shows first on mobile, right side on desktop */}
               <div className="lg:w-1/2 order-1 lg:order-2 bg-gray-50 rounded-lg p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
                 <div className="flex items-center justify-between sticky top-0 bg-gray-50 py-2 z-10">
                   <h4 className="font-semibold text-gray-700 text-xs sm:text-sm">
                     Images (up to 5)
                   </h4>
                   <span className="text-[10px] sm:text-xs text-gray-500">
-                    {newPost.images.filter(img => !img.removed).length}/5
+                    {newPost.images.filter((img) => !img.removed).length}/5
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1.5 sm:gap-2 overflow-y-auto max-h-[300px] sm:max-h-[400px] p-1">
                   {newPost.images.map((img, index) => (
-                    <div 
+                    <div
                       key={`${img.id}-${index}`}
                       className={`relative w-full aspect-square transition-all duration-300 ${
-                        newPost.id && img.removed ? 'opacity-50 grayscale' : ''
+                        newPost.id && img.removed ? "opacity-50 grayscale" : ""
                       }`}
                     >
                       <img
@@ -870,12 +857,12 @@ function Forum() {
                         onClick={() =>
                           setLightbox({
                             open: true,
-                            src: img.url,
-                            alt: img.name || "preview",
+                            images: [img.url],
+                            index: 0,
                           })
                         }
                       />
-                      
+
                       {newPost.id ? (
                         <button
                           onClick={(e) => {
@@ -887,20 +874,20 @@ function Forum() {
                             }
                           }}
                           className={`absolute top-0.5 right-0.5 rounded-full w-4 h-4 sm:w-5 sm:h-5 text-[8px] sm:text-xs flex items-center justify-center transition-all ${
-                            img.removed 
-                              ? 'bg-green-500 text-white hover:bg-green-600' 
-                              : 'bg-black/50 text-white hover:bg-black/70'
+                            img.removed
+                              ? "bg-green-500 text-white hover:bg-green-600"
+                              : "bg-black/50 text-white hover:bg-black/70"
                           }`}
                         >
-                          {img.removed ? '↶' : '×'}
+                          {img.removed ? "↶" : "×"}
                         </button>
                       ) : (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setNewPost(prev => ({
+                            setNewPost((prev) => ({
                               ...prev,
-                              images: prev.images.filter(image => image.id !== img.id)
+                              images: prev.images.filter((image) => image.id !== img.id),
                             }));
                           }}
                           className="absolute top-0.5 right-0.5 rounded-full w-4 h-4 sm:w-5 sm:h-5 text-[8px] sm:text-xs flex items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-all"
@@ -908,16 +895,18 @@ function Forum() {
                           ×
                         </button>
                       )}
-                      
+
                       {newPost.id && img.removed && (
                         <div className="absolute inset-0 bg-red-100/20 border border-red-300 rounded-lg flex items-center justify-center">
-                          <span className="text-red-500 text-[8px] sm:text-xs font-medium">Removed</span>
+                          <span className="text-red-500 text-[8px] sm:text-xs font-medium">
+                            Removed
+                          </span>
                         </div>
                       )}
                     </div>
                   ))}
-                  
-                  {newPost.images.filter(img => !img.removed).length < 5 && (
+
+                  {newPost.images.filter((img) => !img.removed).length < 5 && (
                     <div className="relative w-full aspect-square">
                       <label
                         htmlFor="multiImageInput"
@@ -940,19 +929,19 @@ function Forum() {
                   )}
                 </div>
 
-                {newPost.id && newPost.images.filter(img => img.removed).length > 0 && (
+                {newPost.id && newPost.images.filter((img) => img.removed).length > 0 && (
                   <div className="flex items-center justify-between mt-2 p-1.5 sm:p-2 bg-yellow-50 rounded-lg border border-yellow-200 sticky bottom-0 bg-yellow-50">
                     <span className="text-[10px] sm:text-xs text-yellow-700">
-                      {newPost.images.filter(img => img.removed).length} image(s) removed
+                      {newPost.images.filter((img) => img.removed).length} image(s) removed
                     </span>
                     <button
                       onClick={() => {
-                        setNewPost(prev => ({
+                        setNewPost((prev) => ({
                           ...prev,
-                          images: prev.images.map(img => ({
+                          images: prev.images.map((img) => ({
                             ...img,
-                            removed: false
-                          }))
+                            removed: false,
+                          })),
                         }));
                       }}
                       className="text-[10px] sm:text-xs text-yellow-700 hover:text-yellow-900 font-medium underline"
@@ -963,7 +952,6 @@ function Forum() {
                 )}
               </div>
 
-              {/* LEFT: Form - Shows second on mobile, left side on desktop */}
               <div className="lg:w-1/2 order-2 lg:order-1 overflow-y-auto pr-1 sm:pr-2">
                 <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 sticky top-0 bg-white z-10 pb-2">
                   {newPost.id ? "Edit Post" : "Create New Post"}
@@ -976,9 +964,7 @@ function Forum() {
                     </label>
                     <select
                       value={newPost.type}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, type: e.target.value })
-                      }
+                      onChange={(e) => setNewPost({ ...newPost, type: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm text-gray-700 focus:ring-2 focus:ring-[#5EE6FE] outline-none"
                     >
                       <option value="Lost">Lost</option>
@@ -992,9 +978,7 @@ function Forum() {
                     </label>
                     <textarea
                       value={newPost.desc}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, desc: e.target.value })
-                      }
+                      onChange={(e) => setNewPost({ ...newPost, desc: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm text-gray-700 focus:ring-2 focus:ring-[#5EE6FE] outline-none resize-none h-20 sm:h-24"
                       placeholder="Describe the pet, location, and other details..."
                     />
@@ -1005,12 +989,17 @@ function Forum() {
                       Contact
                     </label>
                     <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-[#5EE6FE]">
-                      <span className="px-2 sm:px-3 text-xs sm:text-sm text-gray-600 border-r border-gray-300">+63</span>
+                      <span className="px-2 sm:px-3 text-xs sm:text-sm text-gray-600 border-r border-gray-300">
+                        +63
+                      </span>
                       <input
                         type="text"
                         value={normalizeContactInput(newPost.contact || "")}
                         onChange={(e) =>
-                          setNewPost({ ...newPost, contact: normalizeContactInput(e.target.value) })
+                          setNewPost({
+                            ...newPost,
+                            contact: normalizeContactInput(e.target.value),
+                          })
                         }
                         className="w-full p-1.5 sm:p-2 text-xs sm:text-sm text-gray-700 outline-none rounded-r-lg"
                         placeholder="9XXXXXXXXX"
@@ -1030,12 +1019,23 @@ function Forum() {
                     <input
                       type="email"
                       value={newPost.email || ""}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, email: e.target.value })
-                      }
-                      className="w-full border border-gray-300 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm text-gray-700 focus:ring-2 focus:ring-[#5EE6FE] outline-none"
+                      onChange={(e) => {
+                        setNewPost({ ...newPost, email: e.target.value });
+                        setEmailTouched(true);
+                      }}
+                      onBlur={() => setEmailTouched(true)}
+                      className={`w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm text-gray-700 focus:ring-2 outline-none ${
+                        emailTouched && !isValidEmail(newPost.email)
+                          ? "border-red-500 focus:ring-red-200"
+                          : "border-gray-300 focus:ring-[#5EE6FE]"
+                      }`}
                       placeholder="Email address"
                     />
+                    {emailTouched && newPost.email?.trim() && !isValidEmail(newPost.email) && (
+                      <p className="mt-1 text-[10px] sm:text-xs text-red-500">
+                        Email must contain a valid email address, such as name@example.com
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center">
@@ -1047,12 +1047,9 @@ function Forum() {
                       }
                       className="mr-2 w-3 h-3 sm:w-4 sm:h-4 text-[#5EE6FE] border-gray-300 rounded focus:ring-[#5EE6FE]"
                     />
-                    <label className="text-xs sm:text-sm text-gray-700">
-                      Post anonymously
-                    </label>
+                    <label className="text-xs sm:text-sm text-gray-700">Post anonymously</label>
                   </div>
 
-                  {/* Data Privacy Consent - Only for new posts */}
                   {!newPost.id && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex items-start gap-2">
@@ -1064,7 +1061,10 @@ function Forum() {
                           className="mt-1 w-3 h-3 sm:w-4 sm:h-4 text-[#2FA394] border-gray-300 rounded focus:ring-[#5EE6FE] flex-shrink-0"
                         />
                         <div>
-                          <label htmlFor="privacyConsent" className="text-xs sm:text-sm font-medium text-gray-700">
+                          <label
+                            htmlFor="privacyConsent"
+                            className="text-xs sm:text-sm font-medium text-gray-700"
+                          >
                             I agree to the{" "}
                             <button
                               type="button"
@@ -1075,7 +1075,8 @@ function Forum() {
                             </button>
                           </label>
                           <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                            By checking this box, you acknowledge that your information will be publicly visible and you consent to our data collection practices.
+                            By checking this box, you acknowledge that your information will be
+                            publicly visible and you consent to our data collection practices.
                           </p>
                         </div>
                       </div>
@@ -1087,6 +1088,7 @@ function Forum() {
                       onClick={() => {
                         setShowCreateModal(false);
                         setPrivacyConsent(false);
+                        setEmailTouched(false);
                       }}
                       className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all text-xs sm:text-sm"
                     >
@@ -1106,7 +1108,6 @@ function Forum() {
         </div>
       )}
 
-      {/* Lightbox Modal */}
       {lightbox.open && (
         <div
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] animate-fadeIn p-3 sm:p-4"
@@ -1116,14 +1117,13 @@ function Forum() {
             className="relative max-w-3xl w-full bg-white rounded-lg overflow-hidden flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* prev arrow */}
             {lightbox.images.length > 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLightbox(l => ({
+                  setLightbox((l) => ({
                     ...l,
-                    index: (l.index - 1 + l.images.length) % l.images.length
+                    index: (l.index - 1 + l.images.length) % l.images.length,
                   }));
                 }}
                 className="absolute left-2 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition"
@@ -1138,14 +1138,13 @@ function Forum() {
               className="w-full h-auto max-h-[90vh] object-contain"
             />
 
-            {/* next arrow */}
             {lightbox.images.length > 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLightbox(l => ({
+                  setLightbox((l) => ({
                     ...l,
-                    index: (l.index + 1) % l.images.length
+                    index: (l.index + 1) % l.images.length,
                   }));
                 }}
                 className="absolute right-2 text-white bg-black/40 rounded-full p-2 hover:bg-black/60 transition"
@@ -1164,7 +1163,6 @@ function Forum() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 sm:p-4"
@@ -1201,7 +1199,6 @@ function Forum() {
         </div>
       )}
 
-      {/* Success Toast */}
       {showSuccess && (
         <div className="fixed top-4 sm:top-5 right-4 sm:right-5 z-50 w-64 sm:w-80 bg-green-600 text-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden animate-popUp">
           <div className="p-2 sm:p-3 md:p-4 text-xs sm:text-sm">{successMessage}</div>
@@ -1209,7 +1206,6 @@ function Forum() {
         </div>
       )}
 
-      {/* Found Confirmation Modal */}
       {showFoundConfirm && (
         <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 sm:p-4"
@@ -1246,15 +1242,10 @@ function Forum() {
         </div>
       )}
 
-      {/* Mobile overlay to close sidebar when clicking outside */}
       {isMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden"
-          onClick={() => setIsMenuOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setIsMenuOpen(false)} />
       )}
 
-      {/* Error Modal */}
       {showErrorModal && (
         <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-3 sm:p-4"
@@ -1265,9 +1256,7 @@ function Forum() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-                Error
-              </h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">Error</h3>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-5 md:mb-6">
               {errorMessage}
@@ -1284,7 +1273,6 @@ function Forum() {
         </div>
       )}
 
-      {/* Privacy Policy Modal */}
       {showPrivacyModal && (
         <PrivacyPolicyModal
           onClose={() => setShowPrivacyModal(false)}

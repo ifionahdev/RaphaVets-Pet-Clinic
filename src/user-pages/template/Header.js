@@ -475,7 +475,12 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
     >
       
     {/* Left side - Menu, Logo */}
-    <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
+    <button
+      type="button"
+      onClick={() => navigate('/user-home')}
+      className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0"
+      aria-label="Go to home"
+    >
       <motion.button
         onClick={toggleMenu}
         className={`lg:hidden text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
@@ -499,7 +504,7 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
           <span className="text-[#5EE6FE]">Care</span>
         </div>
       </div>
-    </div>
+    </button>
 
       {/* RIGHT SIDE - NOTIF + FORUM */}
       <div className="flex flex-row justify-end items-center gap-3 sm:gap-5 md:gap-8 text-gray-700 flex-shrink-0">

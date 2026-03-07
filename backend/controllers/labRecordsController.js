@@ -2,11 +2,25 @@ import db from '../config/db.js';
 import axios from 'axios';
 import { buildOptimizedPdfUrlFromStoredName, buildPrivatePdfUrlFromStoredName } from '../utils/cloudinary.js';
 
+const isStaffRole = (role) => {
+  const numericRole = Number(role);
+  return numericRole === 2 || numericRole === 3;
+};
+
 // Get all medical records for a user (across all their pets)
 export const getMedicalRecordsByUser = async (req, res) => {
   try {
     const { accID } = req.params;
     const { recordType } = req.query;
+    const requesterId = Number(req.user?.id);
+    const requesterRole = Number(req.user?.role || 0);
+
+    if (!isStaffRole(requesterRole) && Number(accID) !== requesterId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: You can only access your own records.'
+      });
+    }
     
     let typeCondition = '';
     if (recordType === 'lab') {
@@ -67,6 +81,29 @@ export const getMedicalRecordsByPet = async (req, res) => {
   try {
     const { petID } = req.params;
     const { recordType } = req.query;
+    const requesterId = Number(req.user?.id);
+    const requesterRole = Number(req.user?.role || 0);
+
+    if (!isStaffRole(requesterRole)) {
+      const [petRows] = await db.execute(
+        'SELECT accID FROM pet_tbl WHERE petID = ? AND isDeleted = 0 LIMIT 1',
+        [petID]
+      );
+
+      if (!petRows.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Pet not found'
+        });
+      }
+
+      if (Number(petRows[0].accID) !== requesterId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only access records for your own pet.'
+        });
+      }
+    }
     
     let typeCondition = '';
     if (recordType === 'lab') {
@@ -129,19 +166,25 @@ export const downloadMedicalRecord = async (req, res) => {
     const { fileID: rawFileRef } = req.params;
     const fileRef = decodeURIComponent(String(rawFileRef || '').trim());
     const numericFileId = Number.parseInt(fileRef, 10);
+    const requesterId = Number(req.user?.id);
+    const requesterRole = Number(req.user?.role || 0);
     
     console.log("🔍 Download request for file ref:", fileRef);
     
     const queryById = `
-      SELECT originalName, storedName, filePath 
-      FROM petmedical_file_tbl 
-      WHERE fileID = ? AND isDeleted = 0
+      SELECT pmf.originalName, pmf.storedName, pmf.filePath, p.accID
+      FROM petmedical_file_tbl pmf
+      JOIN petmedical_tbl pm ON pm.petMedicalID = pmf.petmedicalID
+      JOIN pet_tbl p ON p.petID = pm.petID
+      WHERE pmf.fileID = ? AND pmf.isDeleted = 0
     `;
 
     const queryByStoredName = `
-      SELECT originalName, storedName, filePath
-      FROM petmedical_file_tbl
-      WHERE storedName = ? AND isDeleted = 0
+      SELECT pmf.originalName, pmf.storedName, pmf.filePath, p.accID
+      FROM petmedical_file_tbl pmf
+      JOIN petmedical_tbl pm ON pm.petMedicalID = pmf.petmedicalID
+      JOIN pet_tbl p ON p.petID = pm.petID
+      WHERE pmf.storedName = ? AND pmf.isDeleted = 0
     `;
 
     let files = [];
@@ -167,6 +210,13 @@ export const downloadMedicalRecord = async (req, res) => {
     
     const file = files[0];
     console.log("📄 File details:", file);
+
+    if (!isStaffRole(requesterRole) && Number(file.accID) !== requesterId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: You do not have access to this file.'
+      });
+    }
 
     const cloudinaryPdfUrl = buildOptimizedPdfUrlFromStoredName(file.storedName, { attachment: true });
     if (cloudinaryPdfUrl) {

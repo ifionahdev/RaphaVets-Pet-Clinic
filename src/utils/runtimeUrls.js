@@ -28,5 +28,16 @@ export const buildMediaUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return API_ORIGIN ? `${API_ORIGIN}${normalizedPath}` : normalizedPath;
+  const baseUrl = API_ORIGIN ? `${API_ORIGIN}${normalizedPath}` : normalizedPath;
+
+  // Pet images are protected and must include token for browser-initiated image requests.
+  if (/\/api\/pets\/images\//i.test(normalizedPath) && typeof window !== "undefined") {
+    const token = window.localStorage?.getItem("token");
+    if (token) {
+      const separator = baseUrl.includes("?") ? "&" : "?";
+      return `${baseUrl}${separator}token=${encodeURIComponent(token)}`;
+    }
+  }
+
+  return baseUrl;
 };

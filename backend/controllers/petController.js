@@ -1,10 +1,17 @@
 import db from "../config/db.js";
 import fs from "fs";
+import path from "path";
 import {
   buildOptimizedImageUrlFromStoredName,
   uploadImageFromPath,
 } from "../utils/cloudinary.js";
 import { acquireUploadLock, releaseUploadLock } from "../utils/uploadGuard.js";
+import { PET_UPLOADS_DIR } from "../utils/uploadPaths.js";
+
+const isStaffRole = (role) => {
+  const numericRole = Number(role);
+  return numericRole === 2 || numericRole === 3;
+};
 
 const resolvePetImageUrl = (imageName) => {
   if (!imageName) return "/images/dog-profile.png";
@@ -89,9 +96,11 @@ export const getUserPets = async (req, res) => {
 export const getPetDetails = async (req, res) => {
   try {
     const petID = req.params.id;
+    const requesterId = Number(req.user?.id);
+    const requesterRole = Number(req.user?.role || 0);
 
     const [petRows] = await db.query(
-      `SELECT p.petID, p.petName, p.petGender, b.breedName AS breed,
+      `SELECT p.petID, p.accID, p.petName, p.petGender, b.breedName AS breed,
               p.dateOfBirth, p.weight_kg, p.imageName, p.color, p.note
          FROM pet_tbl p
          JOIN breed_tbl b ON p.breedID = b.breedID
@@ -103,6 +112,10 @@ export const getPetDetails = async (req, res) => {
       return res.status(404).json({ message: "Pet not found" });
 
     const pet = petRows[0];
+
+    if (!isStaffRole(requesterRole) && Number(pet.accID) !== requesterId) {
+      return res.status(403).json({ message: "Forbidden: You do not have access to this pet." });
+    }
 
     // Get pet's appointments - FIXED: Using correct column names from your database
     const [appointments] = await db.query(
@@ -209,5 +222,52 @@ export const uploadPetImage = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   } finally {
     releaseUploadLock(uploadLockKey);
+  }
+};
+
+export const servePetImage = async (req, res) => {
+  try {
+    const requesterId = Number(req.user?.id);
+    const requesterRole = Number(req.user?.role || 0);
+    const filename = decodeURIComponent(String(req.params.filename || "").trim());
+
+    if (!filename) {
+      return res.status(400).json({ message: "Invalid image filename." });
+    }
+
+    const [rows] = await db.query(
+      `SELECT petID, accID
+       FROM pet_tbl
+       WHERE imageName = ? AND isDeleted = 0
+       LIMIT 1`,
+      [filename],
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "Image not found." });
+    }
+
+    const petOwnerId = Number(rows[0].accID);
+    if (!isStaffRole(requesterRole) && petOwnerId !== requesterId) {
+      return res.status(403).json({ message: "Forbidden: You do not have access to this image." });
+    }
+
+    const optimizedUrl = buildOptimizedImageUrlFromStoredName(filename);
+    if (optimizedUrl) {
+      return res.redirect(optimizedUrl);
+    }
+
+    const imagePath = path.join(PET_UPLOADS_DIR, filename);
+    return res.sendFile(imagePath, (err) => {
+      if (err) {
+        console.error("❌ Error sending pet image:", err);
+        if (!res.headersSent) {
+          res.status(404).send("❌ Image not found");
+        }
+      }
+    });
+  } catch (error) {
+    console.error("❌ servePetImage Error:", error);
+    return res.status(500).json({ message: "Server error while serving pet image." });
   }
 };

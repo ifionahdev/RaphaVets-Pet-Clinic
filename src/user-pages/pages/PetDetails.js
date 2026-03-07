@@ -84,6 +84,13 @@ function PetDetails() {
     }
 
     // ===========================================
+    // 📨 LISTEN FOR APPOINTMENT UPDATES
+    // ===========================================
+    socket.on('appointments_updated', () => {
+      refreshAppointments();
+    });
+
+    // ===========================================
     // 📨 LISTEN FOR NEW MEDICAL RECORDS
     // ===========================================
     socket.on('new_medical_record', (newRecord) => {
@@ -160,6 +167,7 @@ function PetDetails() {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('connect_error');
+      socket.off('appointments_updated');
       socket.off('new_medical_record');
       socket.off('medical_record_updated');
       socket.off('medical_record_deleted');

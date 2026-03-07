@@ -36,6 +36,34 @@ const normalizeFromAddress = (value) => {
   return emailMatch ? emailMatch[1].trim() : "";
 };
 
+const normalizeRecipient = (value) => {
+  const raw = normalizeEnvValue(value);
+  if (!raw) return "";
+
+  const directEmail = raw.match(EMAIL_ONLY_REGEX);
+  if (directEmail) return directEmail[0].trim();
+
+  const nameEmailMatch = raw.match(NAME_AND_EMAIL_REGEX);
+  if (nameEmailMatch?.[2]) return nameEmailMatch[2].trim();
+
+  const extractedEmail = raw.match(EMAIL_IN_TEXT_REGEX);
+  return extractedEmail?.[1]?.trim() || "";
+};
+
+export const normalizeRecipientList = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((entry) => String(entry || "").split(/[;,\n\r\t\s]+/))
+      .map((entry) => normalizeRecipient(entry))
+      .filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(/[;,\n\r\t\s]+/)
+    .map((entry) => normalizeRecipient(entry))
+    .filter(Boolean);
+};
+
 const getResendClient = () => {
   const apiKey = normalizeEnvValue(process.env.RESEND_API_KEY);
   if (!apiKey) return null;
@@ -69,9 +97,14 @@ export const sendResendEmail = async ({ to, subject, html, from, replyTo, header
     throw new Error("Resend sender is not configured or has invalid format. Use email@example.com or Name <email@example.com>.");
   }
 
+  const normalizedRecipients = normalizeRecipientList(to);
+  if (!normalizedRecipients.length) {
+    throw new Error("Resend recipient list is empty or has invalid format.");
+  }
+
   const payload = {
     from: finalFrom,
-    to,
+    to: normalizedRecipients,
     subject,
     html,
   };

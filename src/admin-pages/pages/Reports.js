@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Download } from 'lucide-react';
@@ -13,12 +13,40 @@ import FeedbacksReport from "../components/reports/FeedbacksReport";
 import LostPetsReport from "../components/reports/LostPetsReport";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
+import socket from "../../socket";
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [isExporting, setIsExporting] = useState(false);
   const [exportToast, setExportToast] = useState(null);
   const reportsRef = useRef(null);
+
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const refreshReports = () => {
+      // Trigger child report re-fetch by changing object reference.
+      setDateRange((prev) => ({ ...prev }));
+    };
+
+    socket.on('appointments_updated', refreshReports);
+    socket.on('pets_updated', refreshReports);
+    socket.on('owner_created', refreshReports);
+    socket.on('owner_updated', refreshReports);
+    socket.on('new_forum_post', refreshReports);
+    socket.on('delete_forum_post', refreshReports);
+
+    return () => {
+      socket.off('appointments_updated', refreshReports);
+      socket.off('pets_updated', refreshReports);
+      socket.off('owner_created', refreshReports);
+      socket.off('owner_updated', refreshReports);
+      socket.off('new_forum_post', refreshReports);
+      socket.off('delete_forum_post', refreshReports);
+    };
+  }, []);
 
   const handleDateRangeChange = (range) => {
     setDateRange(range);

@@ -324,9 +324,9 @@ const ServicesSection = () => {
                   <div className="space-y-3">
                     {selectedService.details.map((detail, idx) => (
                       <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2 gap-4">
-                          <span className="font-medium text-gray-900">{detail.name}</span>
-                          <span className="font-semibold text-[#5EE6FE] whitespace-nowrap">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-1 sm:gap-4">
+                          <span className="font-medium text-gray-900 break-words">{detail.name}</span>
+                          <span className="font-semibold text-[#5EE6FE] whitespace-nowrap sm:text-right">
                             {detail.price}
                           </span>
                         </div>
@@ -398,9 +398,9 @@ const ServicesSection = () => {
                       <div className="grid gap-3">
                         {service.details.map((detail, idx) => (
                           <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex justify-between items-start mb-2 gap-4">
-                              <span className="font-medium text-gray-900">{detail.name}</span>
-                              <span className="font-semibold text-[#5EE6FE] whitespace-nowrap">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-1 sm:gap-4">
+                              <span className="font-medium text-gray-900 break-words">{detail.name}</span>
+                              <span className="font-semibold text-[#5EE6FE] whitespace-nowrap sm:text-right">
                                 {detail.price}
                               </span>
                             </div>
