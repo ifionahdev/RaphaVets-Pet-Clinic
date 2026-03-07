@@ -32,28 +32,75 @@ const Reports = () => {
     
     try {
       const element = reportsRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        backgroundColor: '#f9fafb',
-        logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('reports-container');
-          if (clonedElement) {
-            clonedElement.style.width = `${element.scrollWidth}px`;
-          }
+      const sections = Array.from(element.children).filter((node) => node instanceof HTMLElement);
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const contentWidth = pageWidth - margin * 2;
+
+      const drawPageHeader = () => {
+        const titleY = margin;
+        const subtitleY = titleY + 16;
+
+        pdf.setFontSize(13);
+        pdf.text('RaphaVets Reports and Analytics', margin, titleY);
+
+        const rangeText = dateRange.start && dateRange.end
+          ? `Date range: ${dateRange.start.toLocaleDateString()} - ${dateRange.end.toLocaleDateString()}`
+          : 'Date range: All available data';
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(90, 90, 90);
+        pdf.text(rangeText, margin, subtitleY);
+        pdf.setTextColor(0, 0, 0);
+
+        return subtitleY + 10;
+      };
+
+      for (let index = 0; index < sections.length; index += 1) {
+        const section = sections[index];
+        if (index > 0) {
+          pdf.addPage('a4', 'landscape');
         }
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: [canvas.width * 0.75, canvas.height * 0.75]
-      });
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width * 0.75, canvas.height * 0.75);
+
+        const contentStartY = drawPageHeader();
+        const availableSectionHeight = pageHeight - contentStartY - margin;
+
+        const canvas = await html2canvas(section, {
+          scale: 2,
+          backgroundColor: '#f9fafb',
+          logging: false,
+          useCORS: true,
+          windowWidth: section.scrollWidth,
+          windowHeight: section.scrollHeight,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        const renderedHeight = (canvas.height * contentWidth) / canvas.width;
+        if (renderedHeight <= availableSectionHeight) {
+          pdf.addImage(imgData, 'PNG', margin, contentStartY, contentWidth, renderedHeight, undefined, 'FAST');
+          continue;
+        }
+
+        // For tall sections, keep width readable and split vertically across additional pages.
+        let heightLeft = renderedHeight;
+        let positionY = contentStartY;
+        pdf.addImage(imgData, 'PNG', margin, positionY, contentWidth, renderedHeight, undefined, 'FAST');
+        heightLeft -= availableSectionHeight;
+
+        while (heightLeft > 0) {
+          pdf.addPage('a4', 'landscape');
+          const continuationStartY = drawPageHeader();
+          const continuationAvailableHeight = pageHeight - continuationStartY - margin;
+          positionY = continuationStartY - (renderedHeight - heightLeft);
+          pdf.addImage(imgData, 'PNG', margin, positionY, contentWidth, renderedHeight, undefined, 'FAST');
+          heightLeft -= continuationAvailableHeight;
+        }
+      }
+
       pdf.save(`reports-${new Date().toISOString().split('T')[0]}.pdf`);
       setExportToast({ type: 'success', message: 'PDF exported successfully!' });
     } catch (error) {

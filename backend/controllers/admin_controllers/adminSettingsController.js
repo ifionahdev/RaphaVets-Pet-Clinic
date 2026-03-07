@@ -14,7 +14,7 @@ const ROLE_NAME = {
 };
 
 const normalizeType = (type = '') => type.toString().trim().toLowerCase();
-const NAME_REGEX = /^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$/;
+const NAME_REGEX = /^[\p{L}\p{M}]+(?:[ '\-][\p{L}\p{M}]+)*$/u;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^\+63\d{10}$/;
 
@@ -171,10 +171,7 @@ export const createAdminSettingsUser = async (req, res) => {
       
       // If account exists and is NOT deleted, reject
       if (account.isDeleted === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Email already exists and is active' 
-        });
+        return res.status(409).json({ success: false, message: 'Email is already in use.' });
       }
       
       // If account exists but IS deleted, we can proceed with reactivation
@@ -199,6 +196,14 @@ export const createAdminSettingsUser = async (req, res) => {
       if (deletedAccount.length > 0) {
         // Reactivate the deleted account
         const oldAccId = deletedAccount[0].accId;
+
+        // Remove stale role-bound/user-bound rows before reusing this account for a new role.
+        await connection.execute("DELETE FROM admin_info_tbl WHERE accID = ?", [oldAccId]);
+        await connection.execute("DELETE FROM vet_table WHERE accId = ?", [oldAccId]);
+        await connection.execute("DELETE FROM clientinfo_tbl WHERE accId = ?", [oldAccId]);
+        await connection.execute("DELETE FROM userpreference_tbl WHERE accId = ?", [oldAccId]);
+        await connection.execute("DELETE FROM user_websocket_sessions_tbl WHERE accID = ?", [oldAccId]);
+        await connection.execute("DELETE FROM user_notifications_tbl WHERE accID = ?", [oldAccId]);
         
         await connection.execute(
           `UPDATE account_tbl 
@@ -372,7 +377,7 @@ export const updateAdminSettingsUser = async (req, res) => {
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ success: false, message: 'Email already exists' });
+      return res.status(409).json({ success: false, message: 'Email is already in use.' });
     }
 
     const [targetUserRows] = await db.execute(
@@ -468,10 +473,28 @@ export const updateAdminSettingsUser = async (req, res) => {
 };
 
 export const deleteAdminSettingsUser = async (req, res) => {
+  let connection;
   try {
     const { userId } = req.params;
 
-    const [result] = await db.execute(
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const [existingRows] = await connection.execute(
+      `SELECT accId
+       FROM account_tbl
+       WHERE accId = ? AND roleID IN (2, 3) AND isDeleted = 0
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (existingRows.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const [result] = await connection.execute(
       `UPDATE account_tbl
        SET isDeleted = 1, lastUpdatedAt = NOW()
        WHERE accId = ? AND roleID IN (2, 3) AND isDeleted = 0`,
@@ -479,14 +502,34 @@ export const deleteAdminSettingsUser = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
+      await connection.rollback();
+      connection.release();
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    // Cleanup related role/account data to avoid stale references and allow safe role reuse.
+    await connection.execute(`DELETE FROM admin_info_tbl WHERE accID = ?`, [userId]);
+    await connection.execute(`DELETE FROM vet_table WHERE accId = ?`, [userId]);
+    await connection.execute(`DELETE FROM user_websocket_sessions_tbl WHERE accID = ?`, [userId]);
+    await connection.execute(`DELETE FROM user_notifications_tbl WHERE accID = ?`, [userId]);
+    await connection.execute(`DELETE FROM userpreference_tbl WHERE accId = ?`, [userId]);
+
+    await connection.commit();
+    connection.release();
 
     return res.status(200).json({
       success: true,
       message: 'User deleted successfully',
     });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Rollback failed in deleteAdminSettingsUser:', rollbackError);
+      }
+      connection.release();
+    }
     console.error('Error deleting admin settings user:', error);
     return res.status(500).json({
       success: false,

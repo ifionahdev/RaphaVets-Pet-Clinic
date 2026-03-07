@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Sidebar from "./template/Sidebar";
 import Header from "./template/Header";
 
@@ -9,8 +10,21 @@ import CustomerPets from "./pages/CustomerPets";
 import VetAppointmentsVisits from "./pages/VetAppointmentsVisits";
 
 const VetLayout = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const location = useLocation();
+  const tabParam = new URLSearchParams(location.search).get("tab");
+  const defaultTab = ["dashboard", "diagnostic", "customers-pets", "appointments"].includes(tabParam)
+    ? tabParam
+    : "dashboard";
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    const nextTab = new URLSearchParams(location.search).get("tab");
+    if (["dashboard", "diagnostic", "customers-pets", "appointments"].includes(nextTab)) {
+      setActiveTab(nextTab);
+    }
+  }, [location.search]);
 
   const renderContent = () => {
     switch (activeTab) {

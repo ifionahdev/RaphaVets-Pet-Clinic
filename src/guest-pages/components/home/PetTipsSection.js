@@ -1,45 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import api from "../../../api/axios";
 import PetTipsOverlay from "../../components/PetTipsOverlay";
+import api from "../../../api/axios";
 
 const PetTipsSection = () => {
   const [showTipsOverlay, setShowTipsOverlay] = useState(false);
-  const [tips, setTips] = useState([]);
   const [allTips, setAllTips] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPetTips = async () => {
-      try {
-        setLoading(true);
+  const tips = [
+    { step: "Feed right", icon: "fa-bowl-food" },
+    { step: "Stay clean", icon: "fa-soap" },
+    { step: "Daily fun", icon: "fa-futbol" },
+    { step: "Check ups", icon: "fa-stethoscope" },
+  ];
 
-        // For the section preview
-        const randomRes = await api.get("/pet-care-tips/random?count=4");
-
-        // For the overlay / full list
-        const allRes = await api.get("/pet-care-tips");
-
-        setTips(randomRes.data?.data || []);
-        setAllTips(allRes.data?.data || []);
-      } catch (error) {
-        console.error("Error fetching pet care tips:", error);
-        setTips([]);
-        setAllTips([]);
-      } finally {
-        setLoading(false);
+  const loadTips = async () => {
+    try {
+      const res = await api.get('/pet-care-tips');
+      if (res.data?.success) {
+        setAllTips(res.data.data || []);
       }
-    };
+    } catch (error) {
+      console.error('Failed to load guest pet tips:', error);
+      setAllTips([]);
+    }
+  };
 
-    fetchPetTips();
-  }, []);
+  const handleOpenOverlay = async () => {
+    if (!allTips.length) {
+      await loadTips();
+    }
+    setShowTipsOverlay(true);
+  };
 
   return (
     <>
-      <section
-        id="pettips"
-        className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50"
-      >
+      <section id = "pettips" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -57,45 +53,27 @@ const PetTipsSection = () => {
           </motion.div>
 
           <div className="relative">
+            {/* Step labels */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mt-8">
-              {loading ? (
-                [...Array(4)].map((_, index) => (
-                  <div key={index} className="text-center animate-pulse">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-200" />
-                    <div className="h-4 bg-gray-200 rounded w-24 mx-auto" />
+              {tips.map((tip, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="text-center"
+                >
+                  <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center text-[#5EE6FE] text-xl shadow-sm">
+                    <i className={`fas ${tip.icon}`} />
                   </div>
-                ))
-              ) : tips.length > 0 ? (
-                tips.map((tip, index) => (
-                  <motion.div
-                    key={tip.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -5 }}
-                    className="text-center"
-                  >
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center text-[#5EE6FE] text-xl shadow-sm">
-                      <i className={`fas ${tip.icon}`} />
-                    </div>
-                    <h4 className="font-semibold text-gray-800">
-                      {tip.title}
-                    </h4>
-                    {tip.short && (
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                        {tip.short}
-                      </p>
-                    )}
-                  </motion.div>
-                ))
-              ) : (
-                <div className="col-span-2 md:col-span-4 text-center text-gray-500">
-                  No pet care tips available right now.
-                </div>
-              )}
+                  <h4 className="font-semibold text-gray-800">{tip.step}</h4>
+                </motion.div>
+              ))}
             </div>
 
+            {/* See all tips button */}
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -104,7 +82,7 @@ const PetTipsSection = () => {
               className="text-center mt-12"
             >
               <button
-                onClick={() => setShowTipsOverlay(true)}
+                onClick={handleOpenOverlay}
                 className="inline-flex items-center gap-2 text-[#5EE6FE] font-semibold transition-colors duration-300 hover:text-[#3ecbe0]"
               >
                 <span>See all tips</span>
@@ -122,10 +100,7 @@ const PetTipsSection = () => {
       </section>
 
       {showTipsOverlay && (
-        <PetTipsOverlay
-          onClose={() => setShowTipsOverlay(false)}
-          tips={allTips}
-        />
+        <PetTipsOverlay onClose={() => setShowTipsOverlay(false)} tips={allTips} />
       )}
     </>
   );

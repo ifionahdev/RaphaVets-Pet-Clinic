@@ -14,6 +14,7 @@ const ContactSection = () => {
   const [feedback, setFeedback] = useState({ type: "", text: "" });
 
   const NAME_PATTERN = /^[\p{L}\p{M}]+(?:[ '\-.][\p{L}\p{M}]+)*$/u;
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,6 +29,14 @@ const ContactSection = () => {
       setFeedback({
         type: "error",
         text: "Names can include letters, spaces, apostrophes, hyphens, and accented characters.",
+      });
+      return;
+    }
+
+    if (!EMAIL_PATTERN.test(email)) {
+      setFeedback({
+        type: "error",
+        text: "Please provide a valid email address.",
       });
       return;
     }

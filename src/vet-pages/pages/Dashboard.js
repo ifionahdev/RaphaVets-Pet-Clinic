@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Calendar,
   Users,
@@ -19,8 +20,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import api from "../../api/axios";
+import socket from "../../socket";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     vetName: "",
     todayAppointments: 0,
@@ -32,26 +35,40 @@ const Dashboard = () => {
   const [appointmentsData, setAppointmentsData] = useState([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
 
+  const fetchDashboardStats = async () => {
+    try {
+      const [statsRes, graphRes, todayRes] = await Promise.all([
+        api.get('/vet/dashboard/stats'),
+        api.get('/vet/dashboard/appointments-graph'),
+        api.get('/vet/dashboard/todays-appointments'),
+      ]);
+
+      setStats(statsRes.data);
+      setAppointmentsData(graphRes.data);
+      setUpcomingAppointments(todayRes.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch vet dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboardStats = async () => {
-      try {
-        const [statsRes, graphRes, todayRes] = await Promise.all([
-          api.get('/vet/dashboard/stats'),
-          api.get('/vet/dashboard/appointments-graph'),
-          api.get('/vet/dashboard/todays-appointments'),
-        ]);
-
-        setStats(statsRes.data);
-        setAppointmentsData(graphRes.data);
-        setUpcomingAppointments(todayRes.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch vet dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardStats();
+  }, []);
+
+  useEffect(() => {
+    const refreshDashboard = () => fetchDashboardStats();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.on("appointments_updated", refreshDashboard);
+
+    return () => {
+      socket.off("appointments_updated", refreshDashboard);
+    };
   }, []);
 
   const statCards = [
@@ -86,21 +103,25 @@ const Dashboard = () => {
       title: "New Diagnostic",
       icon: <Brain size={18} />,
       color: "from-[#D6F6FF] to-[#E5FBFF]",
+      onClick: () => navigate("/vet?tab=diagnostic"),
     },
     {
       title: "View Appointments",
       icon: <View size={18} />,
       color: "from-[#E0F8D8] to-[#EAFCE3]",
+      onClick: () => navigate("/vet?tab=appointments"),
     },
     {
       title: "Patient Records",
       icon: <Users size={18} />,
       color: "from-[#FFF0D2] to-[#FFF9E5]",
+      onClick: () => navigate("/vet?tab=customers-pets"),
     },
     {
       title: "Medical History",
       icon: <Stethoscope size={18} />,
       color: "from-[#FFDDEE] to-[#FFE6F5]",
+      onClick: () => navigate("/vet?tab=customers-pets"),
     },
   ];
 
@@ -161,6 +182,7 @@ const Dashboard = () => {
               {quickActions.map((action, i) => (
                 <div
                   key={i}
+                  onClick={action.onClick}
                   className={`bg-gradient-to-br ${action.color} dark:from-[#1B1B1B] dark:to-[#222] 
                     rounded-xl p-3 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-200 
                     cursor-pointer hover:brightness-105 hover:scale-101 transition duration-200`}

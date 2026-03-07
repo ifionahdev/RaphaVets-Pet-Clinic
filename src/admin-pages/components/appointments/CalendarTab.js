@@ -1,4 +1,4 @@
-import { format, isSameDay, parseISO, addMonths, subMonths } from "date-fns";
+import { format, isSameDay, addMonths, subMonths } from "date-fns";
 
 const statusColors = {
   Pending: "bg-yellow-300 text-yellow-800",  
@@ -11,6 +11,26 @@ const statusColors = {
 const visitTypeColors = {
   Scheduled: "bg-blue-100 text-blue-800 border border-blue-200",
   "Walk-in": "bg-purple-100 text-purple-800 border border-purple-200",
+};
+
+const statusDotColors = {
+  Pending: "bg-yellow-400",
+  Upcoming: "bg-pink-400",
+  Completed: "bg-green-400",
+  Cancelled: "bg-red-400",
+  Missed: "bg-gray-400",
+};
+
+const visitTypeDotColors = {
+  Scheduled: "bg-blue-400",
+  "Walk-in": "bg-purple-400",
+};
+
+const toEventDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
 };
 
 const CalendarTab = ({ 
@@ -37,8 +57,14 @@ const CalendarTab = ({
     daysInMonth.push(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i));
   }
 
-  const dayAppointments = appointments.filter(a => isSameDay(parseISO(a.date), selectedDate));
-  const dayVisits = visits.filter(v => isSameDay(parseISO(v.date), selectedDate));
+  const dayAppointments = appointments.filter((a) => {
+    const eventDate = toEventDate(a.date);
+    return eventDate ? isSameDay(eventDate, selectedDate) : false;
+  });
+  const dayVisits = visits.filter((v) => {
+    const eventDate = toEventDate(v.date);
+    return eventDate ? isSameDay(eventDate, selectedDate) : false;
+  });
 
   return (
     <div className="flex gap-6 h-[calc(100%-130px)]">
@@ -80,8 +106,14 @@ const CalendarTab = ({
                 return <div key={`empty-${index}`} />;
               }
 
-              const dayApps = appointments.filter(a => isSameDay(parseISO(a.date), day));
-              const dayVisits = visits.filter(v => isSameDay(parseISO(v.date), day));
+              const dayApps = appointments.filter((a) => {
+                const eventDate = toEventDate(a.date);
+                return eventDate ? isSameDay(eventDate, day) : false;
+              });
+              const dayVisits = visits.filter((v) => {
+                const eventDate = toEventDate(v.date);
+                return eventDate ? isSameDay(eventDate, day) : false;
+              });
               const totalEvents = [...dayApps, ...dayVisits];
               const isSelected = isSameDay(day, selectedDate);
               const isToday = isSameDay(day, new Date());
@@ -113,11 +145,11 @@ const CalendarTab = ({
                             ? "h-2 w-2"
                             : "h-3 w-3"
                         } ${
-                          'status' in event ? statusColors[event.status] : 
-                          'visitType' in event ? visitTypeColors[event.visitType] : 
-                          'bg-gray-400'
+                          event.status
+                            ? (statusDotColors[event.status] || "bg-gray-400")
+                            : (visitTypeDotColors[event.visitType] || "bg-gray-400")
                         }`}
-                        title={`${event.petName} - ${'status' in event ? event.status : event.visitType}`}
+                        title={`${event.petName} - ${event.status || event.visitType || "Event"}`}
                       />
                     ))}
                     {hasManyEvents && totalEvents.length > 6 && (

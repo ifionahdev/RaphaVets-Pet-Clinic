@@ -246,38 +246,30 @@ const ContentManagement = () => {
 
   // Handle delete pet tip
   const handleDeletePetTip = (id) => {
-    showConfirm(
-      'Are you sure you want to delete this pet tip? This action cannot be undone.',
-      async () => {
-        try {
-          setLoading(true);
-          const response = await api.delete(`/admin/content/pet-care-tips/deletePetCare/${id}`);
+    (async () => {
+      try {
+        setLoading(true);
+        const response = await api.delete(`/admin/content/pet-care-tips/deletePetCare/${id}`);
 
-          if (response.data.success) {
-            await fetchPetCareTips();
-            showSuccess('Pet tip deleted successfully!', {
-              title: 'Deleted'
-            });
-          } else {
-            showError(response.data.message || 'Failed to delete pet tip', {
-              title: 'Delete Failed'
-            });
-          }
-        } catch (error) {
-          console.error('Error deleting pet tip:', error);
-          showError(error.response?.data?.message || 'Failed to delete pet tip', {
-            title: 'Error'
+        if (response.data.success) {
+          await fetchPetCareTips();
+          showSuccess('Pet tip deleted successfully!', {
+            title: 'Deleted'
           });
-        } finally {
-          setLoading(false);
+        } else {
+          showError(response.data.message || 'Failed to delete pet tip', {
+            title: 'Delete Failed'
+          });
         }
-      },
-      {
-        title: 'Delete Pet Tip',
-        confirmText: 'Delete',
-        cancelText: 'Cancel'
+      } catch (error) {
+        console.error('Error deleting pet tip:', error);
+        showError(error.response?.data?.message || 'Failed to delete pet tip', {
+          title: 'Error'
+        });
+      } finally {
+        setLoading(false);
       }
-    );
+    })();
   };
 
   // Handle edit pet tip
@@ -330,38 +322,30 @@ const ContentManagement = () => {
 
   // Handle delete video
   const handleDeleteVideo = (id) => {
-    showConfirm(
-      'Are you sure you want to delete this video? This action cannot be undone.',
-      async () => {
-        try {
-          setLoading(true);
-          const response = await api.delete(`/admin/content/videos/delete/${id}`);
+    (async () => {
+      try {
+        setLoading(true);
+        const response = await api.delete(`/admin/content/videos/delete/${id}`);
 
-          if (response.data.success) {
-            await fetchVideos();
-            showSuccess('Video deleted successfully!', {
-              title: 'Deleted'
-            });
-          } else {
-            showError(response.data.message || 'Failed to delete video', {
-              title: 'Delete Failed'
-            });
-          }
-        } catch (error) {
-          console.error('Error deleting video:', error);
-          showError(error.response?.data?.message || 'Failed to delete video', {
-            title: 'Error'
+        if (response.data.success) {
+          await fetchVideos();
+          showSuccess('Video deleted successfully!', {
+            title: 'Deleted'
           });
-        } finally {
-          setLoading(false);
+        } else {
+          showError(response.data.message || 'Failed to delete video', {
+            title: 'Delete Failed'
+          });
         }
-      },
-      {
-        title: 'Delete Video',
-        confirmText: 'Delete',
-        cancelText: 'Cancel'
+      } catch (error) {
+        console.error('Error deleting video:', error);
+        showError(error.response?.data?.message || 'Failed to delete video', {
+          title: 'Error'
+        });
+      } finally {
+        setLoading(false);
       }
-    );
+    })();
   };
 
   // Handle edit video
@@ -371,7 +355,7 @@ const ContentManagement = () => {
   };
 
   // Forum post handlers
-  const handleDeleteForumPost = (id) => {
+  const handleDeleteForumPost = async (id) => {
     showConfirm(
       'Are you sure you want to delete this forum post? This action cannot be undone.',
       async () => {
@@ -406,38 +390,52 @@ const ContentManagement = () => {
   };
 
   const handleArchiveForumPost = async (id, newStatus) => {
-    try {
-      const response = await api.patch(`/admin/content/forum-posts/${id}/status`, {
-        status: newStatus,
-      });
+    const confirmText = newStatus === 'active'
+      ? 'Are you sure you want to restore this forum post?'
+      : 'Are you sure you want to archive this forum post?';
 
-      if (response.data?.success) {
-        setForumPosts(prevPosts =>
-          prevPosts.map(post =>
-            post.id === id ? { ...post, status: newStatus } : post
-          )
-        );
-        showSuccess(
-          newStatus === 'active'
-            ? 'The forum post has been restored and is now active.'
-            : 'The forum post has been archived successfully.',
-          {
-            title: newStatus === 'active' ? 'Post Restored' : 'Post Archived',
-            confirmText: 'Done',
-            showCancel: false,
+    showConfirm(
+      confirmText,
+      async () => {
+        try {
+          const response = await api.patch(`/admin/content/forum-posts/${id}/status`, {
+            status: newStatus,
+          });
+
+          if (response.data?.success) {
+            setForumPosts(prevPosts =>
+              prevPosts.map(post =>
+                post.id === id ? { ...post, status: newStatus } : post
+              )
+            );
+            showSuccess(
+              newStatus === 'active'
+                ? 'The forum post has been restored and is now active.'
+                : 'The forum post has been archived successfully.',
+              {
+                title: newStatus === 'active' ? 'Post Restored' : 'Post Archived',
+                confirmText: 'Done',
+                showCancel: false,
+              }
+            );
+          } else {
+            showError(response.data?.message || 'Failed to update forum post status', {
+              title: 'Update Failed'
+            });
           }
-        );
-      } else {
-        showError(response.data?.message || 'Failed to update forum post status', {
-          title: 'Update Failed'
-        });
+        } catch (error) {
+          console.error('Error updating forum post status:', error);
+          showError(error.response?.data?.message || 'Failed to update forum post status', {
+            title: 'Error'
+          });
+        }
+      },
+      {
+        title: newStatus === 'active' ? 'Restore Forum Post' : 'Archive Forum Post',
+        confirmText: newStatus === 'active' ? 'Restore' : 'Archive',
+        cancelText: 'Cancel'
       }
-    } catch (error) {
-      console.error('Error updating forum post status:', error);
-      showError(error.response?.data?.message || 'Failed to update forum post status', {
-        title: 'Error'
-      });
-    }
+    );
   };
 
   return (

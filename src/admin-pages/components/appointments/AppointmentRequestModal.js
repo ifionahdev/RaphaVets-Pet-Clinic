@@ -112,7 +112,9 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
                         </div>
                         <div>
                           <span className="text-gray-500">Weight:</span>
-                          <p className="font-medium text-gray-700">{appointment.weight} kg</p>
+                          <p className="font-medium text-gray-700">
+                            {appointment.weight != null ? `${appointment.weight} kg` : "Not available"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -129,11 +131,11 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
                     </div>
                     <div>
                       <span className="text-gray-500">Phone:</span>
-                      <p className="font-medium text-gray-700">TABLES HAVE NO PHONE COLUMN</p>
+                      <p className="font-medium text-gray-700">{appointment.phone || "Not available"}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Email:</span>
-                      <p className="font-medium text-gray-700">{appointment.email}</p>
+                      <p className="font-medium text-gray-700 break-all">{appointment.email || "Not available"}</p>
                     </div>
                   </div>
                 </div>
@@ -147,11 +149,11 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="text-gray-500">Service Type:</span>
-                      <p className="font-medium text-gray-700">{appointment.serviceType}</p>
+                      <p className="font-medium text-gray-700">{appointment.serviceType || "Not specified"}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Description:</span>
-                      <p className="font-medium text-gray-700">{appointment.description}</p>
+                      <p className="font-medium text-gray-700">{appointment.description || "No description"}</p>
                     </div>
                   </div>
                 </div>

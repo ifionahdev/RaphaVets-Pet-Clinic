@@ -4,17 +4,39 @@ import { getDefaultFromAddress, isResendConfigured, sendResendEmail } from '../u
 
 dotenv.config();
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeEmail = (value) => String(value || '').trim().replace(/^['"`]+|['"`]+$/g, '');
+
+const parseRecipientList = (rawValue) => {
+  const items = String(rawValue || '')
+    .split(/[;,]/)
+    .map((item) => normalizeEmail(item))
+    .filter(Boolean);
+
+  if (!items.length) return [];
+
+  for (const address of items) {
+    if (!EMAIL_REGEX.test(address)) {
+      throw new Error(`Invalid support recipient email configured: ${address}`);
+    }
+  }
+
+  return items;
+};
+
 export const sendSupportMessage = async (req, res) => {
   try {
-    const { subject, message } = req.body || {};
+    const subject = String(req.body?.subject || '').trim();
+    const message = String(req.body?.message || '').trim();
 
     if (!subject || !message) {
       return res.status(400).json({ success: false, message: 'Subject and message are required' });
     }
 
     // Autofill name/email if user is authenticated
-    let name = req.body.name;
-    let email = req.body.email;
+    let name = String(req.body?.name || '').trim();
+    let email = normalizeEmail(req.body?.email);
 
     if (req.user && req.user.id) {
       // try to get user details from DB (firstName, lastName, email)
@@ -22,12 +44,16 @@ export const sendSupportMessage = async (req, res) => {
       if (rows && rows.length > 0) {
         const u = rows[0];
         name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || name;
-        email = u.email || email;
+        email = normalizeEmail(u.email || email);
       }
     }
 
     if (!name || !email) {
       return res.status(400).json({ success: false, message: 'Name and email are required' });
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid requester email address.' });
     }
 
     if (!isResendConfigured()) {
@@ -42,9 +68,21 @@ export const sendSupportMessage = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Support destination email is not configured on server.' });
     }
 
+    let recipients = [];
+    try {
+      recipients = parseRecipientList(supportTo);
+    } catch (recipientError) {
+      console.error('Invalid SUPPORT_EMAIL configuration:', recipientError.message);
+      return res.status(500).json({ success: false, message: 'Support destination email is invalid on server configuration.' });
+    }
+
+    if (!recipients.length) {
+      return res.status(500).json({ success: false, message: 'Support destination email is not configured on server.' });
+    }
+
     const info = await sendResendEmail({
       from: resendFrom,
-      to: supportTo,
+      to: recipients,
       subject: `[Support] ${subject}`,
       replyTo: email,
       headers: {

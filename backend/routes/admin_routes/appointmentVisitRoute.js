@@ -12,12 +12,12 @@ import {
 
 const router = express.Router();
 
-router.post("/assign", verifyToken, allowRoles(2, 3), assignAppointment);
+router.post("/assign", verifyToken, allowRoles(2), assignAppointment);
 router.get("/", verifyToken, allowRoles(2, 3), getAppointmentAndVisits);
-router.get("/owners", verifyToken, allowRoles(2, 3), getOwnerDetails);
-router.patch("/status", verifyToken, allowRoles(2,3), updateStatus);
-router.delete("/", verifyToken, allowRoles(2,3), deleteAppointment,);
-router.post("/make-visit", verifyToken, allowRoles(2,3), createVisit);
+router.get("/owners", verifyToken, allowRoles(2), getOwnerDetails);
+router.patch("/status", verifyToken, allowRoles(2), updateStatus);
+router.delete("/", verifyToken, allowRoles(2), deleteAppointment,);
+router.post("/make-visit", verifyToken, allowRoles(2), createVisit);
 //router.delete("/visit")
 
 export default router;

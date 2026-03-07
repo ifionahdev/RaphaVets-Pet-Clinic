@@ -40,7 +40,7 @@ const AdminSettings = () => {
     phone: "",
   });
 
-  const nameRegex = /^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$/;
+  const nameRegex = /^[\p{L}\p{M}]+(?:[ '\-][\p{L}\p{M}]+)*$/u;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const phoneRegex = /^\+63\d{10}$/;
 
@@ -165,14 +165,15 @@ const AdminSettings = () => {
         }
 
         if (response.data.emailSent) {
-          showSuccess(`Password sent to ${createdUser.email}`, { title: 'User Created' });
+            showSuccess(`Account created and credentials were sent to ${createdUser.email}.`, { title: 'User Created' });
         } else if (response.data.generatedPassword) {
           showInfo(`Email not sent. Temporary password for ${createdUser.email}: ${response.data.generatedPassword}`, { title: 'User Created (No Email)' });
         }
       }
     } catch (error) {
       console.error('Failed to add user:', error);
-      showError(error?.response?.data?.message || 'Failed to add user', { title: 'Add Failed' });
+        const backendMessage = error?.response?.data?.message;
+        showError(backendMessage || 'Failed to add user', { title: 'Add Failed' });
       return;
     } finally {
       setSubmitting(false);
@@ -229,7 +230,8 @@ const AdminSettings = () => {
       }
     } catch (error) {
       console.error('Failed to update user:', error);
-      showError(error?.response?.data?.message || 'Failed to update user', { title: 'Update Failed' });
+      const backendMessage = error?.response?.data?.message;
+      showError(backendMessage || 'Failed to update user', { title: 'Update Failed' });
       return;
     } finally {
       setSubmitting(false);
@@ -770,13 +772,14 @@ const AdminSettings = () => {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                      Delete User
+                      Delete Account
                     </h3>
                   </div>
                 </div>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Delete <span className="font-semibold">{selectedUser.firstName} {selectedUser.lastName}</span>?
+                  You are about to delete <span className="font-semibold">{selectedUser.firstName} {selectedUser.lastName}</span>'s account.
+                  This action removes access immediately and should only be used for deactivated staff records.
                 </p>
 
                 <div className="flex justify-end gap-3">
@@ -794,7 +797,7 @@ const AdminSettings = () => {
                     disabled={submitting}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                   >
-                    {submitting ? 'Deleting...' : 'Delete'}
+                    {submitting ? 'Deleting...' : 'Delete Account'}
                   </button>
                 </div>
               </div>

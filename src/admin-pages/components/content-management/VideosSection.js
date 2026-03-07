@@ -38,6 +38,14 @@ const VideosSection = ({
       socket.connect();
     }
 
+    const joinAdminRoom = () => {
+      socket.emit('join_admin_room', {
+        adminId: currentAdminId,
+        adminName: currentAdminName,
+        role: 2,
+      });
+    };
+
     const onAdminVideoCreated = (data) => {
       setShowUpdateIndicator(true);
       setLastUpdate({
@@ -91,18 +99,17 @@ const VideosSection = ({
     socket.on('admin_video_created', onAdminVideoCreated);
     socket.on('admin_video_updated', onAdminVideoUpdated);
     socket.on('admin_video_deleted', onAdminVideoDeleted);
+    socket.on('connect', joinAdminRoom);
 
     if (socket.connected) {
-      socket.emit('join_admin_room', {
-        adminId: currentAdminId,
-        adminName: currentAdminName
-      });
+      joinAdminRoom();
     }
 
     return () => {
       socket.off('admin_video_created', onAdminVideoCreated);
       socket.off('admin_video_updated', onAdminVideoUpdated);
       socket.off('admin_video_deleted', onAdminVideoDeleted);
+      socket.off('connect', joinAdminRoom);
     };
   }, [currentAdminId, currentAdminName, onRefresh, videoToDelete]);
 

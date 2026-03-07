@@ -38,6 +38,14 @@ const PetTipsSection = ({
       socket.connect();
     }
 
+    const joinAdminRoom = () => {
+      socket.emit('join_admin_room', {
+        adminId: currentAdminId,
+        adminName: currentAdminName,
+        role: 2,
+      });
+    };
+
     const onAdminTipCreated = (data) => {
       setShowUpdateIndicator(true);
       setLastUpdate({
@@ -91,18 +99,17 @@ const PetTipsSection = ({
     socket.on('admin_tip_created', onAdminTipCreated);
     socket.on('admin_tip_updated', onAdminTipUpdated);
     socket.on('admin_tip_deleted', onAdminTipDeleted);
+    socket.on('connect', joinAdminRoom);
 
     if (socket.connected) {
-      socket.emit('join_admin_room', {
-        adminId: currentAdminId,
-        adminName: currentAdminName
-      });
+      joinAdminRoom();
     }
 
     return () => {
       socket.off('admin_tip_created', onAdminTipCreated);
       socket.off('admin_tip_updated', onAdminTipUpdated);
       socket.off('admin_tip_deleted', onAdminTipDeleted);
+      socket.off('connect', joinAdminRoom);
     };
   }, [currentAdminId, currentAdminName, onRefresh, tipToDelete]);
 

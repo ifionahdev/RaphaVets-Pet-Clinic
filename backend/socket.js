@@ -81,6 +81,21 @@ export const initializeSocket = (server) => {
             }
         });
 
+        socket.on('join_admin_room', ({ role } = {}) => {
+            if (role !== undefined && Number(role) !== 2) {
+                return;
+            }
+
+            socket.join('admin-room');
+            socket.emit('admin_room_joined', { success: true });
+            console.log(`Admin socket ${socket.id} joined admin-room`);
+        });
+
+        socket.on('leave_admin_room', () => {
+            socket.leave('admin-room');
+            console.log(`Socket ${socket.id} left admin-room`);
+        });
+
         // Handle notification read
         socket.on('notificationRead', (data) => {
             const { userId, notificationId } = data;

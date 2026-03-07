@@ -873,7 +873,7 @@ const AddOwnerModal = ({ isOpen, onClose, onSave, initialData }) => {
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Owner Added Successfully!</h3>
               
               <p className="text-sm text-gray-600 mb-2">
-                The owner account has been created successfully.
+                The owner account was created and login credentials were sent to the registered email.
               </p>
               <p className="text-xs text-gray-500">
                 This window will close automatically.

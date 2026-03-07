@@ -18,8 +18,11 @@ const VisitsTab = ({
   setSelectedAppointment,
   setIsDetailsModalOpen,
   handleSingleDelete,
-  visitTypeColors
+  visitTypeColors,
+  isReadOnly = false,
 }) => {
+  const addVisitPath = "/admin-pages/visits/add";
+
   return (
     <div className="mt-">
       {/* Search & Filter with New Select Controls */}
@@ -51,18 +54,20 @@ const VisitsTab = ({
           </select>
 
           {/* Add Visit Button */}
-          <button
-            onClick={() => navigate("/admin-pages/visits/add")}
-            className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            Visit
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => navigate(addVisitPath)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              Visit
+            </button>
+          )}
         </div>
 
         {/* Selection Controls */}
         <div className="flex gap-2 items-center">
-          {isSelectMode ? (
+          {!isReadOnly && isSelectMode ? (
             <>
               <span className="text-sm text-gray-600">
                 {getSelectedCount()} selected
@@ -85,21 +90,21 @@ const VisitsTab = ({
                 Cancel
               </button>
             </>
-          ) : (
+          ) : !isReadOnly ? (
             <button
               onClick={toggleSelectMode}
               className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-medium text-sm"
             >
               Select
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
       <table className="w-full text-left border-collapse">
         <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
           <tr>
-            {isSelectMode && (
+            {!isReadOnly && isSelectMode && (
               <th className="p-2 text-sm text-gray-600 dark:text-gray-300 w-12">
                 <input
                   type="checkbox"
@@ -121,7 +126,7 @@ const VisitsTab = ({
         <tbody>
           {visits.length === 0 ? (
             <tr>
-              <td colSpan={isSelectMode ? 8 : 7} className="text-center p-4 text-gray-400">
+              <td colSpan={!isReadOnly && isSelectMode ? 8 : 7} className="text-center p-4 text-gray-400">
                 No visits found.
               </td>
             </tr>
@@ -131,7 +136,7 @@ const VisitsTab = ({
                 key={item.id}
                 className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition"
               >
-                {isSelectMode && (
+                {!isReadOnly && isSelectMode && (
                   <td className="p-2">
                     <input
                       type="checkbox"
@@ -162,11 +167,13 @@ const VisitsTab = ({
                       setIsDetailsModalOpen(true);
                     }}
                   />
-                  <Trash2
-                    size={18}
-                    className="text-red-500 cursor-pointer hover:text-red-600"
-                    onClick={() => handleSingleDelete(item)}
-                  />
+                  {!isReadOnly && (
+                    <Trash2
+                      size={18}
+                      className="text-red-500 cursor-pointer hover:text-red-600"
+                      onClick={() => handleSingleDelete(item)}
+                    />
+                  )}
                 </td>
               </tr>
             ))

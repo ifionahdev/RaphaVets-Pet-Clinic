@@ -37,7 +37,6 @@ function PetDetails() {
   
   // Add refresh trigger state
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [socketConnected, setSocketConnected] = useState(false);
   
   // Modal and toast states
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -63,7 +62,6 @@ function PetDetails() {
     // Socket connection events
     socket.on('connect', () => {
       console.log('✅ Socket connected in PetDetails:', socket.id);
-      setSocketConnected(true);
       
       // Join user room for targeted notifications
       if (userId) {
@@ -74,18 +72,15 @@ function PetDetails() {
 
     socket.on('disconnect', () => {
       console.log('❌ Socket disconnected in PetDetails');
-      setSocketConnected(false);
     });
 
     socket.on('connect_error', (error) => {
       console.error('Socket connection error in PetDetails:', error);
-      setSocketConnected(false);
     });
 
     // Join user room if already connected
     if (socket.connected && userId) {
       socket.emit('join', userId);
-      setSocketConnected(true);
     }
 
     // ===========================================
@@ -641,13 +636,6 @@ function PetDetails() {
 
   return (
     <ClientLayout refreshTrigger={refreshTrigger}>
-      {/* Socket connection status indicator (optional) */}
-      {!socketConnected && (
-        <div className="bg-yellow-100 text-yellow-800 text-xs sm:text-sm p-2 rounded mb-2 text-center">
-          ⚠️ Real-time updates are disconnected. Please refresh the page.
-        </div>
-      )}
-      
       <motion.div
         variants={containerVariants}
         initial="hidden"

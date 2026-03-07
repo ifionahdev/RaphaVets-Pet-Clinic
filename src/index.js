@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { restoreAuthFromSessionBackup } from './utils/authSession';
+
+// Restore auth after hard refresh; if the browser was closed, session storage is gone and user stays logged out.
+restoreAuthFromSessionBackup();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

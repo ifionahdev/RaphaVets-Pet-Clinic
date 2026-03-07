@@ -1,6 +1,87 @@
-import { fi } from "date-fns/locale";
 import db from "../../config/db.js";
 import { createAppointmentNotification } from "../notificationController.js"; // Import notification function
+
+const toIsoDate = (value) => {
+  if (!value) return null;
+
+  // Preserve plain DATE strings from DB/request without timezone conversion.
+  if (typeof value === "string") {
+    const direct = value.trim().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(direct)) {
+      return direct;
+    }
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const toDisplayTime = (value) => {
+  if (!value) return null;
+
+  // Handles both "HH:mm:ss" DB values and full datetime values.
+  const normalized = String(value).length <= 8 ? `1970-01-01T${value}` : value;
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+const toPetAgeLabel = (dob) => {
+  if (!dob) return "Unknown";
+  const birth = new Date(dob);
+  const now = new Date();
+
+  if (Number.isNaN(birth.getTime()) || birth > now) return "Unknown";
+
+  const diffMs = now.getTime() - birth.getTime();
+  const daysOld = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (daysOld < 7) {
+    return `${daysOld} day${daysOld === 1 ? "" : "s"} old`;
+  }
+
+  if (daysOld < 28) {
+    const weeksOld = Math.floor(daysOld / 7);
+    return `${weeksOld} week${weeksOld === 1 ? "" : "s"} old`;
+  }
+
+  if (daysOld < 365) {
+    const monthsOld = Math.floor(daysOld / 30);
+    return `${monthsOld} month${monthsOld === 1 ? "" : "s"} old`;
+  }
+
+  let yearsOld = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    yearsOld--;
+  }
+
+  return `${yearsOld} yr${yearsOld === 1 ? "" : "s"} old`;
+};
+
+const emitAppointmentsUpdated = (req, payload = {}) => {
+  try {
+    const io = req.app?.get("io");
+    if (!io) return;
+
+    io.emit("appointments_updated", {
+      at: new Date().toISOString(),
+      ...payload,
+    });
+  } catch (socketError) {
+    console.error("⚠️ Socket emit failed (appointments_updated):", socketError.message);
+  }
+};
 
 
 
@@ -84,6 +165,13 @@ export const assignAppointment = async (req, res) => {
 
     const appointmentId = result.insertId;
 
+    emitAppointmentsUpdated(req, {
+      action: "appointment_created",
+      appointmentId,
+      accID: userID,
+      petID,
+    });
+
     // 🔔 TRIGGER NOTIFICATION for new appointment (Upcoming status - ID 2)
     try {
       const notifReq = {
@@ -129,14 +217,12 @@ export const getAppointmentAndVisits = async (req, res) => {
          SELECT
             a.*,
             p.petName,
-            CONCAT(
-                TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURDATE()), 'y ',
-                TIMESTAMPDIFF(MONTH, p.dateOfBirth, CURDATE()) % 12, 'm'
-            ) AS petAge,
+            p.dateOfBirth,
             p.petGender AS petSex,
             p.weight_kg AS weight,
             b.breedName,
             CONCAT(ac.firstName, ' ', ac.lastName) as ownerName,
+            ci.contactNo,
             sc.scheduleTime,
             s.statusName,
             ac.email,
@@ -146,6 +232,7 @@ export const getAppointmentAndVisits = async (req, res) => {
          JOIN appointment_status_tbl s ON s.statusID = a.statusID
          JOIN pet_tbl p ON p.petID = a.petID
          JOIN account_tbl ac ON ac.accID = a.accID
+        LEFT JOIN clientinfo_tbl ci ON ci.accID = ac.accID
          JOIN scheduletime_tbl sc on sc.scheduledTimeID = a.scheduledTimeID
          JOIN service_tbl sv ON sv.serviceID = a.serviceID
          JOIN breed_tbl b ON b.breedID = p.breedID
@@ -158,12 +245,24 @@ export const getAppointmentAndVisits = async (req, res) => {
          SELECT
             a.*,
             p.petName,
+            p.dateOfBirth,
+            p.petGender,
+            p.weight_kg,
+            b.breedName,
             CONCAT(ac.firstName, ' ', ac.lastName) as ownerName,
+            ci.contactNo,
+            ac.email,
+            sv.service,
+            sv.description,
+            st.scheduleTime,
             s.statusName
          FROM appointment_tbl a
          JOIN appointment_status_tbl s ON s.statusID = a.statusID
          JOIN pet_tbl p ON p.petID = a.petID
+         JOIN service_tbl sv ON sv.serviceID = a.serviceID
+         JOIN breed_tbl b ON b.breedID = p.breedID
          JOIN account_tbl ac ON ac.accID = a.accID
+         LEFT JOIN clientinfo_tbl ci ON ci.accID = ac.accID
          LEFT JOIN scheduletime_tbl st on st.scheduledTimeID = a.scheduledTimeID
          WHERE visitDateTime IS NOT NULL
             AND a.isDeleted = FALSE
@@ -173,21 +272,15 @@ export const getAppointmentAndVisits = async (req, res) => {
     const cleanedAppointments = appointments.map((apt) => ({
       id: apt.appointmentID,
       petName: apt.petName,
-      petAge: apt.petAge,
+      petAge: toPetAgeLabel(apt.dateOfBirth),
       petSex: apt.petSex,
       weight: apt.weight,
       breedName: apt.breedName,
       owner: apt.ownerName,
+      phone: apt.contactNo || null,
       email: apt.email,
-      date: apt.appointmentDate,
-      time: new Date(`1970-01-01T${apt.scheduleTime}`).toLocaleTimeString(
-        "en-US",
-        {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        },
-      ),
+      date: toIsoDate(apt.appointmentDate),
+      time: toDisplayTime(apt.scheduleTime),
       status: apt.statusName,
       visitType: apt.visitType,
       serviceType: apt.service,
@@ -198,19 +291,20 @@ export const getAppointmentAndVisits = async (req, res) => {
     const cleanedVisits = visits.map((vst) => ({
       id: vst.appointmentID,
       petName: vst.petName,
+      petAge: toPetAgeLabel(vst.dateOfBirth),
+      petSex: vst.petGender,
+      weight: vst.weight_kg,
+      breedName: vst.breedName,
       owner: vst.ownerName,
-      date: new Date(vst.visitDateTime).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      }),
-      time: new Date(vst.visitDateTime).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }),
+      phone: vst.contactNo || null,
+      email: vst.email,
+      date: toIsoDate(vst.visitDateTime),
+      time: toDisplayTime(vst.visitDateTime),
+      scheduledTime: toDisplayTime(vst.scheduleTime),
       visitType: vst.visitType,
-      status: vst.status,
+      status: vst.statusName,
+      serviceType: vst.service,
+      description: vst.description,
       accID: vst.accID, // Include for notification reference
     }));
 
@@ -248,10 +342,6 @@ export const getOwnerDetails = async (req, res) => {
       `
          SELECT
             p.*,
-            CONCAT(
-               TIMESTAMPDIFF(YEAR, p.dateOfBirth, CURDATE()),
-               'y'
-            ) AS age,
             b.species,
             b.breedName
          FROM pet_tbl p
@@ -299,7 +389,7 @@ export const getOwnerDetails = async (req, res) => {
       name: p.petName,
       type: p.species,
       breed: p.breedName,
-      age: p.age,
+      age: toPetAgeLabel(p.dateOfBirth),
       sex: p.petGender,
       weight: p.weight_kg,
       color: p.color,
@@ -440,6 +530,12 @@ export const updateStatus = async (req, res) => {
     }
     await connection.commit();
 
+    emitAppointmentsUpdated(req, {
+      action: "appointment_status_updated",
+      appointmentIds: editableIDs,
+      status,
+    });
+
     res
       .status(200)
       .json({ editedCount: editableIDs.length, message: "Successfully updated appointment status" });
@@ -543,6 +639,11 @@ export const deleteAppointment = async (req, res) => {
       [...ids],
     );
 
+    emitAppointmentsUpdated(req, {
+      action: "appointment_deleted",
+      appointmentIds: ids,
+    });
+
     return res
       .status(200)
       .json({ message: "Successfully deleted appointments." });
@@ -592,6 +693,13 @@ export const createVisit = async (req, res) => {
       `INSERT INTO appointment_tbl (accID, petID, serviceID, statusID, visitDateTime, visitType, isDeleted) VALUES (?, ?, ?, ?, NOW(), 'Walk-in', 0)`,
       [userID, petID, serviceID, completedStatusID],
     );
+
+    emitAppointmentsUpdated(req, {
+      action: "visit_created",
+      visitId: visit.insertId,
+      accID: userID,
+      petID,
+    });
 
     res
       .status(201)

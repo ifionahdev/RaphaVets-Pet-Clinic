@@ -19,6 +19,8 @@ import {
 import SuccessToast from "../../template/SuccessToast";
 import api from "../../api/axios";
 import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
+import AddPetModal from "../components/petpatient-management/AddPetModal";
+import socket from "../../socket";
 
 // Sample existing users data
 const sampleUsers = [
@@ -53,11 +55,10 @@ const SERVICE_TYPES = [
   { id: "dental", label: "Dental Prophylaxis", note: "Cleaning & check" },
 ];
 
-const token = localStorage.getItem("token");
-
-
 const AddAppointment = () => {
   const navigate = useNavigate();
+  const isVet = localStorage.getItem("userRole") === "3";
+  const appointmentsHomePath = isVet ? "/vet?tab=appointments" : "/admin-pages/appointments";
   const [currentStep, setCurrentStep] = useState(0);
   const [appointmentData, setAppointmentData] = useState({
     user: null,
@@ -93,6 +94,7 @@ const AddAppointment = () => {
     birthDate: "",
     notes: ""
   });
+  const [newPetErrors, setNewPetErrors] = useState({});
 
   // Calendar navigation functions
   const prevMonth = () => {
@@ -128,6 +130,21 @@ const AddAppointment = () => {
   // Check if date is in the past
   const isPast = (date) => {
     return isBefore(startOfDay(date), startOfDay(new Date()));
+  };
+
+  const parseDisplayTimeToMinutes = (displayTime) => {
+    if (!displayTime) return null;
+    const [time, meridiem] = displayTime.split(' ');
+    if (!time || !meridiem) return null;
+
+    let [hour, minute] = time.split(':').map(Number);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
+
+    const upperMeridiem = meridiem.toUpperCase();
+    if (upperMeridiem === 'PM' && hour !== 12) hour += 12;
+    if (upperMeridiem === 'AM' && hour === 12) hour = 0;
+
+    return hour * 60 + minute;
   };
 
   // Fetch time slots and booked slots
@@ -173,53 +190,81 @@ const AddAppointment = () => {
     return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   };
 
-  //fetch owner and pets data
-  useEffect(() => {
-    const fetchOwnersAndPets = async () => {
-      try {
-        const res = await api.get("/admin/owners-with-pets");
-        const data = res.data;
+  const fetchOwnersAndPets = async () => {
+    try {
+      const res = await api.get("/admin/owners-with-pets");
+      const data = res.data;
 
-        setOwners(
-          data.map(o => ({
-            id: o.accId,
-            firstName: o.firstName,
-            lastName: o.lastName,
-            email: o.email,
-            phone: o.contactNo,
-            address: o.address,
-            createdAt: formatDate(o.createdAt),
-            pets: o.pets
+      setOwners(
+        data.map(o => ({
+          id: o.accId,
+          firstName: o.firstName,
+          lastName: o.lastName,
+          email: o.email,
+          phone: o.contactNo,
+          address: o.address,
+          createdAt: formatDate(o.createdAt),
+          pets: o.pets
+        }))
+      );
+
+      setPets(
+        data.flatMap(owner =>
+          (owner.pets || []).map(p => ({
+            id: p.petID,
+            userId: p.accID,
+            name: p.petName,
+            type: p.petType,
+            gender: p.petGender,
+            breed: p.breedName,
+            age: calculateAge(p.dateOfBirth),
+            birthDate: formatDate(p.dateOfBirth),
+            sex: p.petGender,
+            weight: (p.weight_kg ?? 0) + " kg",
+            color: p.color,
+            notes: p.note,
           }))
-        );
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      setOwners(sampleUsers);
+      setPets(samplePets);
+    }
+  };
 
-        setPets(
-          data.flatMap(owner =>
-            (owner.pets || []).map(p => ({
-              id: p.petID,
-              userId: p.accID,
-              name: p.petName,
-              type: p.petType,
-              gender: p.petGender,
-              breed: p.breedName,
-              age: calculateAge(p.dateOfBirth),
-              birthDate: formatDate(p.dateOfBirth),
-              sex: p.petGender,
-              weight: (p.weight_kg ?? 0) + " kg",
-              color: p.color,
-              notes: p.note,
-            }))
-          )
-        );
+  useEffect(() => {
+    fetchOwnersAndPets();
+  }, []);
 
-      } catch (err) {
-        console.error(err);
-        setOwners(sampleUsers);
-        setPets(samplePets);
-      }
+  useEffect(() => {
+    const joinRoom = () => {
+      const userId = localStorage.getItem("userId");
+      if (userId) socket.emit("join", userId);
     };
 
-    fetchOwnersAndPets();
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
+    }
+
+    socket.on("connect", joinRoom);
+
+    const refreshOwnersPets = () => {
+      fetchOwnersAndPets();
+    };
+
+    socket.on("owner_created", refreshOwnersPets);
+    socket.on("pet_created", refreshOwnersPets);
+    socket.on("pets_updated", refreshOwnersPets);
+
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("owner_created", refreshOwnersPets);
+      socket.off("pet_created", refreshOwnersPets);
+      socket.off("pets_updated", refreshOwnersPets);
+    };
   }, []);
 
   useEffect(() => console.log("Owners updated: ", owners),[owners]);
@@ -275,78 +320,90 @@ const AddAppointment = () => {
   };
 
   // Handle new client creation from AddOwnerModal
-  const handleNewClientSave = (ownerData) => {
-    // Generate random password
-    const generatedPassword = Math.random().toString(36).slice(-8);
-    
-    // Create new user from the modal data
-    const newUser = {
-      id: sampleUsers.length + 1,
-      firstName: ownerData.firstName,
-      lastName: ownerData.lastName,
-      email: ownerData.email,
-      phone: ownerData.phone,
-      name: `${ownerData.firstName} ${ownerData.lastName}`,
-      password: generatedPassword,
-    };
-
-    // Create new pet from the modal data (if provided)
-    let newPetData = null;
-    if (ownerData.pets && ownerData.pets.length > 0) {
-      const pet = ownerData.pets[0];
-      newPetData = {
-        id: samplePets.length + 1,
-        userId: newUser.id,
-        name: pet.name,
-        type: pet.type,
-        breed: pet.breed,
-        sex: pet.sex,
-        weight: pet.weight,
-        color: pet.color,
-        birthDate: pet.dob,
-        notes: pet.notes,
-        age: pet.dob ? calculateAge(pet.dob) : "Unknown"
+  const handleNewClientSave = async (ownerData) => {
+    try {
+      const payload = {
+        firstName: ownerData.firstName,
+        lastName: ownerData.lastName,
+        email: ownerData.email,
+        phone: ownerData.phone,
+        address: ownerData.address || null,
+        sex: ownerData.sex || null,
+        dob: ownerData.dob || null,
+        pets: (ownerData.pets || []).map((pet) => ({
+          name: pet.name,
+          type: pet.type,
+          breed: pet.breed,
+          sex: pet.sex || null,
+          weight: pet.weight || null,
+          color: pet.color || null,
+          dob: pet.dob || null,
+          notes: pet.notes || null,
+        })),
       };
-    }
 
-    // In real app, you would send this to backend
-    console.log("New client created:", newUser);
-    if (newPetData) {
-      console.log("New pet created:", newPetData);
-    }
+      const res = await api.post("/admin/add-owner", payload);
+      const createdAccId = res.data?.accId;
 
-    setAppointmentData(prev => ({ 
-      ...prev, 
-      user: newUser,
-      pet: newPetData 
-    }));
-    setSelectedClientId(newUser.id);
-    setShowNewClientForm(false);
-    
-    // If pet was created, go to service selection, otherwise go to pet selection
-    if (newPetData) {
-      setCurrentStep(2); // Go to service selection
-    } else {
-      setCurrentStep(1); // Go to pet selection
+      const createdUser = {
+        id: createdAccId,
+        firstName: ownerData.firstName,
+        lastName: ownerData.lastName,
+        email: ownerData.email,
+        phone: ownerData.phone,
+      };
+
+      setAppointmentData((prev) => ({
+        ...prev,
+        user: createdUser,
+        pet: null,
+      }));
+      setSelectedClientId(createdAccId || null);
+      setShowNewClientForm(false);
+      setCurrentStep(1);
+
+      setToast({
+        type: "success",
+        message: `Account created and credentials were sent to ${ownerData.email}.`,
+      });
+
+      return res.data;
+    } catch (error) {
+      throw error;
     }
-    
-    setToast({ 
-      type: "success", 
-      message: `New client created! Password sent to ${newUser.phone} and ${newUser.email}` 
-    });
   };
 
   // Helper function to calculate age from birth date
   const calculateAge = (birthDate) => {
+    if (!birthDate) return "Unknown";
     const today = new Date();
     const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
+    if (Number.isNaN(birth.getTime()) || birth > today) return "Unknown";
+
+    const diffMs = today.getTime() - birth.getTime();
+    const daysOld = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysOld < 7) {
+      return `${daysOld} day${daysOld === 1 ? '' : 's'} old`;
     }
-    return age.toString();
+
+    if (daysOld < 28) {
+      const weeksOld = Math.floor(daysOld / 7);
+      return `${weeksOld} week${weeksOld === 1 ? '' : 's'} old`;
+    }
+
+    if (daysOld < 365) {
+      const monthsOld = Math.floor(daysOld / 30);
+      return `${monthsOld} month${monthsOld === 1 ? '' : 's'} old`;
+    }
+
+    let yearsOld = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      yearsOld--;
+    }
+
+    return `${yearsOld} yr${yearsOld === 1 ? '' : 's'} old`;
   };
 
   const handlePetSelect = (pet) => {
@@ -355,8 +412,37 @@ const AddAppointment = () => {
   };
 
   const handleNewPetSubmit = () => {
-    if (!newPet.name || !newPet.type || !newPet.breed || !newPet.sex || !newPet.birthDate) {
-      alert("Please fill all required fields");
+    const validationErrors = {};
+
+    if (!appointmentData.user?.id) {
+      validationErrors.owner = "Please select an owner first before adding a pet.";
+    }
+
+    if (!String(newPet.name || "").trim()) {
+      validationErrors.name = "Pet name is required.";
+    }
+    if (!newPet.type) {
+      validationErrors.type = "Pet type is required.";
+    }
+    if (!newPet.breed) {
+      validationErrors.breed = "Breed is required.";
+    }
+    if (!newPet.sex) {
+      validationErrors.sex = "Gender is required.";
+    }
+    if (!newPet.birthDate) {
+      validationErrors.birthDate = "Birth date is required.";
+    } else {
+      const selectedBirthDate = new Date(newPet.birthDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedBirthDate > today) {
+        validationErrors.birthDate = "Birth date cannot be in the future.";
+      }
+    }
+
+    setNewPetErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
@@ -371,10 +457,34 @@ const AddAppointment = () => {
 
     setAppointmentData(prev => ({ ...prev, pet: newPetData }));
     setShowNewPetForm(false);
+    setNewPetErrors({});
     setNewPet({ name: "", type: "", breed: "", sex: "", weight: "", color: "", birthDate: "", notes: "" });
     setCurrentStep(2);
     
     setToast({ type: "success", message: "New pet added successfully!" });
+  };
+
+  const handlePetCreatedFromModal = async (savedPet) => {
+    await fetchOwnersAndPets();
+
+    const createdPet = {
+      id: Number(savedPet.id),
+      userId: Number(savedPet.ownerId),
+      name: savedPet.name,
+      type: savedPet.type,
+      breed: savedPet.breed,
+      sex: savedPet.sex,
+      age: savedPet.dob ? calculateAge(savedPet.dob) : "Unknown",
+      weight: savedPet.weight ? `${savedPet.weight} kg` : "",
+      color: savedPet.color || "",
+      notes: savedPet.notes || "",
+      birthDate: savedPet.dob || "",
+    };
+
+    setAppointmentData((prev) => ({ ...prev, pet: createdPet }));
+    setShowNewPetForm(false);
+    setCurrentStep(2);
+    setToast({ type: "success", message: "Pet added successfully." });
   };
 
   const handleServiceSelect = (serviceType) => {
@@ -401,7 +511,7 @@ const AddAppointment = () => {
 
       await api.post("/admin/appointments/assign", payload, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         }
       });
     }catch(err){
@@ -415,6 +525,17 @@ const AddAppointment = () => {
   };
 
   const userPets = pets.filter(pet => pet.userId === appointmentData.user?.id);
+  const ownerOptionsForModal = appointmentData.user
+    ? [{
+        id: appointmentData.user.id,
+        name: `${appointmentData.user.firstName} ${appointmentData.user.lastName}`,
+        email: appointmentData.user.email,
+      }]
+    : owners.map((owner) => ({
+        id: owner.id,
+        name: `${owner.firstName} ${owner.lastName}`,
+        email: owner.email,
+      }));
 
   const steps = [
     { title: "Select Client", number: 0, icon: User },
@@ -427,16 +548,6 @@ const AddAppointment = () => {
   return (
     <div className="flex flex-col h-full bg-[#FBFBFB] p-6 gap-2 font-sans">
       {/* Back Button - Hide on success page */}
-      {currentStep !== 5 && (
-        <button
-          onClick={() => navigate("/admin-pages/appointments")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 self-start"
-        >
-          <ArrowLeft size={20} />
-          Back to Appointments
-        </button>
-      )}
-
       {/* Progress Steps - Hide on success page */}
       {currentStep !== 5 && (
         <div className="flex justify-center mb-4">
@@ -592,7 +703,7 @@ const AddAppointment = () => {
                       className="p-4 border border-gray-200 rounded-xl hover:border-[#5EE6FE] hover:shadow-md transition cursor-pointer bg-white"
                     >
                       <h4 className="font-semibold text-gray-800">{pet.name}</h4>
-                      <p className="text-sm text-gray-600">{pet.breed} • {pet.age}y • {pet.sex}</p>
+                      <p className="text-sm text-gray-600">{pet.breed} • {pet.age} • {pet.sex}</p>
                     </div>
                   ))}
                 </div>
@@ -609,7 +720,7 @@ const AddAppointment = () => {
             </button>
 
             {/* New Pet Form Modal - Keeping this separate since it's for adding pets to existing clients */}
-            {showNewPetForm && (
+            {false && showNewPetForm && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
                 <div className="w-full max-w-md bg-white rounded-xl shadow-2xl">
                   {/* Header */}
@@ -634,6 +745,11 @@ const AddAppointment = () => {
 
                   {/* Form Content */}
                   <div className="p-5">
+                    {newPetErrors.owner && (
+                      <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                        {newPetErrors.owner}
+                      </div>
+                    )}
                     <div className="space-y-4">
                       {/* Pet Name */}
                       <div>
@@ -641,10 +757,14 @@ const AddAppointment = () => {
                         <input
                           type="text"
                           value={newPet.name}
-                          onChange={(e) => setNewPet(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) => {
+                            setNewPet(prev => ({ ...prev, name: e.target.value }));
+                            setNewPetErrors(prev => ({ ...prev, name: "" }));
+                          }}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
                           placeholder="Enter pet name"
                         />
+                        {newPetErrors.name && <p className="mt-1 text-xs text-red-600">{newPetErrors.name}</p>}
                       </div>
 
                       {/* Type & Breed */}
@@ -653,19 +773,26 @@ const AddAppointment = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
                           <select
                             value={newPet.type}
-                            onChange={(e) => setNewPet(prev => ({ ...prev, type: e.target.value }))}
+                            onChange={(e) => {
+                              setNewPet(prev => ({ ...prev, type: e.target.value }));
+                              setNewPetErrors(prev => ({ ...prev, type: "" }));
+                            }}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
                           >
                             <option value="">Select Type</option>
                             <option value="Dog">Dog</option>
                             <option value="Cat">Cat</option>
                           </select>
+                          {newPetErrors.type && <p className="mt-1 text-xs text-red-600">{newPetErrors.type}</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Breed *</label>
                           <select
                             value={newPet.breed}
-                            onChange={(e) => setNewPet(prev => ({ ...prev, breed: e.target.value }))}
+                            onChange={(e) => {
+                              setNewPet(prev => ({ ...prev, breed: e.target.value }));
+                              setNewPetErrors(prev => ({ ...prev, breed: "" }));
+                            }}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
                           >
                             <option value="">Select Breed</option>
@@ -686,6 +813,7 @@ const AddAppointment = () => {
                               </>
                             )}
                           </select>
+                          {newPetErrors.breed && <p className="mt-1 text-xs text-red-600">{newPetErrors.breed}</p>}
                         </div>
                       </div>
 
@@ -700,7 +828,10 @@ const AddAppointment = () => {
                                 name="sex"
                                 value="Male"
                                 checked={newPet.sex === "Male"}
-                                onChange={(e) => setNewPet(prev => ({ ...prev, sex: e.target.value }))}
+                                onChange={(e) => {
+                                  setNewPet(prev => ({ ...prev, sex: e.target.value }));
+                                  setNewPetErrors(prev => ({ ...prev, sex: "" }));
+                                }}
                                 className="w-4 h-4 text-[#5EE6FE] focus:ring-[#5EE6FE]"
                               />
                               <span className="text-sm text-gray-700">Male</span>
@@ -711,21 +842,30 @@ const AddAppointment = () => {
                                 name="sex"
                                 value="Female"
                                 checked={newPet.sex === "Female"}
-                                onChange={(e) => setNewPet(prev => ({ ...prev, sex: e.target.value }))}
+                                onChange={(e) => {
+                                  setNewPet(prev => ({ ...prev, sex: e.target.value }));
+                                  setNewPetErrors(prev => ({ ...prev, sex: "" }));
+                                }}
                                 className="w-4 h-4 text-[#5EE6FE] focus:ring-[#5EE6FE]"
                               />
                               <span className="text-sm text-gray-700">Female</span>
                             </label>
                           </div>
+                          {newPetErrors.sex && <p className="mt-1 text-xs text-red-600">{newPetErrors.sex}</p>}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date *</label>
                           <input
                             type="date"
                             value={newPet.birthDate}
-                            onChange={(e) => setNewPet(prev => ({ ...prev, birthDate: e.target.value }))}
+                            max={format(new Date(), 'yyyy-MM-dd')}
+                            onChange={(e) => {
+                              setNewPet(prev => ({ ...prev, birthDate: e.target.value }));
+                              setNewPetErrors(prev => ({ ...prev, birthDate: "" }));
+                            }}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EE6FE]"
                           />
+                          {newPetErrors.birthDate && <p className="mt-1 text-xs text-red-600">{newPetErrors.birthDate}</p>}
                         </div>
                       </div>
 
@@ -916,23 +1056,31 @@ const AddAppointment = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {timeSlots.map((slot) => {
                         const isBooked = bookedSlots.includes(slot);
+                        const selectedDate = appointmentData.date ? new Date(appointmentData.date) : null;
+                        const isToday = selectedDate && isSameDay(selectedDate, new Date());
+                        const slotMinutes = parseDisplayTimeToMinutes(slot);
+                        const now = new Date();
+                        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+                        const isPastSlot = Boolean(isToday && slotMinutes !== null && slotMinutes <= nowMinutes);
+                        const isDisabled = isBooked || isPastSlot;
                         const isSelected = appointmentData.time === slot;
                         
                         return (
                           <button
                             key={slot}
-                            onClick={() => !isBooked && setAppointmentData(prev => ({ ...prev, time: slot }))}
-                            disabled={isBooked}
+                            onClick={() => !isDisabled && setAppointmentData(prev => ({ ...prev, time: slot }))}
+                            disabled={isDisabled}
                             className={`p-3 rounded-lg text-sm font-medium transition ${
                               isSelected
                                 ? "bg-[#5EE6FE] text-white shadow-md"
-                                : isBooked
+                                : isDisabled
                                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                             }`}
                           >
                             {slot}
                             {isBooked && <span className="ml-1 text-xs">(Booked)</span>}
+                            {!isBooked && isPastSlot && <span className="ml-1 text-xs">(Past)</span>}
                           </button>
                         );
                       })}
@@ -979,7 +1127,7 @@ const AddAppointment = () => {
                   <div className="space-y-1 text-xs">
                     <p><span className="font-medium">Name:</span> {appointmentData.pet?.name}</p>
                     <p><span className="font-medium">Breed:</span> {appointmentData.pet?.breed}</p>
-                    <p><span className="font-medium">Age:</span> {appointmentData.pet?.age}y • {appointmentData.pet?.sex}</p>
+                    <p><span className="font-medium">Age:</span> {appointmentData.pet?.age} • {appointmentData.pet?.sex}</p>
                   </div>
                 </div>
               </div>
@@ -1039,7 +1187,7 @@ const AddAppointment = () => {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => navigate("/admin-pages/appointments")}
+                onClick={() => navigate(appointmentsHomePath)}
                 className="px-6 py-2.5 bg-[#5EE6FE] text-white rounded-lg hover:bg-[#4AD4EC] transition font-semibold text-sm"
               >
                 View Appointments
@@ -1065,6 +1213,17 @@ const AddAppointment = () => {
           </div>
         )}
       </div>
+
+      <AddPetModal
+        isOpen={showNewPetForm}
+        onClose={() => setShowNewPetForm(false)}
+        onSave={handlePetCreatedFromModal}
+        owners={ownerOptionsForModal}
+        initialData={null}
+        refreshPets={fetchOwnersAndPets}
+        defaultOwnerId={appointmentData.user?.id || ""}
+        lockOwnerSelection={Boolean(appointmentData.user?.id)}
+      />
 
       {/* Success Toast */}
       {toast?.type === "success" && currentStep !== 5 && (

@@ -115,8 +115,27 @@ const normalizeToLocalPhone = (rawValue) => {
         notes
       } = req.body;
 
-      if (!ownerId || !type || !breed || !name) {
-        return res.status(400).json({ message: "Missing required fields" });
+      const missing = [];
+      if (!ownerId) missing.push("ownerId");
+      if (!type) missing.push("type");
+      if (!breed) missing.push("breed");
+      if (!name) missing.push("name");
+      if (!sex) missing.push("sex");
+      if (!weight) missing.push("weight");
+      if (!dob) missing.push("dob");
+
+      if (missing.length > 0) {
+        return res.status(400).json({
+          message: `Missing required fields: ${missing.join(", ")}`,
+          missingFields: missing,
+        });
+      }
+
+      const parsedDob = new Date(dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (Number.isNaN(parsedDob.getTime()) || parsedDob > today) {
+        return res.status(400).json({ message: "Date of birth cannot be in the future" });
       }
 
       // Fetch breedID from breed_tbl
@@ -132,7 +151,7 @@ const normalizeToLocalPhone = (rawValue) => {
       const breedID = breedRow[0].breedID;
 
       // Insert new pet
-      await db.execute(
+      const [result] = await db.execute(
         `INSERT INTO pet_tbl 
           (accID, breedID, petName, petGender, weight_kg, color, dateOfBirth, note, imageName, isDeleted) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -155,7 +174,28 @@ const normalizeToLocalPhone = (rawValue) => {
 
   console.log("Saving pet data:", petData);
 
-      res.status(201).json({ message: "Pet created successfully" });
+      try {
+        const io = getIO();
+        io.emit("pet_created", {
+          petId: result.insertId,
+          ownerId: Number(ownerId),
+          petName: name,
+        });
+        io.emit("pets_updated", {
+          action: "pet_created",
+          ownerId: Number(ownerId),
+          petId: result.insertId,
+        });
+        io.to(`user_${Number(ownerId)}`).emit("pets_updated", {
+          action: "pet_created",
+          ownerId: Number(ownerId),
+          petId: result.insertId,
+        });
+      } catch (socketError) {
+        console.error("⚠️ Socket emit failed (createPet):", socketError.message);
+      }
+
+      res.status(201).json({ message: "Pet created successfully", petId: result.insertId });
 
     } catch (err) {
       console.log("REQ BODY:", req.body);
@@ -249,7 +289,7 @@ export const createOwner = async (req, res) => {
       return res.status(400).json({ message: "Please provide a valid email address" });
     }
 
-    // ✅ CHECK IF EMAIL EXISTS AND IS NOT DELETED
+    // Check if email exists and whether we can reuse a deleted account.
     const [existingAccount] = await db.execute(
       "SELECT accId, roleID, isDeleted FROM account_tbl WHERE email = ?",
       [normalizedEmail]
@@ -260,19 +300,10 @@ export const createOwner = async (req, res) => {
       
       // If account exists and is NOT deleted, reject
       if (account.isDeleted === 0) {
-        return res.status(400).json({ 
-          message: "Email already exists and is active" 
-        });
-      }
-      
-      // Do not allow reusing emails from deleted non-client accounts.
-      if (account.roleID !== 1) {
-        return res.status(400).json({
-          message: "Email belongs to a deleted staff account. Please use a different email."
-        });
+        return res.status(409).json({ message: "Email is already in use." });
       }
 
-      console.log(`⚠️ Found deleted client account with email ${normalizedEmail}. Proceeding with client recreation.`);
+      console.log(`⚠️ Found deleted account with email ${normalizedEmail}. Proceeding with client recreation.`);
     }
 
     // Generate random password
@@ -305,20 +336,29 @@ export const createOwner = async (req, res) => {
 
     try {
       let accId;
+      const insertedPetIds = [];
 
       // Check if there's a deleted account we want to "reactivate"
       const [deletedAccount] = await connection.execute(
-        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1 AND roleID = 1",
+        "SELECT accId FROM account_tbl WHERE email = ? AND isDeleted = 1",
         [normalizedEmail]
       );
 
       if (deletedAccount.length > 0) {
         // Reactivate the deleted account
         const oldAccId = deletedAccount[0].accId;
+
+        // Clear stale role-bound/account-bound rows before repurposing this account as a client.
+        await connection.execute("DELETE FROM admin_info_tbl WHERE accID = ?", [oldAccId]);
+        await connection.execute("DELETE FROM vet_table WHERE accId = ?", [oldAccId]);
+        await connection.execute("DELETE FROM user_websocket_sessions_tbl WHERE accID = ?", [oldAccId]);
+        await connection.execute("DELETE FROM user_notifications_tbl WHERE accID = ?", [oldAccId]);
+        await connection.execute("DELETE FROM userpreference_tbl WHERE accId = ?", [oldAccId]);
+        await connection.execute("DELETE FROM clientinfo_tbl WHERE accId = ?", [oldAccId]);
         
         await connection.execute(
           `UPDATE account_tbl 
-           SET firstName = ?, lastName = ?, password = ?, isDeleted = 0, 
+           SET roleID = 1, firstName = ?, lastName = ?, password = ?, isDeleted = 0, 
                lastUpdatedAt = NOW(), createdAt = NOW()
            WHERE accId = ?`,
           [normalizedFirstName, normalizedLastName, hashedPassword, oldAccId]
@@ -326,27 +366,12 @@ export const createOwner = async (req, res) => {
         
         accId = oldAccId;
         
-        // Update or insert client info
-        const [existingClient] = await connection.execute(
-          "SELECT cliendInfoId FROM clientinfo_tbl WHERE accId = ?",
-          [oldAccId]
+        await connection.execute(
+          `INSERT INTO clientinfo_tbl 
+           (accId, gender, dateOfBirth, address, contactNo) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [oldAccId, sex || null, dob || null, normalizedAddress, normalizedPhone]
         );
-        
-        if (existingClient.length > 0) {
-          await connection.execute(
-            `UPDATE clientinfo_tbl 
-             SET gender = ?, dateOfBirth = ?, address = ?, contactNo = ?
-             WHERE accId = ?`,
-            [sex || null, dob || null, normalizedAddress, normalizedPhone, oldAccId]
-          );
-        } else {
-          await connection.execute(
-            `INSERT INTO clientinfo_tbl 
-             (accId, gender, dateOfBirth, address, contactNo) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [oldAccId, sex || null, dob || null, normalizedAddress, normalizedPhone]
-          );
-        }
         
         console.log(`✅ Reactivated deleted account with ID: ${oldAccId}`);
         
@@ -386,7 +411,7 @@ export const createOwner = async (req, res) => {
 
             const breedID = breedRow[0].breedID;
 
-            await connection.execute(
+            const [insertedPet] = await connection.execute(
               `INSERT INTO pet_tbl 
                (accID, breedID, petName, petGender, weight_kg, color, dateOfBirth, note, imageName, isDeleted) 
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -403,12 +428,38 @@ export const createOwner = async (req, res) => {
                 0
               ]
             );
+
+            insertedPetIds.push(insertedPet.insertId);
           }
         }
       }
 
       await connection.commit();
       connection.release();
+
+      try {
+        const io = getIO();
+        io.emit("owner_created", {
+          ownerId: Number(accId),
+          email: normalizedEmail,
+          firstName: normalizedFirstName,
+          lastName: normalizedLastName,
+        });
+
+        io.emit("pets_updated", {
+          action: "owner_created",
+          ownerId: Number(accId),
+          petIds: insertedPetIds.map(Number),
+        });
+
+        io.to(`user_${Number(accId)}`).emit("pets_updated", {
+          action: "owner_created",
+          ownerId: Number(accId),
+          petIds: insertedPetIds.map(Number),
+        });
+      } catch (socketError) {
+        console.error("⚠️ Socket emit failed (createOwner):", socketError.message);
+      }
 
       res.status(201).json({ 
         message: "Owner and pets created successfully",
@@ -494,7 +545,7 @@ export const createOwner = async (req, res) => {
     console.error("Error creating owner:", err);
     
     if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(409).json({ message: "Email is already in use." });
     }
     
     res.status(500).json({ message: "Server error", error: err.message });
@@ -534,6 +585,18 @@ export const updateOwner = async (req, res) => {
 
     if (!EMAIL_REGEX.test(normalizedEmail)) {
       return res.status(400).json({ message: "Please provide a valid email address" });
+    }
+
+    const [duplicateEmailRows] = await db.execute(
+      `SELECT accId
+       FROM account_tbl
+       WHERE email = ? AND accId <> ? AND isDeleted = 0
+       LIMIT 1`,
+      [normalizedEmail, ownerId]
+    );
+
+    if (duplicateEmailRows.length > 0) {
+      return res.status(409).json({ message: "Email is already in use." });
     }
 
     // Start transaction
@@ -600,6 +663,7 @@ export const softDeleteOwner = async (req, res) => {
   let connection;
   try {
     const { ownerId } = req.params;
+    const numericOwnerId = Number(ownerId);
     connection = await db.getConnection();
     await connection.beginTransaction();
 
@@ -620,6 +684,18 @@ export const softDeleteOwner = async (req, res) => {
       [ownerId]
     );
     const petIds = petRows.map((pet) => pet.petID).filter(Boolean);
+
+    const [appointmentRows] = await connection.execute(
+      'SELECT appointmentID FROM appointment_tbl WHERE accID = ?',
+      [ownerId]
+    );
+    const appointmentIds = appointmentRows.map((row) => row.appointmentID).filter(Boolean);
+
+    const [forumRows] = await connection.execute(
+      'SELECT forumID FROM forum_posts_tbl WHERE accID = ?',
+      [ownerId]
+    );
+    const forumIds = forumRows.map((row) => row.forumID).filter(Boolean);
 
     if (petIds.length > 0) {
       const placeholders = petIds.map(() => '?').join(',');
@@ -652,6 +728,7 @@ export const softDeleteOwner = async (req, res) => {
     await connection.execute('DELETE FROM pet_tbl WHERE accID = ?', [ownerId]);
     await connection.execute('DELETE FROM clientinfo_tbl WHERE accId = ?', [ownerId]);
     await connection.execute('DELETE FROM userpreference_tbl WHERE accId = ?', [ownerId]);
+    await connection.execute('DELETE FROM feedbacks_tbl WHERE accID = ?', [ownerId]);
 
     await connection.commit();
     connection.release();
@@ -662,15 +739,28 @@ export const softDeleteOwner = async (req, res) => {
         await removeNotificationsByReference('pet_tbl', Number(petId));
       }
 
-      const [forumRows] = await db.execute(
-        'SELECT forumID FROM forum_posts_tbl WHERE accID = ?',
-        [ownerId]
-      );
-      for (const forumRow of forumRows) {
-        await removeNotificationsByReference('forum_posts_tbl', Number(forumRow.forumID));
+      for (const appointmentId of appointmentIds) {
+        await removeNotificationsByReference('appointment_tbl', Number(appointmentId));
+      }
+
+      for (const forumId of forumIds) {
+        await removeNotificationsByReference('forum_posts_tbl', Number(forumId));
       }
     } catch (notifError) {
       console.error('⚠️ Notification cleanup after owner deletion failed:', notifError.message);
+    }
+
+    try {
+      const io = getIO();
+      io.emit('owner_deleted', { ownerId: numericOwnerId });
+      io.to(`user_${numericOwnerId}`).emit('account_deleted', { ownerId: numericOwnerId });
+      io.to(`user_${numericOwnerId}`).emit('pets_updated', {
+        action: 'owner_deleted',
+        ownerId: numericOwnerId,
+        petIds: petIds.map(Number),
+      });
+    } catch (socketError) {
+      console.error('⚠️ Socket emit failed (softDeleteOwner):', socketError.message);
     }
 
     res.status(200).json({ message: 'Owner soft deleted successfully' });
@@ -689,26 +779,103 @@ export const softDeleteOwner = async (req, res) => {
 };
 
 export const softDeletePet = async (req, res) => {
+  let connection;
   try {
     const { petId } = req.params;
+    const numericPetId = Number(petId);
 
-    const [result] = await db.execute(
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const [petRows] = await connection.execute(
+      'SELECT accID FROM pet_tbl WHERE petID = ? AND isDeleted = 0',
+      [petId]
+    );
+
+    if (!petRows.length) {
+      await connection.rollback();
+      connection.release();
+      return res.status(404).json({ message: 'Pet not found' });
+    }
+
+    const ownerId = Number(petRows[0].accID);
+
+    const [appointmentRows] = await connection.execute(
+      'SELECT appointmentID FROM appointment_tbl WHERE petID = ?',
+      [petId]
+    );
+    const appointmentIds = appointmentRows.map((row) => row.appointmentID).filter(Boolean);
+
+    const [medicalRows] = await connection.execute(
+      'SELECT petMedicalID FROM petmedical_tbl WHERE petID = ?',
+      [petId]
+    );
+    const medicalIds = medicalRows.map((row) => row.petMedicalID).filter(Boolean);
+
+    const [result] = await connection.execute(
       'UPDATE pet_tbl SET isDeleted = 1 WHERE petID = ?',
       [petId]
     );
 
     if (result.affectedRows === 0) {
+      await connection.rollback();
+      connection.release();
       return res.status(404).json({ message: 'Pet not found' });
     }
 
+    if (medicalIds.length > 0) {
+      const placeholders = medicalIds.map(() => '?').join(',');
+      await connection.execute(
+        `DELETE FROM petmedical_file_tbl WHERE petmedicalID IN (${placeholders})`,
+        medicalIds
+      );
+      await connection.execute(
+        `DELETE FROM petmedical_tbl WHERE petMedicalID IN (${placeholders})`,
+        medicalIds
+      );
+    }
+
+    await connection.execute('DELETE FROM appointment_tbl WHERE petID = ?', [petId]);
+
+    await connection.commit();
+    connection.release();
+
     try {
-      await removeNotificationsByReference('pet_tbl', Number(petId));
+      await removeNotificationsByReference('pet_tbl', numericPetId);
+
+      for (const appointmentId of appointmentIds) {
+        await removeNotificationsByReference('appointment_tbl', Number(appointmentId));
+      }
+
+      for (const medicalId of medicalIds) {
+        await removeNotificationsByReference('petmedical_tbl', Number(medicalId));
+      }
     } catch (notifError) {
       console.error('⚠️ Failed to cleanup pet notifications:', notifError.message);
     }
 
+    try {
+      const io = getIO();
+      io.to(`user_${ownerId}`).emit('pets_updated', {
+        action: 'pet_deleted',
+        ownerId,
+        petId: numericPetId,
+      });
+      io.emit('pet_deleted', { ownerId, petId: numericPetId });
+    } catch (socketError) {
+      console.error('⚠️ Socket emit failed (softDeletePet):', socketError.message);
+    }
+
     res.status(200).json({ message: 'Pet soft deleted successfully' });
   } catch (error) {
+    if (connection) {
+      try {
+        await connection.rollback();
+      } catch (rollbackError) {
+        console.error('Rollback failed in softDeletePet:', rollbackError);
+      }
+      connection.release();
+    }
     console.error('Error soft deleting pet:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }

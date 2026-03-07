@@ -30,8 +30,11 @@ const AppointmentsTab = ({
   handleSingleDelete,
   handleCancelAppointment,
   handleUpdateStatus,
-  statusColors
+  statusColors,
+  isReadOnly = false,
 }) => {
+  const addAppointmentPath = "/admin-pages/appointments/add";
+
   return (
     <div className="">
       {/* Search & Filter with New Select Controls */}
@@ -64,18 +67,20 @@ const AppointmentsTab = ({
           </select>
 
           {/* Add Button */}
-          <button
-            onClick={() => navigate("/admin-pages/appointments/add")}
-            className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            Appointment
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => navigate(addAppointmentPath)}
+              className="flex items-center gap-2 px-4 py-2 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              Appointment
+            </button>
+          )}
         </div>
 
         {/* Selection Controls */}
         <div className="flex gap-2 items-center">
-          {isSelectMode ? (
+          {!isReadOnly && isSelectMode ? (
             <>
               <span className="text-sm text-gray-600">
                 {getSelectedCount()} selected
@@ -118,14 +123,14 @@ const AppointmentsTab = ({
                 Cancel
               </button>
             </>
-          ) : (
+          ) : !isReadOnly ? (
             <button
               onClick={toggleSelectMode}
               className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-medium text-sm"
             >
               Select
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -133,7 +138,7 @@ const AppointmentsTab = ({
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 dark:bg-[#1B1B1B] sticky top-0">
             <tr>
-              {isSelectMode && (
+              {!isReadOnly && isSelectMode && (
                 <th className="p-2 text-sm text-gray-600 dark:text-gray-300 w-12">
                   <input
                     type="checkbox"
@@ -155,7 +160,7 @@ const AppointmentsTab = ({
           <tbody>
             {appointments.length === 0 ? (
               <tr>
-                <td colSpan={isSelectMode ? 8 : 7} className="text-center p-4 text-gray-400">
+                <td colSpan={!isReadOnly && isSelectMode ? 8 : 7} className="text-center p-4 text-gray-400">
                   No appointments found.
                 </td>
               </tr>
@@ -168,7 +173,7 @@ const AppointmentsTab = ({
                     key={item.id}
                     className="cursor-pointer hover:bg-[#E5FBFF] dark:hover:bg-[#222] transition"
                   >
-                    {isSelectMode && (
+                    {!isReadOnly && isSelectMode && (
                       <td className="p-2">
                         <input
                           type="checkbox"
@@ -184,7 +189,7 @@ const AppointmentsTab = ({
                     <td className="p-2 text-sm">{formatDate(item.date)}</td>
                     <td className="p-2 text-sm">{item.time}</td>
                     <td className="p-2 text-sm">
-                      {isEditable ? (
+                      {!isReadOnly && isEditable ? (
                         <select
                           value={item.status}
                           onChange={(e) => {
@@ -229,11 +234,13 @@ const AppointmentsTab = ({
                           setIsDetailsModalOpen(true);
                         }}
                       />
-                      <Trash2
-                        size={18}
-                        className="text-red-500 cursor-pointer hover:text-red-600"
-                        onClick={() => handleSingleDelete(item)}
-                      />
+                      {!isReadOnly && (
+                        <Trash2
+                          size={18}
+                          className="text-red-500 cursor-pointer hover:text-red-600"
+                          onClick={() => handleSingleDelete(item)}
+                        />
+                      )}
                     </td>
                   </tr>
                 );

@@ -115,7 +115,7 @@ export default function PetTipsOverlay({ onClose, tips = [] }) {
 
         <AnimatePresence>
           {selectedTip && (
-            <div className="fixed inset-0 z-[120000] flex items-center justify-center">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
               <motion.div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 initial={{ opacity: 0 }}
@@ -123,59 +123,49 @@ export default function PetTipsOverlay({ onClose, tips = [] }) {
                 exit={{ opacity: 0 }}
                 onClick={() => setSelectedTip(null)}
               />
-
               <motion.div
-                className="relative bg-white rounded-2xl p-6 max-w-md w-[90%] shadow-xl z-10"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
+                className="relative z-[10000] bg-white rounded-xl sm:rounded-2xl md:rounded-3xl w-full max-w-md p-4 sm:p-5 md:p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
+                initial={{ opacity: 0, scale: 0.8, y: 30 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 30 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="text-2xl text-[#5EE6FE] mt-1">
-                    <i className={`fa-solid ${selectedTip.icon}`}></i>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-[#5EE6FE]">
-                      {selectedTip.title}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      {selectedTip.category || "General"}
-                    </p>
-                  </div>
+                <div className="text-[#2FA394] text-3xl sm:text-4xl mb-3 sm:mb-4 flex justify-center">
+                  <i className={`fa-solid ${selectedTip.icon}`}></i>
                 </div>
-
-                <p className="text-gray-600 mb-4">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 text-[#2FA394] text-center">
+                  {selectedTip.title}
+                </h2>
+                <div className="flex justify-center mb-3 sm:mb-4">
+                  <span className="inline-block text-xs font-medium text-[#2FA394] px-3 py-1 rounded-full border border-[#2FA394]">
+                    {selectedTip.category || "General"}
+                  </span>
+                </div>
+                <p className="text-gray-700 mb-4 sm:mb-5 md:mb-6 text-xs sm:text-sm leading-relaxed">
                   {selectedTip.long || selectedTip.short || "No details available."}
                 </p>
-
-                {(selectedTip.author || selectedTip.lastUpdated) && (
-                  <div className="mb-4 text-sm text-gray-500 space-y-1">
-                    {selectedTip.author && <p>Author: {selectedTip.author}</p>}
-                    {selectedTip.lastUpdated && (
-                      <p>
-                        Last updated:{" "}
-                        {new Date(selectedTip.lastUpdated).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-3">
-                  {selectedTip.url && (
-                    <button
-                      onClick={() => setConfirmLink(selectedTip.url)}
-                      className="bg-[#5EE6FE] text-white px-4 py-2 rounded-lg"
-                    >
-                      Learn More
-                    </button>
-                  )}
-
-                  <button
+                <div className="flex flex-col xs:flex-row justify-center gap-2 sm:gap-3">
+                  <motion.a
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (selectedTip.url) {
+                        setConfirmLink(selectedTip.url);
+                      }
+                    }}
+                    className="bg-[#2FA394] hover:bg-[#24907e] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium cursor-pointer text-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Learn More
+                  </motion.a>
+                  <motion.button
                     onClick={() => setSelectedTip(null)}
-                    className="bg-gray-300 px-4 py-2 rounded-lg"
+                    className="bg-gray-300 hover:bg-gray-400 text-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Close
-                  </button>
+                  </motion.button>
                 </div>
               </motion.div>
             </div>

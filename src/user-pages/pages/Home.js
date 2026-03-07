@@ -21,6 +21,8 @@ function Home() {
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [labRecords, setLabRecords] = useState([]);
   const [petCareTips, setPetCareTips] = useState([]);
+  const [showExternalTipModal, setShowExternalTipModal] = useState(false);
+  const [pendingTipUrl, setPendingTipUrl] = useState("");
   const [loading, setLoading] = useState({
     appointments: true,
     medical: true,
@@ -257,6 +259,25 @@ function Home() {
     setSelectedAppointment(null);
   };
 
+  const handleTipClick = (url) => {
+    if (!url) return;
+    setPendingTipUrl(url);
+    setShowExternalTipModal(true);
+  };
+
+  const handleConfirmTipRedirect = () => {
+    if (pendingTipUrl) {
+      window.open(pendingTipUrl, "_blank", "noopener,noreferrer");
+    }
+    setShowExternalTipModal(false);
+    setPendingTipUrl("");
+  };
+
+  const handleCancelTipRedirect = () => {
+    setShowExternalTipModal(false);
+    setPendingTipUrl("");
+  };
+
   // Animation variants (keep your existing ones)
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -334,7 +355,7 @@ function Home() {
                 icon={petCareTips[0].icon || "fa-paw"}
                 bg="#FCE7F3" 
                 text="#045D56"
-                url={petCareTips[0].url}
+                onClick={() => handleTipClick(petCareTips[0].url)}
               />
             ) : (
               <DashboardCard 
@@ -364,7 +385,7 @@ function Home() {
                 icon={petCareTips[1].icon || "fa-paw"}
                 bg="#E3FAF7" 
                 text="#7C2E38"
-                url={petCareTips[1].url}
+                onClick={() => handleTipClick(petCareTips[1].url)}
               />
             ) : (
               <DashboardCard 
@@ -478,6 +499,56 @@ function Home() {
               className="w-full max-w-sm sm:max-w-md"
             >
               <ViewDetailsModal appointment={selectedAppointment} closeModal={closeModal} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showExternalTipModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4"
+            onClick={handleCancelTipRedirect}
+          >
+            <motion.div
+              initial={{ y: 10, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 10, opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-9 w-9 shrink-0 rounded-full bg-[#FFF4E5] text-[#C57A00] flex items-center justify-center">
+                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">You are about to leave RVCare</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    This tip opens an external website in a new tab. Do you want to continue?
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelTipRedirect}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmTipRedirect}
+                  className="rounded-lg bg-[#2FA394] px-4 py-2 text-sm font-medium text-white hover:bg-[#24907e]"
+                >
+                  Continue
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

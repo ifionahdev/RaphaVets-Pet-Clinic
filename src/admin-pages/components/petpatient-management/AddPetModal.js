@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Search, AlertCircle } from "lucide-react";
 import api from "../../../api/axios"; 
 
-const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets }) => {
+const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets, defaultOwnerId = "", lockOwnerSelection = false }) => {
   const [petData, setPetData] = useState({
     ownerId: "",
     type: "",
@@ -21,6 +21,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
   const [ownerSearch, setOwnerSearch] = useState("");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const toInputDate = (dateStr) => {
     if (!dateStr) return "";
@@ -67,7 +68,9 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
         break;
         
       case "weight":
-        if (value) {
+        if (!value) {
+          newErrors.weight = "Weight is required";
+        } else {
           const weight = parseFloat(value);
           if (isNaN(weight) || weight <= 0) {
             newErrors.weight = "Weight must be a positive number";
@@ -76,8 +79,6 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
           } else {
             delete newErrors.weight;
           }
-        } else {
-          delete newErrors.weight; // Weight is optional
         }
         break;
         
@@ -90,7 +91,9 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
         break;
         
       case "dob":
-        if (value) {
+        if (!value) {
+          newErrors.dob = "Date of birth is required";
+        } else {
           const dobDate = new Date(value);
           const today = new Date();
           if (dobDate > today) {
@@ -98,8 +101,6 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
           } else {
             delete newErrors.dob;
           }
-        } else {
-          delete newErrors.dob; // DOB is optional
         }
         break;
         
@@ -111,19 +112,51 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
   };
 
   const validateForm = () => {
-    // Validate all required fields
-    validateField("ownerId", petData.ownerId);
-    validateField("type", petData.type);
-    validateField("breed", petData.breed);
-    validateField("name", petData.name);
-    validateField("sex", petData.sex);
-    
-    // Validate optional fields if they have values
-    if (petData.weight) validateField("weight", petData.weight);
-    if (petData.color) validateField("color", petData.color);
-    if (petData.dob) validateField("dob", petData.dob);
-    
-    return Object.keys(errors).length === 0;
+    const nextErrors = {};
+
+    if (!petData.ownerId) nextErrors.ownerId = "Owner is required";
+    if (!petData.type) nextErrors.type = "Pet type is required";
+    if (!petData.breed) nextErrors.breed = "Breed is required";
+
+    const normalizedName = String(petData.name || "").trim();
+    if (!normalizedName) {
+      nextErrors.name = "Pet name is required";
+    } else if (normalizedName.length < 2) {
+      nextErrors.name = "Pet name must be at least 2 characters";
+    } else if (!/^[\p{L}\s]+$/u.test(normalizedName)) {
+      nextErrors.name = "Pet name can only contain letters and spaces";
+    }
+
+    if (!petData.sex) nextErrors.sex = "Gender is required";
+
+    if (!petData.weight) {
+      nextErrors.weight = "Weight is required";
+    } else {
+      const weight = parseFloat(petData.weight);
+      if (Number.isNaN(weight) || weight <= 0) {
+        nextErrors.weight = "Weight must be a positive number";
+      } else if (weight > 200) {
+        nextErrors.weight = "Weight seems too high. Please verify.";
+      }
+    }
+
+    if (petData.color && !/^[\p{L}\s]+$/u.test(String(petData.color).trim())) {
+      nextErrors.color = "Color can only contain letters and spaces";
+    }
+
+    if (!petData.dob) {
+      nextErrors.dob = "Date of birth is required";
+    } else {
+      const dobDate = new Date(petData.dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dobDate > today) {
+        nextErrors.dob = "Date of birth cannot be in the future";
+      }
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
   // Fetch species (Type)
@@ -178,7 +211,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
 
     const fetchBreeds = async () => {
       try {
-        const res = await api.get(`admin/breeds?species=${petData.type}`);
+        const res = await api.get(`/admin/breeds?species=${petData.type}`);
         setBreeds(res.data);
       } catch (error) {
         console.error("Failed to fetch breeds:", error);
@@ -196,6 +229,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
       setBreeds([]); // Clear breeds temporarily
     }
     setPetData(updated);
+    setApiError("");
     
     // Validate field in real-time
     validateField(field, value);
@@ -211,26 +245,33 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
     try {
       // For editing existing pet
       if (initialData) {
-        const res = await api.put(`admin/update-pet/${initialData.id}`, { 
+        const res = await api.put(`/admin/update-pet/${initialData.id}`, { 
           ...petData,
           type: petData.type
         });
         console.log("Pet updated:", res.data);
       } else {
         // For adding new pet
-        const res = await api.post("admin/add-pets", { 
+        const res = await api.post("/admin/add-pets", { 
           ...petData,
           type: petData.type
         });
         console.log("Pet saved:", res.data);
+
+        onSave({
+          ...petData,
+          id: res.data?.petId || Date.now(),
+          owner: owners.find(o => o.id === Number(petData.ownerId))?.name || ""
+        });
       }
 
-      // Pass the saved pet data back to parent
-      onSave({
-        ...petData,
-        id: initialData?.id || Date.now(),
-        owner: owners.find(o => o.id === parseInt(petData.ownerId))?.name || ""
-      });
+      if (initialData) {
+        onSave({
+          ...petData,
+          id: initialData?.id || Date.now(),
+          owner: owners.find(o => o.id === Number(petData.ownerId))?.name || ""
+        });
+      }
 
       resetForm();
       onClose();
@@ -240,7 +281,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
       }
     } catch (err) {
       console.error("Error saving pet:", err);
-      alert("Failed to save pet.");
+      setApiError(err?.response?.data?.message || "Failed to save pet.");
     } finally {
       setIsLoading(false);
     }
@@ -262,7 +303,13 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
     setOwnerSearch("");
     setBreeds([]);
     setErrors({});
+    setApiError("");
   };
+
+  useEffect(() => {
+    if (!isOpen || initialData || !defaultOwnerId) return;
+    setPetData((prev) => ({ ...prev, ownerId: Number(defaultOwnerId) }));
+  }, [defaultOwnerId, initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -290,9 +337,16 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
           {initialData ? "Edit Pet" : "Add New Pet"}
         </h2>
 
+        {apiError && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex items-center gap-2">
+            <AlertCircle size={14} />
+            <span>{apiError}</span>
+          </div>
+        )}
+
         <div className="flex gap-4 flex-1 min-h-0">
           {/* Left: Owner selection */}
-          <div className="flex-1 bg-white dark:bg-[#252525] p-4 rounded-xl flex flex-col gap-3 min-h-0 overflow-y-auto">
+          <div className={`flex-1 bg-white dark:bg-[#252525] p-4 rounded-xl flex flex-col gap-3 min-h-0 overflow-y-auto ${lockOwnerSelection ? "hidden" : ""}`}>
             <h3 className="font-semibold text-[#212529] dark:text-white mb-2 text-base">Select Owner *</h3>
             <div className="relative mb-2">
               <Search className="absolute top-3 left-3 text-gray-400" size={16} />
@@ -301,6 +355,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
                 placeholder="Search by name or email..."
                 value={ownerSearch}
                 onChange={(e) => setOwnerSearch(e.target.value)}
+                disabled={lockOwnerSelection}
                 className="w-full pl-10 p-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#252525] text-gray-800 dark:text-gray-200 text-sm focus:border-[#5EE6FE] focus:ring-1 focus:ring-[#5EE6FE] transition"
               />
             </div>
@@ -309,7 +364,7 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
                 filteredOwners.map((owner) => (
                   <div
                     key={owner.id}
-                    onClick={() => handleChange("ownerId", owner.id)}
+                    onClick={() => !lockOwnerSelection && handleChange("ownerId", owner.id)}
                     className={`p-2 cursor-pointer rounded-md ${
                       petData.ownerId === owner.id
                         ? "bg-[#5EE6FE]/30 dark:bg-[#5EE6FE]/50"
@@ -439,9 +494,9 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
                 )}
               </div>
 
-              {/* Weight - Optional */}
+              {/* Weight - Required */}
               <div>
-                <label className="block mb-1">Weight (kg)</label>
+                <label className="block mb-1">Weight (kg) *</label>
                 <input
                   type="number"
                   value={petData.weight}
@@ -479,12 +534,13 @@ const AddPetModal = ({ isOpen, onClose, onSave, owners, initialData, refreshPets
                 )}
               </div>
 
-              {/* Date of Birth - Optional */}
+              {/* Date of Birth - Required */}
               <div>
-                <label className="block mb-1">Date of Birth</label>
+                <label className="block mb-1">Date of Birth *</label>
                 <input
                   type="date"
                   value={petData.dob}
+                  max={new Date().toISOString().split("T")[0]}
                   onChange={(e) => handleChange("dob", e.target.value)}
                   className={`w-full p-2 rounded-xl border ${
                     errors.dob ? 'border-red-300' : 'border-gray-300 dark:border-gray-600'

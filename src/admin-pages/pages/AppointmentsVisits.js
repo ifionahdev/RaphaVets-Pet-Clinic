@@ -13,35 +13,9 @@ import DeleteConfirmationModal from "../components/appointments/DeleteConfirmati
 import CancelAppointmentModal from "../components/appointments/CancelAppointmentModal";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
-import { ca } from "date-fns/locale";
+import socket from "../../socket";
 
 import api from "../../api/axios";
-
-const currentYear = new Date().getFullYear();
-const currentMonth = String(new Date().getMonth() + 1).padStart(2, "0");
-
-const sampleAppointments = [
-  { id: 1, petName: "Bogart", owner: "Mark Mapili", date: `${currentYear}-${currentMonth}-10`, time: "9:00 AM", status: "Completed", visitType: "Scheduled" },
-  { id: 2, petName: "Tan tan", owner: "Miguel Rojero", date: `${currentYear}-${currentMonth}-12`, time: "11:30 AM", status: "Cancelled", visitType: "Scheduled" },
-  { id: 3, petName: "Ming", owner: "Jordan Frando", date: `${currentYear}-${currentMonth}-15`, time: "1:00 PM", status: "Completed", visitType: "Scheduled" },
-  { id: 4, petName: "Rocky", owner: "Fionah Beltran", date: `${currentYear}-${currentMonth}-16`, time: "3:00 PM", status: "Cancelled", visitType: "Scheduled" },
-  { id: 5, petName: "Tobi", owner: "Vanerie Parcon", date: `${currentYear}-${currentMonth}-18`, time: "10:00 AM", status: "Cancelled", visitType: "Scheduled" },
-  { id: 6, petName: "Garfield", owner: "Marvin Tomales", date: `${currentYear}-${currentMonth}-18`, time: "11:00 AM", status: "Completed", visitType: "Scheduled" },
-  { id: 7, petName: "Tanza", owner: "Clark raguhos", date: `${currentYear}-${currentMonth}-18`, time: "12:00 PM", status: "Completed", visitType: "Scheduled" },
-  { id: 8, petName: "Mark", owner: "Lars Bernardez", date: `${currentYear}-${currentMonth}-18`, time: "1:00 PM", status: "Completed", visitType: "Scheduled" },
-  { id: 9, petName: "Miguel", owner: "Jerome Bulatao", date: `${currentYear}-${currentMonth}-25`, time: "2:00 PM", status: "Pending", visitType: "Scheduled" },
-  { id: 10, petName: "Brownie", owner: "Irick Beltran", date: `${currentYear}-${currentMonth}-25`, time: "3:00 PM", status: "Upcoming", visitType: "Scheduled" },
-  { id: 11, petName: "Blackie", owner: "Caiden Levi", date: `${currentYear}-${currentMonth}-25`, time: "4:00 PM", status: "Upcoming", visitType: "Scheduled" },
-  { id: 12, petName: "Whamie", owner: "Zyram Beltran", date: `${currentYear}-${currentMonth}-28`, time: "5:00 PM", status: "Upcoming", visitType: "Scheduled" },
-];
-
-const sampleVisits = [
-  { id: 101, petName: "Miguel", owner: "Emily Sicat", date: `${currentYear}-${currentMonth}-10`, time: "9:30 AM", visitType: "Scheduled", status: "Completed" },
-  { id: 102, petName: "Mark", owner: "Jerom Bulatao", date: `${currentYear}-${currentMonth}-11`, time: "2:15 PM", visitType: "Walk-in", status: "Completed" },
-  { id: 103, petName: "Jade", owner: "Fionah Irish", date: `${currentYear}-${currentMonth}-12`, time: "11:00 AM", visitType: "Scheduled", status: "Completed" },
-  { id: 104, petName: "Vanerie", owner: "Mark Mapili", date: `${currentYear}-${currentMonth}-13`, time: "3:45 PM", visitType: "Walk-in", status: "Completed" },
-  { id: 105, petName: "Ashley", owner: "Tadifa", date: `${currentYear}-${currentMonth}-14`, time: "10:30 AM", visitType: "Scheduled", status: "Completed" },
-];
 
 const statusColors = {
   Pending: "bg-yellow-300 text-yellow-800",  
@@ -60,8 +34,8 @@ const AppointmentsVisits = () => {
   const [activeTab, setActiveTab] = useState("Calendar");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [appointments, setAppointments] = useState(sampleAppointments);
-  const [visits, setVisits] = useState(sampleVisits);
+  const [appointments, setAppointments] = useState([]);
+  const [visits, setVisits] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
@@ -79,28 +53,44 @@ const AppointmentsVisits = () => {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const isVet = localStorage.getItem("userRole") === "3";
   const navigate = useNavigate();
 
-  const fetchAppointmentData = async() => {
-    try{
+  const fetchAppointmentData = async () => {
+    try {
       const res = await api.get("/admin/appointments");
       const data = res.data;
       const appointments = data.cleanedAppointments;
       const visits = data.cleanedVisits;
 
-      console.log("appointments: ", appointments);
-      console.log("visits: ", visits);
-      setAppointments(appointments);
-      setVisits(visits);
-
-    }catch(err){
-      console.log(err.message)
+      setAppointments(Array.isArray(appointments) ? appointments : []);
+      setVisits(Array.isArray(visits) ? visits : []);
+    } catch (err) {
+      console.log(err.message);
+      setAppointments([]);
+      setVisits([]);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAppointmentData();
   }, [])
+
+  useEffect(() => {
+    const refreshAppointments = () => {
+      fetchAppointmentData();
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.on("appointments_updated", refreshAppointments);
+
+    return () => {
+      socket.off("appointments_updated", refreshAppointments);
+    };
+  }, []);
 
   const filteredAppointments = appointments.filter(app => {
     if (activeTab === "Appointments" && app.status === "Pending") return false;
@@ -127,6 +117,9 @@ const AppointmentsVisits = () => {
   };
 
   const handleUpdateStatus = async (appointmentId, newStatus) => {
+    if (isVet) {
+      return false;
+    }
     try {
 
       await api.patch("/admin/appointments/status", {
@@ -149,17 +142,20 @@ const AppointmentsVisits = () => {
   };
 
   const handleCancelAppointment = (appointment) => {
+    if (isVet) return;
     setAppointmentToCancel(appointment);
     setShowCancelModal(true);
   };
 
   const toggleSelectMode = () => {
+    if (isVet) return;
     setIsSelectMode(!isSelectMode);
     setSelectedAppointments([]);
     setSelectedVisits([]);
   };
 
   const toggleAppointmentSelection = (appointmentId) => {
+    if (isVet) return;
     setSelectedAppointments(prev =>
       prev.includes(appointmentId)
         ? prev.filter(id => id !== appointmentId)
@@ -168,6 +164,7 @@ const AppointmentsVisits = () => {
   };
 
   const toggleVisitSelection = (visitId) => {
+    if (isVet) return;
     setSelectedVisits(prev =>
       prev.includes(visitId)
         ? prev.filter(id => id !== visitId)
@@ -176,6 +173,7 @@ const AppointmentsVisits = () => {
   };
 
   const toggleSelectAll = () => {
+    if (isVet) return;
     if (activeTab === "Appointments") {
       if (selectedAppointments.length === filteredAppointments.length && filteredAppointments.length > 0) {
         setSelectedAppointments([]);
@@ -192,6 +190,7 @@ const AppointmentsVisits = () => {
   };
 
   const handleSingleDelete = (item) => {
+    if (isVet) return;
     if (activeTab === "Appointments") {
       setAppointmentToDelete([item]);
       setShowDeleteModal(true);
@@ -202,6 +201,7 @@ const AppointmentsVisits = () => {
   };
 
   const handleBulkDelete = () => {
+    if (isVet) return;
     if (activeTab === "Appointments" && selectedAppointments.length === 0) return;
     if (activeTab === "Visits" && selectedVisits.length === 0) return;
     
@@ -221,6 +221,7 @@ const AppointmentsVisits = () => {
   };
 
   const handleBulkStatusUpdate = (newStatus) => {
+    if (isVet) return;
     if (!newStatus || selectedAppointments.length === 0) return;
 
     if (newStatus === "Cancelled") {
@@ -229,13 +230,13 @@ const AppointmentsVisits = () => {
       );
       setAppointmentToCancel(appointmentsToCancel);
       setShowCancelModal(true);
-      setPendingBulkStatus(newStatus);
     } else {
       updateAppointmentsStatus(newStatus);
     }
   };
 
   const updateAppointmentsStatus = async (newStatus) => {
+    if (isVet) return;
     try{
       const res = await api.patch("/admin/appointments/status", {
         status: newStatus,
@@ -263,45 +264,64 @@ const AppointmentsVisits = () => {
     
   };
 
-  const [pendingBulkStatus, setPendingBulkStatus] = useState(null);
-
-  const confirmCancellation = () => {
-    if (appointmentToCancel) {
-      if (Array.isArray(appointmentToCancel)) {
-        // Bulk cancellation
-        setAppointments(prev => prev.map(app => 
-          selectedAppointments.includes(app.id) 
-            ? { ...app, status: "Cancelled" } 
-            : app
-        ));
-        setToast({ type: "success", message: `${appointmentToCancel.length} appointments cancelled successfully!` });
-      } else {
-        // Single cancellation
-        setAppointments(prev => prev.map(app => 
-          app.id === appointmentToCancel.id 
-            ? { ...app, status: "Cancelled" } 
-            : app
-        ));
-        setToast({ type: "success", message: "Appointment cancelled successfully!" });
-      }
+  const confirmCancellation = async () => {
+    if (isVet) {
+      setShowCancelModal(false);
+      setAppointmentToCancel(null);
+      return;
     }
-    setShowCancelModal(false);
-    setAppointmentToCancel(null);
-    setSelectedAppointments([]);
-    setIsSelectMode(false);
+    if (!appointmentToCancel) {
+      setShowCancelModal(false);
+      return;
+    }
+
+    const idsToUpdate = Array.isArray(appointmentToCancel)
+      ? appointmentToCancel.map((app) => app.id)
+      : [appointmentToCancel.id];
+
+    try {
+      await api.patch("/admin/appointments/status", {
+        status: "Cancelled",
+        idsToUpdate,
+      });
+
+      setToast({
+        type: "success",
+        message:
+          idsToUpdate.length === 1
+            ? "Appointment cancelled successfully!"
+            : `${idsToUpdate.length} appointments cancelled successfully!`,
+      });
+
+      await fetchAppointmentData();
+    } catch (error) {
+      setToast({ type: "error", message: "Failed to cancel appointment(s)." });
+    } finally {
+      setShowCancelModal(false);
+      setAppointmentToCancel(null);
+      setSelectedAppointments([]);
+      setIsSelectMode(false);
+    }
   };
 
   const confirmDelete = async () => {
+    if (isVet) {
+      setShowDeleteModal(false);
+      setAppointmentToDelete(null);
+      setVisitToDelete(null);
+      return;
+    }
+
     if (appointmentToDelete) {
       const idsToDelete = Array.isArray(appointmentToDelete) 
         ? appointmentToDelete.map(app => app.id)
         : [appointmentToDelete.id];
       
-      try{
-        api.delete("/admin/appointments/", {
+      try {
+        await api.delete("/admin/appointments/", {
           data: { idsToDelete: idsToDelete},
-        })
-      }catch(err){
+        });
+      } catch (err) {
         console.log(err.message);
       }
 
@@ -322,11 +342,11 @@ const AppointmentsVisits = () => {
         ? visitToDelete.map(visit => visit.id)
         : [visitToDelete.id];
 
-      try{
-        api.delete("/admin/appointments/", {
+      try {
+        await api.delete("/admin/appointments/", {
           data: { idsToDelete: idsToDelete},
-        })
-      }catch(err){
+        });
+      } catch (err) {
         console.log(err.message);
       }
       
@@ -339,6 +359,7 @@ const AppointmentsVisits = () => {
       setToast({ type: "success", message });
       setSelectedVisits([]);
       setIsSelectMode(false);
+      fetchAppointmentData();
     }
     
     setShowDeleteModal(false);
@@ -402,6 +423,7 @@ const AppointmentsVisits = () => {
             handleCancelAppointment={handleCancelAppointment}
             handleUpdateStatus={handleUpdateStatus}
             statusColors={statusColors}
+            isReadOnly={isVet}
           />
         );
       case "Visits":
@@ -425,9 +447,11 @@ const AppointmentsVisits = () => {
             setIsDetailsModalOpen={setIsDetailsModalOpen}
             handleSingleDelete={handleSingleDelete}
             visitTypeColors={visitTypeColors}
+            isReadOnly={isVet}
           />
         );
       case "Requests":
+        if (isVet) return null;
         return (
           <RequestsTab
             filteredRequests={filteredRequests}
@@ -445,7 +469,12 @@ const AppointmentsVisits = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-2 relative">
-        {["Calendar", "Visits", "Appointments", "Requests"].map(tab => (
+        {[
+          "Calendar",
+          "Visits",
+          "Appointments",
+          ...(isVet ? [] : ["Requests"]),
+        ].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}

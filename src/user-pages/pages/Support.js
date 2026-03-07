@@ -12,6 +12,15 @@ export default function Support() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  const NAME_PATTERN = /^[\p{L}\p{M}]+(?:[ '\-.][\p{L}\p{M}]+)*$/u;
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const isValidName = (value) => {
+    const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.every((word) => NAME_PATTERN.test(word));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,15 +32,37 @@ export default function Support() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+
+    const name = String(formData.name || "").trim();
+    const email = String(formData.email || "").trim();
+    const subject = String(formData.subject || "").trim();
+    const message = String(formData.message || "").trim();
+
+    if (!isValidName(name)) {
+      setSubmitError("Please enter your full name using valid letters and punctuation.");
+      return;
+    }
+
+    if (!EMAIL_PATTERN.test(email)) {
+      setSubmitError("Please provide a valid email address.");
+      return;
+    }
+
+    if (!subject || !message) {
+      setSubmitError("Subject and message are required.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Choose endpoint based on auth
       const token = localStorage.getItem('token');
       const payload = {
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message
+        name,
+        email,
+        subject,
+        message
       };
 
       if (token) {
@@ -45,7 +76,7 @@ export default function Support() {
       setTimeout(() => setIsSubmitted(false), 5000);
     } catch (err) {
       console.error('Error sending support message:', err);
-      alert(err.response?.data?.message || 'Failed to send message');
+      setSubmitError(err.response?.data?.message || 'Failed to send message');
     } finally {
       setIsSubmitting(false);
     }
@@ -244,6 +275,12 @@ export default function Support() {
                       </div>
                     </div>
                   </motion.div>
+                )}
+
+                {submitError && (
+                  <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-xs sm:text-sm">{submitError}</p>
+                  </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">

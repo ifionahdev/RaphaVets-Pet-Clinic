@@ -39,6 +39,7 @@ import VetLayout from "./vet-pages/VetLayout";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import MobileBlockPage from "./MobileBlockPage"; 
+import { registerBrowserCloseAutoLogout } from "./utils/authSession";
 
 /* guest */
 import PublicForum from "./guest-pages/PublicForum";
@@ -77,6 +78,7 @@ function App() {
 
     // Connect socket
     socket.connect();
+    const detachSessionExpiry = registerBrowserCloseAutoLogout();
 
     // Listen once
     socket.on("connect", () => {
@@ -85,6 +87,7 @@ function App() {
 
     // Cleanup (VERY IMPORTANT)
     return () => {
+      detachSessionExpiry();
       socket.off("connect");
       socket.disconnect();
     };

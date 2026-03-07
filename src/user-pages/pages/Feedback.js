@@ -17,6 +17,8 @@ export default function Feedback() {
   });
   const [showSuccess, setShowSuccess] = useState(false);
   const [averageRating, setAverageRating] = useState("0.0");
+  const [showProfanityConfirm, setShowProfanityConfirm] = useState(false);
+  const [pendingFeedbackPayload, setPendingFeedbackPayload] = useState(null);
   
   const filter = new Filter({
     allLanguages: true,
@@ -117,26 +119,9 @@ export default function Feedback() {
     fetchAverageRating();
   }, [feedbacks]);
 
-  // form submission
-  const handleSubmitFeedback = async (e) => {
-    e.preventDefault();
-    const containsProfanity = filter.isProfane(newFeedback.message);
-    if (containsProfanity) {
-      alert("Any inappropriate language from your feedback will be censored.");
-    }
-    if (!newFeedback.message.trim()) {
-      alert("Please enter your feedback message");
-      return;
-    }
-    
+  const submitFeedback = async (formData) => {
     setSubmitting(true);
-      
-    const formData = {
-      rating: newFeedback.rating,
-      message: newFeedback.message,
-      isAnonymous: newFeedback.isAnonymous
-    };
-    
+
     try {
       const res = await api.post('/feedback', formData);
       console.log("Feedback submitted:", res.data);
@@ -154,9 +139,37 @@ export default function Feedback() {
       console.error("Error submitting feedback:", error);
       alert("Failed to submit feedback. Please try again later.");
     } finally {
+      setShowProfanityConfirm(false);
+      setPendingFeedbackPayload(null);
       setShowModal(false);
       setSubmitting(false);
     }
+  };
+
+  // form submission
+  const handleSubmitFeedback = async (e) => {
+    e.preventDefault();
+
+    const trimmedMessage = String(newFeedback.message || "").trim();
+    if (!trimmedMessage) {
+      alert("Please enter your feedback message");
+      return;
+    }
+
+    const formData = {
+      rating: newFeedback.rating,
+      message: trimmedMessage,
+      isAnonymous: newFeedback.isAnonymous
+    };
+
+    const containsProfanity = filter.isProfane(trimmedMessage);
+    if (containsProfanity) {
+      setPendingFeedbackPayload(formData);
+      setShowProfanityConfirm(true);
+      return;
+    }
+
+    await submitFeedback(formData);
   };
 
   // format date
@@ -509,6 +522,57 @@ export default function Feedback() {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showProfanityConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[11000] flex items-center justify-center bg-black/45 px-4"
+            onClick={() => setShowProfanityConfirm(false)}
+          >
+            <motion.div
+              initial={{ y: 10, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 10, opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-9 w-9 shrink-0 rounded-full bg-[#FFF4E5] text-[#C57A00] flex items-center justify-center">
+                  <i className="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">Potentially inappropriate language detected</h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    Your feedback appears to contain censored words. You can continue and submit anyway
+                    (the content will be filtered), or go back and edit your message.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowProfanityConfirm(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Edit Message
+                </button>
+                <button
+                  type="button"
+                  onClick={() => pendingFeedbackPayload && submitFeedback(pendingFeedbackPayload)}
+                  className="rounded-lg bg-[#2FA394] px-4 py-2 text-sm font-medium text-white hover:bg-[#24907e]"
+                >
+                  Continue Submit
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </ClientLayout>

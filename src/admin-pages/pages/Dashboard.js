@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../template/Sidebar";
 import Header from "../template/Header";
 import {
   PlusCircle,
   CalendarPlus,
   Cpu,
   MessageSquarePlus,
+  ClipboardPlus,
 } from "lucide-react";
 import {
   LineChart,
@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import api from "../../api/axios";
 import ErrorToast from "../../template/ErrorToast";
+import socket from "../../socket";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,27 +35,47 @@ const Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, graphRes, activityRes] = await Promise.all([
-          api.get('/admin/dashboard/stats'),
-          api.get('/admin/dashboard/appointments-graph'),
-          api.get('/admin/dashboard/recent-activities')
-        ]);
-        
-        setStats(statsRes.data);
-        setAppointmentsData(graphRes.data);
-        setRecentActivity(activityRes.data);
-      } catch (err) {
-        console.error("❌ Failed to fetch dashboard data:", err);
-        setErrorToast("Failed to load dashboard data. Please refresh.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, graphRes, activityRes] = await Promise.all([
+        api.get('/admin/dashboard/stats'),
+        api.get('/admin/dashboard/appointments-graph'),
+        api.get('/admin/dashboard/recent-activities')
+      ]);
 
+      setStats(statsRes.data);
+      setAppointmentsData(graphRes.data);
+      setRecentActivity(activityRes.data);
+    } catch (err) {
+      console.error("❌ Failed to fetch dashboard data:", err);
+      setErrorToast("Failed to load dashboard data. Please refresh.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const refreshDashboard = () => fetchDashboardData();
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.on("appointments_updated", refreshDashboard);
+    socket.on("owner_created", refreshDashboard);
+    socket.on("pet_created", refreshDashboard);
+    socket.on("pets_updated", refreshDashboard);
+
+    return () => {
+      socket.off("appointments_updated", refreshDashboard);
+      socket.off("owner_created", refreshDashboard);
+      socket.off("pet_created", refreshDashboard);
+      socket.off("pets_updated", refreshDashboard);
+    };
   }, []);
 
   const statCards = [
@@ -122,36 +143,42 @@ const Dashboard = () => {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
               Quick Actions
             </h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
               {[
                 {
                   title: "Add Pet",
                   icon: <PlusCircle size={18} />,
                   color: "from-[#D6F6FF] to-[#E5FBFF]",
-                  path: "/admin-pages/pet-management",
+                  onClick: () => navigate("/admin-pages/pet-management"),
                 },
                 {
-                  title: "Appointments",
+                  title: "Add Appointment",
                   icon: <CalendarPlus size={18} />,
                   color: "from-[#E0F8D8] to-[#EAFCE3]",
-                  path: "/admin-pages/appointments",
+                  onClick: () => navigate("/admin-pages/appointments/add"),
+                },
+                {
+                  title: "Add Visit",
+                  icon: <ClipboardPlus size={18} />,
+                  color: "from-[#E8F2FF] to-[#F3F8FF]",
+                  onClick: () => navigate("/admin-pages/visits/add"),
                 },
                 {
                   title: "Post Tip",
                   icon: <MessageSquarePlus size={18} />,
                   color: "from-[#FFF0D2] to-[#FFF9E5]",
-                  path: "/admin-pages/content-manager",
+                  onClick: () => navigate("/admin-pages/content-manager"),
                 },
                 {
                   title: "Reports",
                   icon: <Cpu size={18} />,
                   color: "from-[#FFDDEE] to-[#FFE6F5]",
-                  path: "/admin-pages/reports",
+                  onClick: () => navigate("/admin-pages/reports"),
                 },
               ].map((action, i) => (
                 <div
                   key={i}
-                  onClick={() => navigate(action.path)}
+                  onClick={action.onClick}
                   className={`bg-gradient-to-br ${action.color} dark:from-[#1B1B1B] dark:to-[#222] 
                     rounded-xl p-3 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-200 
                     cursor-pointer hover:brightness-105 hover:scale-101 transition duration-200`}

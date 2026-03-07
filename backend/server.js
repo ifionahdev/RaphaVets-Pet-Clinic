@@ -24,6 +24,7 @@ import dotenv from "dotenv";
 import supportRoute from './routes/supportRoute.js';
 import notificationRoute from './routes/notificationRoute.js';
 import "./cron/appointmentCron.js";
+import "./cron/contentLifecycleCron.js";
 import reportRoute from './routes/admin_routes/reportRoute.js';
 import adminSettingsRoute from './routes/admin_routes/adminSettingsRoute.js';
 import vetDashboardRoute from './routes/vet_routers/vetDashboardRoute.js';

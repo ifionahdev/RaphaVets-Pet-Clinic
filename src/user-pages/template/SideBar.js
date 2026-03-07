@@ -2,12 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/axios";
 import { buildMediaUrl } from "../../utils/runtimeUrls";
+import socket from "../../socket";
 
 function SideBar({ isMenuOpen, closeMenuImmediate, animationEnabled, refreshTrigger }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [pets, setPets] = useState([]);
+
+  const normalizePets = (rawPets) => {
+    if (!Array.isArray(rawPets)) return [];
+
+    return rawPets
+      .map((pet, index) => {
+        const id = pet?.id ?? pet?.petID ?? null;
+        return {
+          ...pet,
+          id,
+          _fallbackKey: `pet-${id ?? index}`,
+        };
+      })
+      .filter((pet) => pet.id !== null && pet.id !== undefined);
+  };
 
   // Fetch pets function
   const fetchPets = async () => {
@@ -16,7 +32,7 @@ function SideBar({ isMenuOpen, closeMenuImmediate, animationEnabled, refreshTrig
     const now = Date.now();
     
     if (cachedPets && cacheTimestamp && (now - parseInt(cacheTimestamp)) < 5 * 60 * 1000) {
-      setPets(JSON.parse(cachedPets));
+      setPets(normalizePets(JSON.parse(cachedPets)));
       return;
     }
 
@@ -27,9 +43,10 @@ function SideBar({ isMenuOpen, closeMenuImmediate, animationEnabled, refreshTrig
       const res = await api.get("/pets", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setPets(res.data);
+      const normalizedPets = normalizePets(res.data);
+      setPets(normalizedPets);
       
-      localStorage.setItem('cachedPets', JSON.stringify(res.data));
+      localStorage.setItem('cachedPets', JSON.stringify(normalizedPets));
       localStorage.setItem('petsCacheTimestamp', now.toString());
     } catch (err) {
       console.error("❌ Failed to fetch pets:", err.response?.data || err);
@@ -51,6 +68,31 @@ function SideBar({ isMenuOpen, closeMenuImmediate, animationEnabled, refreshTrig
     
     return () => {
       window.removeEventListener('petImageUpdated', handlePetImageUpdate);
+    };
+  }, []);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.emit('join', userId);
+
+    const handlePetsUpdated = () => {
+      localStorage.removeItem('cachedPets');
+      localStorage.removeItem('petsCacheTimestamp');
+      fetchPets();
+    };
+
+    socket.on('pets_updated', handlePetsUpdated);
+    socket.on('pet_deleted', handlePetsUpdated);
+
+    return () => {
+      socket.off('pets_updated', handlePetsUpdated);
+      socket.off('pet_deleted', handlePetsUpdated);
     };
   }, []);
 
@@ -119,8 +161,10 @@ function SideBar({ isMenuOpen, closeMenuImmediate, animationEnabled, refreshTrig
             {pets.length > 0 ? (
               pets.map((pet) => (
                 <div
-                  key={pet.id}
+                  key={pet._fallbackKey}
                   onClick={() => {
+                    if (!pet.id) return;
+
                     navigate(`/pet/${pet.id}`);
                     if (window.innerWidth < 768) {
                       closeMenuImmediate && closeMenuImmediate();

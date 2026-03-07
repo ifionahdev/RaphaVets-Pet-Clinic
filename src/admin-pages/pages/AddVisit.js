@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Search, Calendar, Layers, User, PawPrint, CheckCircle, Clock } from "lucide-react";
+import { Plus, Search, Calendar, Layers, User, PawPrint, CheckCircle, Clock } from "lucide-react";
 import { format } from 'date-fns';
 import SuccessToast from "../../template/SuccessToast";
 import AddOwnerModal from "../components/petpatient-management/AddOwnerModal";
+import AddPetModal from "../components/petpatient-management/AddPetModal";
 import api from "../../api/axios";
+import socket from "../../socket";
 
 // Sample existing users data
 const sampleUsers = [
@@ -44,6 +46,8 @@ const SERVICE_TYPES = [
 
 const AddVisit = () => {
   const navigate = useNavigate();
+  const isVet = localStorage.getItem("userRole") === "3";
+  const visitsHomePath = isVet ? "/vet?tab=appointments" : "/admin-pages/appointments";
   const [currentStep, setCurrentStep] = useState(0);
   const [visitData, setVisitData] = useState({
     user: null,
@@ -57,6 +61,7 @@ const AddVisit = () => {
     isWalkIn: true
   });
   const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [showNewPetForm, setShowNewPetForm] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClientId, setSelectedClientId] = useState(null);
@@ -65,25 +70,75 @@ const AddVisit = () => {
   const [appointments, setAppointments] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
 
+  const isWithinClinicHours = (dateValue, timeValue) => {
+    if (!dateValue || !timeValue) return false;
+
+    const selectedDateTime = new Date(`${dateValue}T${timeValue}`);
+    if (Number.isNaN(selectedDateTime.getTime())) return false;
+
+    const day = selectedDateTime.getDay();
+    const hour = selectedDateTime.getHours();
+    const minute = selectedDateTime.getMinutes();
+    const totalMinutes = hour * 60 + minute;
+
+    const weekdayOpen = 9 * 60;
+    const sundayOpen = 13 * 60;
+    const close = 21 * 60;
+    const open = day === 0 ? sundayOpen : weekdayOpen;
+
+    return totalMinutes >= open && totalMinutes <= close;
+  };
+
+  const canSubmitVisit = isWithinClinicHours(visitData.date, visitData.time);
+
   useEffect(() => console.log("Fetched owners: ", owners), [owners]);
   useEffect(() => console.log("Fetched pets: ", pets), [pets]);
   useEffect(() => console.log("Fetched appointments: ", appointments), [appointments])
 
-  useEffect(() => {
-    const fetchOwnerDetails = async () => {
-      try{
+  const fetchOwnerDetails = async () => {
+    try {
       const res = await api.get("/admin/appointments/owners");
 
-        setOwners(res.data.owners);
-        setPets(res.data.pets);
-        setAppointments(res.data.appointments);
+      setOwners(res.data.owners || []);
+      setPets(res.data.pets || []);
+      setAppointments(res.data.appointments || []);
+    } catch (err) {
+      console.error("Error fetching owner details: ", err.message);
+    }
+  };
 
-      }catch(err){
-        console.error("Error fetching owner details: ", err.message);
-      }
+  useEffect(() => {
+    fetchOwnerDetails();
+  }, []);
+
+  useEffect(() => {
+    const joinRoom = () => {
+      const userId = localStorage.getItem("userId");
+      if (userId) socket.emit("join", userId);
     };
 
-    fetchOwnerDetails();
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      joinRoom();
+    }
+
+    socket.on("connect", joinRoom);
+
+    const refreshOwnersPets = () => {
+      fetchOwnerDetails();
+    };
+
+    socket.on("owner_created", refreshOwnersPets);
+    socket.on("pet_created", refreshOwnersPets);
+    socket.on("pets_updated", refreshOwnersPets);
+
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("owner_created", refreshOwnersPets);
+      socket.off("pet_created", refreshOwnersPets);
+      socket.off("pets_updated", refreshOwnersPets);
+    };
   }, []);
 
   useEffect(() => {
@@ -109,37 +164,15 @@ const AddVisit = () => {
     fetchServices();
   }, [currentStep]);
 
-  const goToAppointmentOrService = (user) => {
-    const userAppointments = appointments.filter(
-      app => app.userId === user.id && app.status === "Upcoming"
-    );
-
-    if (userAppointments.length > 0) {
-      setCurrentStep(2);
-    } else {
-      setCurrentStep(3);
-    }
-  };
-
   const handleUserSelect = (user) => {
     setVisitData(prev => ({ ...prev, user, appointment: null, pet: null }));
     setSelectedClientId(user.id);
 
-    const petsOfUser = pets.filter(p => p.userId === user.id);
-
-    if (petsOfUser.length === 1) {
-      const singlePet = petsOfUser[0];
-
-      setVisitData(prev => ({ ...prev, pet: singlePet }));
-
-      setCurrentStep(2);
-    } else {
-      setCurrentStep(1);
-    }
+    // Always show pet selection even when the client has only one pet.
+    // This prevents accidental auto-skip and keeps flow consistent.
+    setCurrentStep(1);
   };
   const handleNewClientSave = async (ownerData) => {
-    const generatedPassword = Math.random().toString(36).slice(-8);
-    
     const formData = {
       firstName: ownerData.firstName,
       lastName: ownerData.lastName,
@@ -148,7 +181,6 @@ const AddVisit = () => {
       address: ownerData.address || null,
       sex: ownerData.sex || null,
       dob: ownerData.dob || null,
-      password: generatedPassword,
 
       pets: ownerData.pets?.map(pet => ({
         name: pet.name,
@@ -166,22 +198,30 @@ const AddVisit = () => {
 
     const res = await api.post("/admin/add-owner", formData);
 
-    const createdOwner = res.data;
+    const createdOwner = {
+      id: res.data?.accId,
+      firstName: ownerData.firstName,
+      lastName: ownerData.lastName,
+      email: ownerData.email,
+      phone: ownerData.phone,
+    };
 
     setVisitData(prev => ({ 
       ...prev, 
       user: createdOwner,
-      pet: createdOwner.pets?.[0] || null
+      pet: null,
     }));
-    setSelectedClientId(createdOwner.id);
+    setSelectedClientId(createdOwner.id || null);
     setShowNewClientForm(false);
     
-    setCurrentStep(2);
+    setCurrentStep(1);
     
     setToast({ 
       type: "success", 
-      message: `New client created! Password sent to ${createdOwner.phone} and ${createdOwner.email}` 
+      message: `Account created and credentials were sent to ${createdOwner.email}.`
     });
+
+    return res.data;
   };
 
   const calculateAge = (birthDate) => {
@@ -209,34 +249,32 @@ const AddVisit = () => {
     setCurrentStep(4); // Go to mark as complete step
   };
 
-  const handleMarkAppointmentComplete = async () => {
-    if (!visitData.appointment?.id) {
-      setToast({ type: "error", message: "No appointment selected." });
-      return;
-    }
-
-    console.log("Marking appointment as complete for ID:", visitData.appointment.id);
-    const res = await api.patch(`admin/appointments/status`,{
-      status: "Completed",
-      idsToUpdate: [visitData.appointment.id]
-    });
-
-    setVisitData(prev => ({
-      ...prev,          
-      visitType: "Scheduled",
-      id: visitData.appointment.id,
-      time: new Date().toISOString(),
-    }));  
-    console.log("Appointment marked as completed:", visitData.appointment.id);
-    
-    
-    setCurrentStep(5); // Go to success page
-    setToast({ type: "success", message: "Appointment marked as completed and visit recorded!" });
-  };
-
   const handleServiceSelect = (serviceType) => {
     setVisitData(prev => ({ ...prev, serviceType }));
-    setCurrentStep(4); // Go to confirmation
+    setCurrentStep(3); // Go to confirmation
+  };
+
+  const handlePetCreatedFromModal = async (savedPet) => {
+    await fetchOwnerDetails();
+
+    const createdPet = {
+      id: Number(savedPet.id),
+      userId: Number(savedPet.ownerId),
+      name: savedPet.name,
+      type: savedPet.type,
+      breed: savedPet.breed,
+      sex: savedPet.sex,
+      age: savedPet.dob ? calculateAge(savedPet.dob) : "Unknown",
+      weight: savedPet.weight ? `${savedPet.weight} kg` : "",
+      color: savedPet.color || "",
+      notes: savedPet.notes || "",
+      birthDate: savedPet.dob || "",
+    };
+
+    setVisitData((prev) => ({ ...prev, pet: createdPet }));
+    setShowNewPetForm(false);
+    setCurrentStep(2);
+    setToast({ type: "success", message: "Pet added successfully." });
   };
 
   const handleFinalSubmit = async () => {
@@ -257,14 +295,21 @@ const AddVisit = () => {
     const res = await api.post("/admin/appointments/make-visit", payload);
     console.log("Visit created successfully:", res.data);
     
-    setCurrentStep(5); // Go to success page
+    setCurrentStep(4); // Go to success page
   };
 
-  const userAppointments = appointments.filter(
-    app => app.userId === visitData.user?.id && app.status === "Upcoming"
-  );
-
   const userPets = pets.filter(pet => pet.userId === visitData.user?.id);
+  const ownerOptionsForModal = visitData.user
+    ? [{
+        id: visitData.user.id,
+        name: `${visitData.user.firstName} ${visitData.user.lastName}`,
+        email: visitData.user.email,
+      }]
+    : owners.map((owner) => ({
+        id: owner.id,
+        name: `${owner.firstName} ${owner.lastName}`,
+        email: owner.email,
+      }));
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery) return owners;
@@ -279,25 +324,14 @@ const AddVisit = () => {
   const steps = [
     { title: "Select Client", number: 0, icon: User },
     { title: "Select Pet", number: 1, icon: PawPrint },
-    { title: "Select Appointment", number: 2, icon: Calendar },
-    { title: "Service Type", number: 3, icon: Layers },
-    { title: "Complete Appointment", number: 4, icon: CheckCircle },
-    { title: "Confirmation", number: 5, icon: CheckCircle }
+    { title: "Service Type", number: 2, icon: Layers },
+    { title: "Confirmation", number: 3, icon: CheckCircle },
+    { title: "Completed", number: 4, icon: CheckCircle },
   ];
 
   return (
     <div className="flex flex-col h-full bg-[#FBFBFB] p-6 gap-2 font-sans">
-      {currentStep !== 5 && (
-        <button
-          onClick={() => navigate("/admin-pages/appointments")}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4 self-start"
-        >
-          <ArrowLeft size={20} />
-          Back to Visits
-        </button>
-      )}
-
-      {currentStep !== 5 && (
+      {currentStep !== 4 && (
         <div className="flex justify-center mb-4">
           <div className="flex items-center">
             {steps.map((step, index) => {
@@ -460,7 +494,7 @@ const AddVisit = () => {
                   key={pet.id}
                   onClick={() => {
                     setVisitData(prev => ({ ...prev, pet }));
-                    goToAppointmentOrService(visitData.user);
+                    setCurrentStep(2);
                   }}
                   className="p-4 border-2 rounded-xl cursor-pointer hover:border-[#5EE6FE]"
                 >
@@ -469,6 +503,20 @@ const AddVisit = () => {
                 </div>
               ))}
             </div>
+
+            <button
+              onClick={() => setShowNewPetForm(true)}
+              className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition font-semibold"
+            >
+              <Plus size={18} />
+              Add New Pet
+            </button>
+
+            {userPets.length === 0 && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                No pet is linked to this client yet. Please select a client with a registered pet or add a pet first in Customer and Pet Management.
+              </div>
+            )}
           </div>
         )}
 
@@ -497,7 +545,7 @@ const AddVisit = () => {
 
             <div className="flex justify-end mt-6">
               <button
-                onClick={() => setCurrentStep(4)}
+                onClick={() => setCurrentStep(3)}
                 disabled={!visitData.serviceType}
                 className="px-6 py-3 bg-[#5EE6FE] text-white rounded-xl hover:bg-[#4AD4EC] transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
               >
@@ -507,53 +555,8 @@ const AddVisit = () => {
           </div>
         )}
 
-        {/* Step 3: Mark Appointment as Complete */}
-        {currentStep === 3 && (
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Complete Appointment</h2>
-            <p className="text-gray-600 mb-6">Mark the scheduled appointment as completed</p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-              <h3 className="font-semibold text-blue-800 mb-4 text-lg">Appointment Details</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="font-medium text-blue-700">Client:</span>
-                  <span className="text-blue-800">{visitData.user?.firstName} {visitData.user?.lastName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-blue-700">Pet:</span>
-                  <span className="text-blue-800">{visitData.pet?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-blue-700">Service:</span>
-                  <span className="text-blue-800">{visitData.appointment?.serviceType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-blue-700">Scheduled Time:</span>
-                  <span className="text-blue-800">{visitData.appointment?.date} at {visitData.appointment?.time}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleMarkAppointmentComplete}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold"
-              >
-                Mark as Complete
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Step 4: Confirmation */}
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <div className="max-w-2xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Confirm Walk-in Visit</h2>
             <p className="text-gray-600 mb-4 text-sm">Review details before submitting</p>
@@ -576,7 +579,7 @@ const AddVisit = () => {
                     <div className="space-y-2 text-xs">
                       <p><span className="font-medium">Name:</span> {visitData.pet?.name}</p>
                       <p><span className="font-medium">Breed:</span> {visitData.pet?.breed}</p>
-                      <p><span className="font-medium">Age:</span> {visitData.pet?.age}y • {visitData.pet?.sex}</p>
+                      <p><span className="font-medium">Age:</span> {visitData.pet?.age} • {visitData.pet?.sex}</p>
                     </div>
                   </div>
                 )}
@@ -602,23 +605,33 @@ const AddVisit = () => {
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setCurrentStep(visitData.appointment ? 3 : 2)}
+                onClick={() => setCurrentStep(2)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium"
               >
                 Back
               </button>
               <button
                 onClick={handleFinalSubmit}
-                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold text-sm"
+                disabled={!canSubmitVisit}
+                className={`px-6 py-2 rounded-lg transition font-semibold text-sm ${
+                  canSubmitVisit
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                }`}
               >
                 Confirm Visit
               </button>
             </div>
+            {!canSubmitVisit && (
+              <p className="mt-3 text-xs text-red-600">
+                Selected visit time is outside clinic hours. Visits are allowed Mon-Sat 9:00 AM-9:00 PM, Sun 1:00 PM-9:00 PM.
+              </p>
+            )}
           </div>
         )}
 
         {/* Step 5: Success Page */}
-        {currentStep === 5 && (
+        {currentStep === 4 && (
           <div className="max-w-md mx-auto text-center py-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -643,7 +656,7 @@ const AddVisit = () => {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => navigate("/admin-pages/appointments")}
+                onClick={() => navigate(visitsHomePath)}
                 className="px-6 py-2.5 bg-[#5EE6FE] text-white rounded-lg hover:bg-[#4AD4EC] transition font-semibold text-sm"
               >
                 View Visits
@@ -672,8 +685,19 @@ const AddVisit = () => {
         )}
       </div>
 
+      <AddPetModal
+        isOpen={showNewPetForm}
+        onClose={() => setShowNewPetForm(false)}
+        onSave={handlePetCreatedFromModal}
+        owners={ownerOptionsForModal}
+        initialData={null}
+        refreshPets={fetchOwnerDetails}
+        defaultOwnerId={visitData.user?.id || ""}
+        lockOwnerSelection={Boolean(visitData.user?.id)}
+      />
+
       {/* Success Toast */}
-      {toast?.type === "success" && currentStep !== 5 && (
+      {toast?.type === "success" && currentStep !== 4 && (
         <SuccessToast 
           message={toast.message} 
           onClose={() => setToast(null)}

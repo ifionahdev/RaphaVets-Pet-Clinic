@@ -340,7 +340,7 @@ const PetPatientManagement = () => {
         const res = await api.post("/admin/add-owner", newData);
         console.log("Owner created:", res.data);
 
-        setSuccessMessage("Owner added successfully!");
+        setSuccessMessage(`Account created and credentials were sent to ${newData.email}.`);
         
         await fetchOwnersAndPets();
 

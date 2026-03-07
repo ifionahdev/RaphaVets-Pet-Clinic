@@ -1,11 +1,18 @@
 const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
   if (!isOpen || !appointment) return null;
 
+  const title = appointment.visitType === "Walk-in" ? "Visit Details" : "Appointment Details";
+  const ageLabel = appointment.petAge || "Unknown";
+  const petLine = [appointment.breedName, ageLabel, appointment.petSex].filter(Boolean).join(" - ");
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Completed": return "bg-green-100 text-green-800";
       case "Ongoing": return "bg-blue-100 text-blue-800";
       case "Pending": return "bg-yellow-100 text-yellow-800";
+      case "Cancelled": return "bg-red-100 text-red-800";
+      case "Rejected": return "bg-red-100 text-red-800";
+      case "Upcoming": return "bg-pink-100 text-pink-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -16,8 +23,8 @@ const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
         {/* Header */}
         <div className="flex justify-between items-center border-b border-gray-200 p-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Appointment Details</h2>
-            <p className="text-gray-500 text-sm mt-1">View appointment information</p>
+            <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+            <p className="text-gray-500 text-sm mt-1">View full schedule and patient information</p>
           </div>
           <button 
             onClick={onClose}
@@ -44,7 +51,7 @@ const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
                   />
                   <div>
                     <h4 className="font-bold text-gray-800">{appointment.petName}</h4>
-                    <p className="text-gray-500 text-sm">Chihuahua • 3 years • Male</p>
+                    <p className="text-gray-500 text-sm">{petLine || "No additional pet details"}</p>
                   </div>
                 </div>
               </div>
@@ -58,8 +65,12 @@ const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
                     <p className="font-medium text-gray-700">{appointment.owner}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Contact:</span>
-                    <p className="font-medium text-gray-700">096609182898</p>
+                    <span className="text-gray-500">Phone:</span>
+                    <p className="font-medium text-gray-700">{appointment.phone || "Not available"}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Email:</span>
+                    <p className="font-medium text-gray-700 break-all">{appointment.email || "Not available"}</p>
                   </div>
                 </div>
               </div>
@@ -73,11 +84,11 @@ const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="text-gray-500">Service Type:</span>
-                    <p className="font-medium text-gray-700">Consultation</p>
+                    <p className="font-medium text-gray-700">{appointment.serviceType || "Not specified"}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Description:</span>
-                    <p className="font-medium text-gray-700">General checkup and consultation</p>
+                    <p className="font-medium text-gray-700">{appointment.description || "No description"}</p>
                   </div>
                 </div>
               </div>
@@ -88,11 +99,15 @@ const AppointmentDetailsModal = ({ isOpen, onClose, appointment }) => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Date:</span>
-                    <span className="font-medium text-gray-700">{appointment.date}</span>
+                    <span className="font-medium text-gray-700">{appointment.date || "-"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Time:</span>
-                    <span className="font-medium text-gray-700">{appointment.time}</span>
+                    <span className="text-gray-500">Visit Time:</span>
+                    <span className="font-medium text-gray-700">{appointment.time || appointment.scheduledTime || "-"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Type:</span>
+                    <span className="font-medium text-gray-700">{appointment.visitType || "Scheduled"}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Status:</span>

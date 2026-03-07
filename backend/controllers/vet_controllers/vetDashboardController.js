@@ -357,20 +357,6 @@ export const getRecentActivities = async (req, res) => {
       LIMIT 3
     `);
 
-    // Get new patient registrations
-    const [patientActivities] = await db.execute(`
-      SELECT 
-        CONCAT('New patient registered: ', p.petName) as action,
-        p.createdAt as date,
-        'patient' as type,
-        CONCAT(acc.firstName, ' ', acc.lastName) as user
-      FROM pet_tbl p
-      JOIN account_tbl acc ON p.accID = acc.accId
-      WHERE p.isDeleted = 0
-      ORDER BY p.createdAt DESC
-      LIMIT 2
-    `);
-
     // Get completed appointments
     const [completedActivities] = await db.execute(`
       SELECT 
@@ -390,10 +376,9 @@ export const getRecentActivities = async (req, res) => {
       LIMIT 2
     `);
 
-    // Combine all activities
+    // Keep vet activity focused on appointment workflow only.
     const allActivities = [
       ...appointmentActivities,
-      ...patientActivities,
       ...completedActivities
     ];
 
