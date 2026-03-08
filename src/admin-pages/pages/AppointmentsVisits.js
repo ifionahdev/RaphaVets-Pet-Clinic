@@ -53,6 +53,8 @@ const AppointmentsVisits = () => {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const [showStatusWarningModal, setShowStatusWarningModal] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
   const isVet = localStorage.getItem("userRole") === "3";
   const navigate = useNavigate();
 
@@ -139,6 +141,20 @@ const AppointmentsVisits = () => {
       console.error("Error updating status:", error);
       return false;
     }
+  };
+
+  const requestStatusChange = (idsToUpdate, newStatus) => {
+    if (isVet) return;
+    if (!newStatus || !Array.isArray(idsToUpdate) || idsToUpdate.length === 0) return;
+
+    setPendingStatusChange({ idsToUpdate, newStatus });
+    setShowStatusWarningModal(true);
+  };
+
+  const handleStatusChangeWithWarning = (appointmentId, newStatus) => {
+    if (isVet) return false;
+    requestStatusChange([appointmentId], newStatus);
+    return true;
   };
 
   const handleCancelAppointment = (appointment) => {
@@ -231,37 +247,49 @@ const AppointmentsVisits = () => {
       setAppointmentToCancel(appointmentsToCancel);
       setShowCancelModal(true);
     } else {
-      updateAppointmentsStatus(newStatus);
+      requestStatusChange(selectedAppointments, newStatus);
     }
   };
 
-  const updateAppointmentsStatus = async (newStatus) => {
-    if (isVet) return;
-    try{
+  const confirmStatusChange = async () => {
+    if (isVet || !pendingStatusChange) {
+      setShowStatusWarningModal(false);
+      setPendingStatusChange(null);
+      return;
+    }
+
+    const { idsToUpdate, newStatus } = pendingStatusChange;
+
+    try {
       const res = await api.patch("/admin/appointments/status", {
         status: newStatus,
-        idsToUpdate: selectedAppointments,
+        idsToUpdate,
       });
 
-      const updatedCount = res.data.editedCount || selectedAppointments.length;
+      const updatedCount = res.data.editedCount || idsToUpdate.length;
 
-      setAppointments(prev => prev.map(app => 
-        selectedAppointments.includes(app.id) 
-          ? { ...app, status: newStatus } 
-          : app
-      ));
+      setAppointments((prev) =>
+        prev.map((app) =>
+          idsToUpdate.includes(app.id) ? { ...app, status: newStatus } : app
+        )
+      );
 
-      const message = selectedAppointments.length === 1 
+      const message = idsToUpdate.length === 1
         ? `Appointment status updated to ${newStatus}!`
         : `${updatedCount} appointments updated to ${newStatus}!`;
 
       setToast({ type: "success", message });
       setSelectedAppointments([]);
       setIsSelectMode(false);
-    }catch(err){
-      setToast({ type: "error", message: err.response?.data?.message || "Failed to update appointment status." });
+    } catch (err) {
+      setToast({
+        type: "error",
+        message: err.response?.data?.message || "Failed to update appointment status.",
+      });
+    } finally {
+      setShowStatusWarningModal(false);
+      setPendingStatusChange(null);
     }
-    
   };
 
   const confirmCancellation = async () => {
@@ -421,7 +449,7 @@ const AppointmentsVisits = () => {
             setIsDetailsModalOpen={setIsDetailsModalOpen}
             handleSingleDelete={handleSingleDelete}
             handleCancelAppointment={handleCancelAppointment}
-            handleUpdateStatus={handleUpdateStatus}
+            handleUpdateStatus={handleStatusChangeWithWarning}
             statusColors={statusColors}
             isReadOnly={isVet}
           />
@@ -545,6 +573,37 @@ const AppointmentsVisits = () => {
           onConfirm={confirmCancellation}
           appointment={appointmentToCancel}
         />
+      )}
+
+      {/* Status Change Warning Modal */}
+      {showStatusWarningModal && pendingStatusChange && (
+        <div className="fixed inset-0 z-[65] flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Confirm Status Change</h3>
+            <p className="text-sm text-gray-600 mb-5">
+              {pendingStatusChange.idsToUpdate.length === 1
+                ? `Are you sure you want to change this appointment status to ${pendingStatusChange.newStatus}?`
+                : `Are you sure you want to change ${pendingStatusChange.idsToUpdate.length} appointments to ${pendingStatusChange.newStatus}?`}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowStatusWarningModal(false);
+                  setPendingStatusChange(null);
+                }}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+              >
+                No, Keep Current
+              </button>
+              <button
+                onClick={confirmStatusChange}
+                className="px-4 py-2 rounded-lg bg-[#5EE6FE] text-white hover:bg-[#4AD4EC] transition"
+              >
+                Yes, Update Status
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Success Toast */}

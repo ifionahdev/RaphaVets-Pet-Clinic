@@ -474,15 +474,12 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
       }`}
     >
       
-    {/* Left side - Menu, Logo */}
-    <button
-      type="button"
-      onClick={() => navigate('/user-home')}
-      className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0"
-      aria-label="Go to home"
-    >
+    {/* Left side - Menu + Logo (menu should not navigate home) */}
+    <div className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0">
       <motion.button
+        type="button"
         onClick={toggleMenu}
+        aria-label="Toggle menu"
         className={`lg:hidden text-2xl sm:text-3xl text-gray-700 focus:outline-none flex-shrink-0 ${
           animateIcon ? 'transition-transform duration-300' : ''
         }`}
@@ -492,19 +489,26 @@ function Header({ darkMode, setDarkMode, toggleMenu, isMenuOpen, animateIcon }) 
       >
         ☰
       </motion.button>
-      
-      <img
-        src="/images/logo.png"
-        className="w-[30px] sm:w-[40px] md:w-[60px] flex-shrink-0"
-        alt="Logo"
-      />
-      <div className="flex flex-col flex-shrink-0">
-        <div className="font-baloo text-lg sm:text-xl md:text-2xl leading-none">
-          <span className="text-[#000000]">RV</span>
-          <span className="text-[#5EE6FE]">Care</span>
+
+      <button
+        type="button"
+        onClick={() => navigate('/user-home')}
+        className="flex flex-row items-center gap-2 sm:gap-3 flex-shrink-0"
+        aria-label="Go to home"
+      >
+        <img
+          src="/images/logo.png"
+          className="w-[30px] sm:w-[40px] md:w-[60px] flex-shrink-0"
+          alt="Logo"
+        />
+        <div className="flex flex-col flex-shrink-0">
+          <div className="font-baloo text-lg sm:text-xl md:text-2xl leading-none">
+            <span className="text-[#000000]">RV</span>
+            <span className="text-[#5EE6FE]">Care</span>
+          </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </div>
 
       {/* RIGHT SIDE - NOTIF + FORUM */}
       <div className="flex flex-row justify-end items-center gap-3 sm:gap-5 md:gap-8 text-gray-700 flex-shrink-0">

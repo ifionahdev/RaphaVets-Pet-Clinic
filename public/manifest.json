@@ -1,19 +1,21 @@
 {
   "short_name": "RVCare",
-  "name": "RaphaVets RVCare",
+  "name": "RVCare",
+  "id": "/",
   "icons": [
     {
-      "src": "images/logo.png",
+      "src": "images/rapha-logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "images/logo.png",
+      "src": "images/rapha-logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "theme_color": "#5EE6FE",
   "background_color": "#ffffff"

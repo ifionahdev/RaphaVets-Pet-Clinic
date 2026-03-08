@@ -80,6 +80,9 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
     if (appointmentFilter === "All") return true;
     const status = appt.status?.toLowerCase() || "";
     const filter = appointmentFilter.toLowerCase();
+    if (filter === "missed") {
+      return status.includes("missed") || status.includes("no show");
+    }
     return status.includes(filter);
   });
 
@@ -142,7 +145,7 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
       <div className="flex flex-col flex-1 gap-3">
         {/* Filter Buttons */}
         <div className="flex gap-1.5 sm:gap-3 mb-2 sm:mb-3 overflow-x-auto scrollbar-hide flex-nowrap">
-          {["Upcoming", "Pending", "Completed", "Cancelled", "All"].map((status) => (
+          {["Upcoming", "Pending", "Rejected", "Missed", "Completed", "Cancelled", "All"].map((status) => (
             <button
               key={status}
               onClick={() => setAppointmentFilter(status)}
@@ -210,6 +213,8 @@ const AppointmentTab = ({ appointments, appointmentFilter, setAppointmentFilter,
                         <span className={`font-medium ${
                           appt.status === 'Upcoming' ? 'text-green-600' :
                           appt.status === 'Pending' ? 'text-yellow-600' :
+                          appt.status === 'Rejected' ? 'text-rose-600' :
+                          appt.status === 'Missed' || appt.status === 'No Show' ? 'text-slate-600' :
                           appt.status === 'Completed' ? 'text-blue-600' :
                           appt.status === 'Cancelled' ? 'text-red-600' :
                           'text-gray-600'

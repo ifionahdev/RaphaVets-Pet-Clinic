@@ -12,12 +12,13 @@ const formatDate = (date) => {
 
 const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus }) => {
   const [loading, setLoading] = useState(false);
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
   const [toast, setToast] = useState(null);
 
   if (!isOpen || !appointment) return null;
 
-  const handleApprove = async () => {
+  const confirmApprove = async () => {
     setLoading(true);
     try {
       // ✅ REMOVED the direct API call - let parent handle it
@@ -26,6 +27,7 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
       }
       
       setToast({ type: "success", message: "Appointment approved successfully!" });
+      setShowApproveConfirm(false);
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -197,7 +199,7 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
               Reject
             </button>
             <button 
-              onClick={handleApprove}
+              onClick={() => setShowApproveConfirm(true)}
               disabled={loading}
               className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition font-medium disabled:opacity-50"
             >
@@ -206,6 +208,32 @@ const AppointmentRequestModal = ({ isOpen, onClose, appointment, onUpdateStatus 
           </div>
         </div>
       </div>
+
+      {/* Approve Confirmation Modal */}
+      {showApproveConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Confirm Approval</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Are you sure you want to approve this appointment?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowApproveConfirm(false)}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmApprove}
+                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition"
+              >
+                Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reject Confirmation Modal */}
       {showRejectConfirm && (

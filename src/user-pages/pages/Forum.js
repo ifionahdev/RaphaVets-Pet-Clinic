@@ -46,6 +46,7 @@ function Forum() {
   const [errorMessage, setErrorMessage] = useState("");
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [isSubmittingPost, setIsSubmittingPost] = useState(false);
 
   const emptyPostTemplate = {
     user: "You",
@@ -253,7 +254,7 @@ function Forum() {
     return true;
   };
 
-  const handleCreateOrUpdatePost = () => {
+  const handleCreateOrUpdatePost = async () => {
     setEmailTouched(true);
 
     const validationError = validateForumInputs();
@@ -285,33 +286,35 @@ function Forum() {
         }
       });
 
-      api
-        .post("/forum", formData, {
+      try {
+        setIsSubmittingPost(true);
+        const res = await api.post("/forum", formData, {
           headers: { "Content-Type": "multipart/form-data" },
-        })
-        .then((res) => {
-          const createdPost = res.data;
-          console.log("Post created:", createdPost);
-
-          setShowCreateModal(false);
-          setNewPost({ ...emptyPostTemplate, user: newPost.user });
-          setPrivacyConsent(false);
-          setEmailTouched(false);
-          setInputKey(Date.now());
-
-          setSuccessMessage("Post created successfully!");
-          setShowSuccess(true);
-          setTimeout(() => {
-            setShowSuccess(false);
-            setSuccessMessage("");
-          }, 3000);
-        })
-        .catch((err) => {
-          const message = err.response?.data?.message || "❌ Error creating post.";
-          console.error(message);
-          setErrorMessage(message);
-          setShowErrorModal(true);
         });
+
+        const createdPost = res.data;
+        console.log("Post created:", createdPost);
+
+        setShowCreateModal(false);
+        setNewPost({ ...emptyPostTemplate, user: newPost.user });
+        setPrivacyConsent(false);
+        setEmailTouched(false);
+        setInputKey(Date.now());
+
+        setSuccessMessage("Post created successfully!");
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setSuccessMessage("");
+        }, 3000);
+      } catch (err) {
+        const message = err.response?.data?.message || "❌ Error creating post.";
+        console.error(message);
+        setErrorMessage(message);
+        setShowErrorModal(true);
+      } finally {
+        setIsSubmittingPost(false);
+      }
       return;
     }
 
@@ -349,34 +352,36 @@ function Forum() {
     deletedImages.forEach((id) => formData.append("deletedImages[]", id));
     newImages.forEach((img) => formData.append("image", img.file));
 
-    api
-      .put(`/forum/${newPost.id}`, formData, {
+    try {
+      setIsSubmittingPost(true);
+      const res = await api.put(`/forum/${newPost.id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then((res) => {
-        const updatedPost = res.data;
-        console.log("Post updated:", updatedPost);
-
-        setShowCreateModal(false);
-        setNewPost({ ...emptyPostTemplate, user: newPost.user });
-        setOriginalPost(null);
-        setPrivacyConsent(false);
-        setEmailTouched(false);
-        setInputKey(Date.now());
-
-        setSuccessMessage("Post updated successfully!");
-        setShowSuccess(true);
-        setTimeout(() => {
-          setShowSuccess(false);
-          setSuccessMessage("");
-        }, 3000);
-      })
-      .catch((err) => {
-        const message = err.response?.data?.message || "❌ Error updating post.";
-        console.error(message);
-        setErrorMessage(message);
-        setShowErrorModal(true);
       });
+
+      const updatedPost = res.data;
+      console.log("Post updated:", updatedPost);
+
+      setShowCreateModal(false);
+      setNewPost({ ...emptyPostTemplate, user: newPost.user });
+      setOriginalPost(null);
+      setPrivacyConsent(false);
+      setEmailTouched(false);
+      setInputKey(Date.now());
+
+      setSuccessMessage("Post updated successfully!");
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err) {
+      const message = err.response?.data?.message || "❌ Error updating post.";
+      console.error(message);
+      setErrorMessage(message);
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmittingPost(false);
+    }
   };
 
   const handleEditPost = (post) => {
@@ -1096,9 +1101,20 @@ function Forum() {
                     </button>
                     <button
                       onClick={handleCreateOrUpdatePost}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[#5EE6FE] text-white hover:bg-[#3ecbe0] font-semibold transition-all text-xs sm:text-sm"
+                      disabled={isSubmittingPost}
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-all text-xs sm:text-sm ${
+                        isSubmittingPost
+                          ? "bg-[#9deaf7] text-white cursor-not-allowed"
+                          : "bg-[#5EE6FE] text-white hover:bg-[#3ecbe0]"
+                      }`}
                     >
-                      {newPost.id ? "Update" : "Post"}
+                      {isSubmittingPost
+                        ? newPost.id
+                          ? "Updating..."
+                          : "Posting..."
+                        : newPost.id
+                        ? "Update"
+                        : "Post"}
                     </button>
                   </div>
                 </div>

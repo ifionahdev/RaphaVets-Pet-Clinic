@@ -45,6 +45,7 @@ function PetDetails() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [isSavingProfileImage, setIsSavingProfileImage] = useState(false);
 
   const tabs = ["Appointments", "Medical Reports", "Lab Records"];
 
@@ -311,8 +312,6 @@ function PetDetails() {
       // Check file type
       const fileType = file.type.toLowerCase();
       if (fileType !== 'image/jpeg' && fileType !== 'image/jpg' && fileType !== 'image/png') {
-        setToastMessage("Only JPG and PNG files are allowed!");
-        setShowSuccessToast(true);
         // Clear the input
         e.target.value = '';
         return;
@@ -321,20 +320,17 @@ function PetDetails() {
       const previewUrl = URL.createObjectURL(file);
       setPreviewImage(previewUrl);
       setSelectedFile(file); // Store file for later upload
-      setToastMessage("Image selected. Click Save to update.");
-      setShowSuccessToast(true);
     }
   };
 
   // 👇 MODIFIED: Upload function now uses the stored file
   const handleImageUpload = async () => {
     if (!selectedFile) {
-      setToastMessage("No image selected.");
-      setShowSuccessToast(true);
       return;
     }
 
     try {
+      setIsSavingProfileImage(true);
       const formData = new FormData();
       formData.append("petImage", selectedFile);
 
@@ -368,8 +364,8 @@ function PetDetails() {
 
     } catch (err) {
       console.error("❌ Upload failed:", err);
-      setToastMessage("Failed to upload image.");
-      setShowSuccessToast(true);
+    } finally {
+      setIsSavingProfileImage(false);
     }
   };
 
@@ -490,9 +486,15 @@ function PetDetails() {
     fetchPetData();
   }, [id, refreshTrigger]);
 
-  const filteredAppointments = appointments.filter((appt) =>
-    appointmentFilter === "All" ? true : appt.status === appointmentFilter
-  );
+  const filteredAppointments = appointments.filter((appointment) => {
+    if (appointmentFilter === "All") return true;
+    const status = String(appointment.status || "").toLowerCase();
+    const filter = appointmentFilter.toLowerCase();
+    if (filter === "missed") {
+      return status.includes("missed") || status.includes("no show");
+    }
+    return status.includes(filter);
+  });
 
   const closeModal = () => {
     setShowDetailsModal(false);
@@ -891,15 +893,19 @@ function PetDetails() {
                   <motion.button 
                     onClick={handleSaveChanges}
                     className={`flex-1 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium ${
-                      selectedFile 
+                      selectedFile && !isSavingProfileImage
                         ? "bg-[#5EE6FE] text-white" 
                         : "bg-gray-200 text-gray-500 cursor-not-allowed"
                     }`}
-                    whileHover={selectedFile ? { scale: 1.02 } : {}}
-                    whileTap={selectedFile ? { scale: 0.98 } : {}}
-                    disabled={!selectedFile}
+                    whileHover={selectedFile && !isSavingProfileImage ? { scale: 1.02 } : {}}
+                    whileTap={selectedFile && !isSavingProfileImage ? { scale: 0.98 } : {}}
+                    disabled={!selectedFile || isSavingProfileImage}
                   >
-                    {selectedFile ? "Save Changes" : "No Changes"}
+                    {!selectedFile
+                      ? "No Changes"
+                      : isSavingProfileImage
+                      ? "Saving..."
+                      : "Save Changes"}
                   </motion.button>
                 </div>
 

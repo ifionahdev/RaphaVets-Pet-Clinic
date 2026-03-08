@@ -23,6 +23,7 @@ function Home() {
   const [petCareTips, setPetCareTips] = useState([]);
   const [showExternalTipModal, setShowExternalTipModal] = useState(false);
   const [pendingTipUrl, setPendingTipUrl] = useState("");
+  const [selectedTip, setSelectedTip] = useState(null);
   const [loading, setLoading] = useState({
     appointments: true,
     medical: true,
@@ -250,9 +251,15 @@ function Home() {
     }
   };
 
-  const filteredAppointments = appointments.filter(
-    (a) => appointmentFilter === "All" || a.status === appointmentFilter
-  );
+  const filteredAppointments = appointments.filter((appointment) => {
+    if (appointmentFilter === "All") return true;
+    const status = String(appointment.status || "").toLowerCase();
+    const filter = appointmentFilter.toLowerCase();
+    if (filter === "missed") {
+      return status.includes("missed") || status.includes("no show");
+    }
+    return status.includes(filter);
+  });
 
   const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
@@ -264,7 +271,12 @@ function Home() {
     setSelectedAppointment(null);
   };
 
-  const handleTipClick = (url) => {
+  const handleTipClick = (tip) => {
+    if (!tip) return;
+    setSelectedTip(tip);
+  };
+
+  const handleTipLearnMore = (url) => {
     if (!url) return;
     setPendingTipUrl(url);
     setShowExternalTipModal(true);
@@ -360,7 +372,7 @@ function Home() {
                 icon={petCareTips[0].icon || "fa-paw"}
                 bg="#FCE7F3" 
                 text="#045D56"
-                onClick={() => handleTipClick(petCareTips[0].url)}
+                onClick={() => handleTipClick(petCareTips[0])}
               />
             ) : (
               <DashboardCard 
@@ -390,7 +402,7 @@ function Home() {
                 icon={petCareTips[1].icon || "fa-paw"}
                 bg="#E3FAF7" 
                 text="#7C2E38"
-                onClick={() => handleTipClick(petCareTips[1].url)}
+                onClick={() => handleTipClick(petCareTips[1])}
               />
             ) : (
               <DashboardCard 
@@ -506,6 +518,63 @@ function Home() {
               <ViewDetailsModal appointment={selectedAppointment} closeModal={closeModal} />
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedTip && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4">
+            <motion.div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedTip(null)}
+            />
+            <motion.div
+              className="relative z-[10000] bg-white rounded-xl sm:rounded-2xl md:rounded-3xl w-full max-w-md p-4 sm:p-5 md:p-6 shadow-2xl"
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-[#2FA394] text-3xl sm:text-4xl mb-3 sm:mb-4 flex justify-center">
+                <i className={`fa-solid ${selectedTip.icon || "fa-paw"}`}></i>
+              </div>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 text-[#2FA394] text-center">
+                {selectedTip.title}
+              </h2>
+              {selectedTip.category && (
+                <div className="flex justify-center mb-3 sm:mb-4">
+                  <span className="inline-block text-xs font-medium text-[#2FA394] px-3 py-1 rounded-full border border-[#2FA394]">
+                    {selectedTip.category}
+                  </span>
+                </div>
+              )}
+              <p className="text-gray-700 mb-4 sm:mb-5 md:mb-6 text-xs sm:text-sm leading-relaxed">
+                {selectedTip.long || selectedTip.short || selectedTip.description}
+              </p>
+              <div className="flex flex-col xs:flex-row justify-center gap-2 sm:gap-3">
+                <motion.button
+                  onClick={() => handleTipLearnMore(selectedTip.url)}
+                  className="bg-[#2FA394] hover:bg-[#24907e] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Learn More
+                </motion.button>
+                <motion.button
+                  onClick={() => setSelectedTip(null)}
+                  className="bg-gray-300 hover:bg-gray-400 text-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Close
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
