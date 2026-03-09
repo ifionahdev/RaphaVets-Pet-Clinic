@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 04, 2026 at 08:15 AM
+-- Generation Time: Mar 09, 2026 at 01:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -49,7 +49,7 @@ CREATE TABLE `account_tbl` (
 --
 
 INSERT INTO `account_tbl` (`accId`, `roleID`, `firstName`, `lastName`, `email`, `password`, `createdAt`, `lastUpdatedAt`, `passwordChangeAt`, `logInAt`, `logOutAt`, `isDeleted`, `resetToken`, `resetTokenExpiry`) VALUES
-(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2026-02-26 17:26:56', '2025-11-09 12:21:30', '2026-02-26 17:26:43', '2026-02-26 17:26:56', 0, '205676104592a4bdda5ae79ab8b33f59d772d71ba631da7c9af8e03be2ba39c5', '2026-02-02 11:07:19'),
+(2, 3, 'Marke', 'Mapili', 'markmapili29@gmail.com', '$2b$10$NNG154DuvS/ST/lInE1Pp.XyhniL6YtSE.3UaiAv6/OvON5uMi3MC', '2025-11-19 19:01:01', '2026-03-09 15:48:34', '2025-11-09 12:21:30', '2026-03-09 15:48:34', '2026-02-26 17:26:56', 0, '205676104592a4bdda5ae79ab8b33f59d772d71ba631da7c9af8e03be2ba39c5', '2026-02-02 11:07:19'),
 (3, 2, 'Fionah Irish', 'Beltran', 'soupcuppy@gmail.com', '$2b$10$l/lPrlJ8Vho/LyqoOiq2sOlSSrZ1t.atCEgMaxBBOW05jri/FfwIS', '0000-00-00 00:00:00', '2025-11-22 12:57:36', '2025-11-09 12:21:30', '2025-11-22 12:57:36', '2025-11-09 12:20:21', 0, NULL, NULL),
 (5, 2, 'mark', 'mapili', 'markmapili72@gmail.com', '$2b$10$Y8.14qoE4rlZJX7z4lfDEODwiSFvspaR7/T4S1eVYu2PEQmBe8pIq', '0000-00-00 00:00:00', '2026-03-04 14:51:39', '2026-03-04 14:51:17', '2026-03-04 14:51:39', '2026-03-04 14:51:22', 0, NULL, NULL),
 (6, 1, 'Miguel', 'Rojero', 'miguelrojero@gmail.com', '0908@Taks', '2025-11-15 18:31:41', '2025-11-17 10:17:26', '2025-11-15 18:31:41', '2025-11-15 18:31:41', '2025-11-15 18:31:41', 1, NULL, NULL),
@@ -450,22 +450,6 @@ CREATE TABLE `forum_images_tbl` (
 --
 
 INSERT INTO `forum_images_tbl` (`forumImageID`, `forumID`, `imageName`, `isDeleted`) VALUES
-(1, 2, 'image-1762858826305-982065420.jpg', 1),
-(2, 2, 'image-1762858826306-797215708.jpg', 1),
-(3, 3, 'image-1762858962364-675993991.jpeg', 1),
-(4, 4, 'image-1762860491543-336551134.png', 1),
-(5, 5, 'image-1762878564919-596408155.png', 1),
-(6, 6, 'image-1762878779749-771930796.jpeg', 1),
-(7, 7, 'image-1762878817463-839407871.png', 1),
-(8, 8, 'image-1762878922606-295985859.png', 1),
-(9, 9, 'image-1762880202374-527291952.jpeg', 1),
-(10, 10, 'image-1762880881486-33113444.jpeg', 1),
-(11, 11, 'image-1762881267978-109360591.jpeg', 1),
-(12, 12, 'image-1762883343023-809445452.jpeg', 1),
-(13, 13, 'image-1762888235903-34065093.png', 1),
-(14, 13, 'image-1762890147093-869791497.png', 1),
-(15, 14, 'image-1762890257174-434927200.png', 1),
-(16, 14, 'image-1762890268841-638899812.jpeg', 1),
 (17, 15, 'image-1762918604217-159052591.jpeg', 0),
 (18, 15, 'image-1762920116768-235807608.png', 0),
 (19, 15, 'image-1762920189690-705852010.png', 0),
@@ -551,19 +535,6 @@ CREATE TABLE `forum_posts_tbl` (
 --
 
 INSERT INTO `forum_posts_tbl` (`forumID`, `accID`, `postType`, `description`, `contact`, `email`, `createdAt`, `lastUpdatedAt`, `isAnonymous`, `isDeleted`) VALUES
-(2, 2, 'Found', 'Hi Syug', '', 'cont@c.tin', '2025-11-11 19:00:26', '2025-11-12 00:46:46', 0, 1),
-(3, 2, 'Found', 'Mark as Found Test 1', '', 'cont@c.tmo', '2025-11-11 19:02:42', '2025-11-12 00:53:41', 0, 1),
-(4, 2, 'Found', 'Edit Timestamp check', '', 'timest@mp.check', '2025-11-11 19:28:11', '2025-11-12 00:53:51', 0, 1),
-(5, 2, 'Found', 'sada', '', 'cont@c.tc', '2025-11-12 00:29:25', '2025-11-12 00:53:57', 0, 1),
-(6, 2, 'Found', 'kupal', '09193344512', '', '2025-11-12 00:32:59', '2025-11-12 00:54:00', 0, 1),
-(7, 2, 'Found', 'Hell Yeahh', '', 'cont@ct.me', '2025-11-12 00:33:37', '2025-11-12 00:56:52', 0, 1),
-(8, 2, 'Lost', 'I am lost, trying to get found in an ocean of... People', '', 'cont@ct.me', '2025-11-12 00:35:22', '2025-11-12 00:56:58', 0, 1),
-(9, 2, 'Found', 'tubol sa daan', '', 'cont@ct.me', '2025-11-12 00:56:42', '2025-11-12 01:05:01', 0, 1),
-(10, 2, 'Lost', 'Ekis', '', 'cont@ct.me', '2025-11-12 01:08:01', '2025-11-12 01:14:36', 0, 1),
-(11, 2, 'Lost', 'dikoalam', '', 'c@t.me', '2025-11-12 01:14:28', '2025-11-12 01:14:45', 0, 1),
-(12, 2, 'Lost', 'Descriptive yarn', '', 'c@t.meow', '2025-11-12 01:49:03', '2025-11-12 01:49:15', 0, 1),
-(13, 2, 'Lost', 'Louvre', '09021920987', 'contact@me.com', '2025-11-12 03:10:35', '2025-11-12 03:43:43', 1, 1),
-(14, 2, 'Lost', 'Ihh ang bangis', '', 'cont@ct.me', '2025-11-12 03:44:17', '2025-11-12 11:35:31', 0, 1),
 (15, 2, 'Lost', 'bin', '', 'cont@ct.me', '2025-11-12 11:36:44', '2025-11-12 12:03:09', 1, 0),
 (16, 2, 'Lost', 'yes', '09123456789', 'markmapili28@gmail.com', '2025-11-14 21:18:06', '2025-11-14 21:18:32', 1, 0),
 (17, 17, 'Lost', 'haga', '09123434556', 'safdsafs@gmail.cpm', '2025-11-22 18:25:03', '2025-11-22 18:25:03', 1, 0),
@@ -1472,6 +1443,130 @@ INSERT INTO `service_tbl` (`serviceID`, `service`, `description`, `long_descript
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `symptoms_tbl`
+--
+
+CREATE TABLE `symptoms_tbl` (
+  `symptomID` int(11) NOT NULL,
+  `species` enum('Cat','Dog') NOT NULL,
+  `symptomName` text NOT NULL,
+  `featureName` text NOT NULL,
+  `systemID` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `symptoms_tbl`
+--
+
+INSERT INTO `symptoms_tbl` (`symptomID`, `species`, `symptomName`, `featureName`, `systemID`) VALUES
+(1, 'Dog', 'Fever', 'symptom_fever', 2),
+(2, 'Dog', 'Lethargy', 'symptom_lethargy', 2),
+(3, 'Dog', 'Depression', 'symptom_depression', 2),
+(4, 'Dog', 'Pain', 'symptom_pain', 2),
+(5, 'Dog', 'Discomfort', 'symptom_discomfort', 2),
+(6, 'Dog', 'Weakness', 'symptom_weakness', 2),
+(7, 'Dog', 'Coma', 'symptom_coma', 2),
+(8, 'Dog', 'Collapse', 'symptom_collapse', 2),
+(9, 'Dog', 'Lack of Energy', 'symptom_lack_of_energy', 2),
+(10, 'Dog', 'Nasal Discharge', 'symptom_nasal_discharge', 3),
+(11, 'Dog', 'Breathing Difficulty', 'symptom_breathing_difficulty', 3),
+(12, 'Dog', 'Coughing', 'symptom_coughing', 3),
+(13, 'Dog', 'Enlarged Liver', 'symptom_enlarged_liver', 4),
+(14, 'Dog', 'Yellow Gums', 'symptom_yellow_gums', 4),
+(15, 'Dog', 'Vomiting', 'symptom_vomiting', 4),
+(16, 'Dog', 'Diarrhea', 'symptom_diarrhea', 4),
+(17, 'Dog', 'Bloated Stomach', 'symptom_bloated_stomach', 4),
+(18, 'Dog', 'Burping', 'symptom_burping', 4),
+(19, 'Dog', 'Passing Gases', 'symptom_passing_gases', 4),
+(20, 'Dog', 'Constipation', 'symptom_constipation', 4),
+(21, 'Dog', 'Eating Grass', 'symptom_eating_grass', 4),
+(22, 'Dog', 'Purging', 'symptom_purging', 4),
+(23, 'Dog', 'Abdominal Pain', 'symptom_abdominal_pain', 4),
+(24, 'Dog', 'Weight Loss', 'symptom_weight_loss', 5),
+(25, 'Dog', 'Severe Dehydration', 'symptom_severe_dehydration', 5),
+(26, 'Dog', 'Increased Drinking and Urination', 'symptom_increased_drinking_and_urination', 5),
+(27, 'Dog', 'Glucose In Urine', 'symptom_glucose_in_urine', 5),
+(28, 'Dog', 'Anorexia', 'symptom_anorexia', 5),
+(29, 'Dog', 'Blood In Urine', 'symptom_blood_in_urine', 5),
+(30, 'Dog', 'Urine Infection', 'symptom_urine_infection', 5),
+(31, 'Dog', 'Difficulty Urinating', 'symptom_difficulty_urinating', 5),
+(32, 'Dog', 'Acute Blindness', 'symptom_acute_blindness', 6),
+(33, 'Dog', 'Cataracts', 'symptom_cataracts', 6),
+(34, 'Dog', 'Gradual Losing Sight', 'symptom_losing_sight', 6),
+(35, 'Dog', 'Blindness', 'symptom_blindness', 6),
+(36, 'Dog', 'Eye Discharge', 'symptom_eye_discharge', 6),
+(37, 'Dog', 'Excess Jaw Tone', 'symptom_excess_jaw_tone', 7),
+(38, 'Dog', 'Lameness', 'symptom_lameness', 7),
+(39, 'Dog', 'Stiff and Hard Tail', 'symptom_stiff_and_hard_tail', 7),
+(40, 'Dog', 'Stiffness of Muscles', 'symptom_stiffness_of_muscles', 7),
+(41, 'Dog', 'Continuously Erect and Stiff Ears', 'symptom_continuously_erect_and_stiff_ears', 7),
+(42, 'Dog', 'Grinning Appearance', 'symptom_grinning_appearance', 7),
+(43, 'Dog', 'Wrinkled Forehead', 'symptom_wrinkled_forehead', 7),
+(44, 'Dog', 'Paralysis', 'symptom_paralysis', 8),
+(45, 'Dog', 'Seizures', 'symptom_seizures', 8),
+(46, 'Dog', 'Neurological Disorders', 'symptom_neurological_disorders', 8),
+(47, 'Dog', 'Loss of Consciousness', 'symptom_loss_of_consciousness', 8),
+(48, 'Dog', 'Excessive Salivation', 'symptom_excessive_salivation', 9),
+(49, 'Dog', 'Swelling of Gum', 'symptom_swelling_of_gum', 9),
+(50, 'Dog', 'Redness of Gum', 'symptom_redness_of_gum', 9),
+(51, 'Dog', 'Receding Gum', 'symptom_receding_gum', 9),
+(52, 'Dog', 'Bleeding of Gum', 'symptom_bleeding_of_gum', 9),
+(53, 'Dog', 'Plaque', 'symptom_plaque', 9),
+(54, 'Dog', 'Bad Breath', 'symptom_bad_breath', 9),
+(55, 'Dog', 'Tartar', 'symptom_tartar', 9),
+(56, 'Dog', 'Scratching', 'symptom_scratching', 10),
+(57, 'Dog', 'Licking', 'symptom_licking', 10),
+(58, 'Dog', 'Itchy Skin', 'symptom_itchy_skin', 10),
+(59, 'Dog', 'Redness of Skin', 'symptom_redness_of_skin', 10),
+(60, 'Dog', 'Face Rubbing', 'symptom_face_rubbing', 10),
+(61, 'Dog', 'Fur Loss', 'symptom_fur_loss', 10),
+(62, 'Dog', 'Red Bumps', 'symptom_red_bumps', 10),
+(63, 'Dog', 'Scabs', 'symptom_scabs', 10),
+(64, 'Dog', 'Irritation', 'symptom_irritation', 10),
+(65, 'Dog', 'Dry Skin', 'symptom_dry_skin', 10),
+(66, 'Dog', 'Red Patches', 'symptom_red_patches', 10),
+(67, 'Dog', 'Dandruff', 'symptom_dandruff', 10),
+(68, 'Dog', 'Smelly', 'symptom_smelly', 10),
+(69, 'Dog', 'Wounds', 'symptom_wounds', 10),
+(70, 'Dog', 'Swollen Lymph Nodes', 'symptom_swollen_lymph_nodes', 11),
+(71, 'Dog', 'Sepsis', 'symptom_sepsis', 11),
+(72, 'Dog', 'Pale Gums', 'symptom_pale_gums', 11),
+(73, 'Dog', 'Heart Complication', 'symptom_heart_complication', 12),
+(74, 'Dog', 'Aggression', 'symptom_aggression', 13),
+(75, 'Dog', 'Hunger', 'symptom_hunger', 13);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `symptom_system_tbl`
+--
+
+CREATE TABLE `symptom_system_tbl` (
+  `systemID` int(11) NOT NULL,
+  `systemName` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `symptom_system_tbl`
+--
+
+INSERT INTO `symptom_system_tbl` (`systemID`, `systemName`) VALUES
+(2, 'Systemic'),
+(3, 'Respiratory'),
+(4, 'Gastrointestinal'),
+(5, 'Metabolic / Urinary'),
+(6, 'Vision'),
+(7, 'Muscoloskeletal'),
+(8, 'Neurological'),
+(9, 'Dental'),
+(10, 'Dermatological'),
+(11, 'Lymphatic'),
+(12, 'Cardiovascular'),
+(13, 'Other');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `userpreference_tbl`
 --
 
@@ -2232,7 +2327,12 @@ INSERT INTO `user_websocket_sessions_tbl` (`sessionID`, `accID`, `socketID`, `co
 (876, 17, '9E5CbklGzKLkyqPKAAAT', '2026-03-04 15:02:59', '2026-03-04 15:02:59', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
 (877, 18, 'jTKauUH7XvD_H02RAAAD', '2026-03-04 15:07:47', '2026-03-04 15:10:06', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
 (880, 18, 'aslTRwXxW0N7IBxuAAAL', '2026-03-04 15:13:54', '2026-03-04 15:13:54', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
-(882, 5, 'pHzlDGwOgqCDwKePAAAI', '2026-03-04 15:15:06', '2026-03-04 15:15:06', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1');
+(882, 5, 'pHzlDGwOgqCDwKePAAAI', '2026-03-04 15:15:06', '2026-03-04 15:15:06', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(884, 2, 'Yrj37wLoWWCNpsHTAAAF', '2026-03-09 02:30:27', '2026-03-09 02:30:39', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(887, 2, 'f_8KwEkuEdqeApn1AAAC', '2026-03-09 04:05:27', '2026-03-09 04:05:32', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(890, 2, 'GgXtiJHHrRBGCU5GAAAC', '2026-03-09 04:49:07', '2026-03-09 04:49:16', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(893, 2, 'NWjvSbqejyfgKV14AAAE', '2026-03-09 15:40:27', '2026-03-09 15:40:34', 0, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1'),
+(896, 2, 'Dso1AoSV08cFLkJTAAAG', '2026-03-09 15:48:35', '2026-03-09 15:48:35', 1, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', '::1');
 
 -- --------------------------------------------------------
 
@@ -2507,6 +2607,19 @@ ALTER TABLE `service_tbl`
   ADD PRIMARY KEY (`serviceID`);
 
 --
+-- Indexes for table `symptoms_tbl`
+--
+ALTER TABLE `symptoms_tbl`
+  ADD PRIMARY KEY (`symptomID`),
+  ADD KEY `symptom_system_fl` (`systemID`);
+
+--
+-- Indexes for table `symptom_system_tbl`
+--
+ALTER TABLE `symptom_system_tbl`
+  ADD PRIMARY KEY (`systemID`);
+
+--
 -- Indexes for table `userpreference_tbl`
 --
 ALTER TABLE `userpreference_tbl`
@@ -2713,6 +2826,18 @@ ALTER TABLE `service_tbl`
   MODIFY `serviceID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `symptoms_tbl`
+--
+ALTER TABLE `symptoms_tbl`
+  MODIFY `symptomID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+
+--
+-- AUTO_INCREMENT for table `symptom_system_tbl`
+--
+ALTER TABLE `symptom_system_tbl`
+  MODIFY `systemID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
 -- AUTO_INCREMENT for table `userpreference_tbl`
 --
 ALTER TABLE `userpreference_tbl`
@@ -2728,7 +2853,7 @@ ALTER TABLE `user_notifications_tbl`
 -- AUTO_INCREMENT for table `user_websocket_sessions_tbl`
 --
 ALTER TABLE `user_websocket_sessions_tbl`
-  MODIFY `sessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=884;
+  MODIFY `sessionID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=897;
 
 --
 -- AUTO_INCREMENT for table `vet_table`
@@ -2858,6 +2983,12 @@ ALTER TABLE `pet_tbl`
 --
 ALTER TABLE `service_pricing_tbl`
   ADD CONSTRAINT `service_pricing_tbl_ibfk_1` FOREIGN KEY (`serviceID`) REFERENCES `service_tbl` (`serviceID`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `symptoms_tbl`
+--
+ALTER TABLE `symptoms_tbl`
+  ADD CONSTRAINT `symptom_system_fl` FOREIGN KEY (`systemID`) REFERENCES `symptom_system_tbl` (`systemID`);
 
 --
 -- Constraints for table `userpreference_tbl`
