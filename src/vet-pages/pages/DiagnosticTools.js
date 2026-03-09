@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brain, AlertTriangle, CheckCircle, HelpCircle, RotateCcw, X, Dog, Cat } from "lucide-react";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
+import api from "../../api/axios";
 
 const symptomCategories = [
   {
@@ -75,18 +76,73 @@ const sampleDiagnoses = [
   },
 ];
 
+const categoryColors = [
+  { color: "text-orange-600", bg: "bg-orange-50 border-orange-200", checkColor: "accent-orange-500" },
+  { color: "text-sky-600", bg: "bg-sky-50 border-sky-200", checkColor: "accent-sky-500" },
+  { color: "text-pink-600", bg: "bg-pink-50 border-pink-200", checkColor: "accent-pink-500" },
+  { color: "text-violet-600", bg: "bg-violet-50 border-violet-200", checkColor: "accent-violet-500" },
+  { color: "text-teal-600", bg: "bg-teal-50 border-teal-200", checkColor: "accent-teal-500" },
+  { color: "text-amber-600", bg: "bg-amber-50 border-amber-200", checkColor: "accent-amber-500" },
+];
+
 const DiagnosticTool = () => {
   const [species, setSpecies] = useState("dog");
+  const [symptomCategories, setSymptomCategories] = useState([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [diagnosisResults, setDiagnosisResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState(null);
 
+  const fetchSymptomByCategories = async (species) => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/diagnostic/symptoms/${species}`);
+      const data = res.data;
+      const coloredData = assignColorsToCategories(data);
+
+      setSymptomCategories(coloredData);
+      // Process the fetched data as needed
+      console.log("Fetched symptom categories:", data);
+
+    } catch (error) {
+      console.error("Error fetching symptoms:", error);
+      setToast({ type: "error", message: "Failed to load symptoms. Please try again." });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const assignColorsToCategories = (categories) => {
+  return categories.map((cat, idx) => ({
+    ...cat,
+    ...categoryColors[idx % categoryColors.length], // cycle through palette
+  }));
+};
+
+  useEffect(() => {
+    fetchSymptomByCategories("dog");
+  }, []);
+
+  useEffect(() => {
+    fetchSymptomByCategories(species);
+    setSelectedSymptoms([]); // reset selected symptoms
+  }, [species]);
+
   const toggleSymptom = (symptom) => {
-    setSelectedSymptoms((prev) =>
-      prev.includes(symptom) ? prev.filter((s) => s !== symptom) : [...prev, symptom]
-    );
+    setSelectedSymptoms((prev) => {
+      const exists = prev.some(
+        (s) => s.feature_name === symptom.feature_name
+      );
+
+      if (exists) {
+        return prev.filter(
+          (s) => s.feature_name !== symptom.feature_name
+        );
+      }
+
+      return [...prev, symptom];
+    });
   };
 
   const clearAll = () => {
@@ -102,14 +158,38 @@ const DiagnosticTool = () => {
     setShowModal(false);
   };
 
-  const analyzeSymptoms = () => {
+  const analyzeSymptoms = async () => {
     if (selectedSymptoms.length === 0) {
       setToast({ type: "error", message: "Please select at least one symptom before analyzing." });
       return;
     }
+    const payload = selectedSymptoms.map((s) => s.feature_name);
+    try{
+      setLoading(true);
+      const res = await api.post("/ml/diagnostic", {
+        species,
+        symptoms: payload
+      });
+      console.log("ML response:", res.data);
 
-    setLoading(true);
+      setDiagnosisResults({
+        inputSymptoms: selectedSymptoms,
+        species,
+        possibleDiagnoses: res.data, // directly use API response
+        analysisNotes: `Analyzed ${selectedSymptoms.length} symptom(s) using multiple regression model.`,
+        noDiagnosisFound: res.data.length === 0
+      });
 
+      setShowModal(true);
+
+    }catch(err){
+      console.error("Error during analysis:", err);
+      setToast({ type: "error", message: "Analysis failed. Please try again." });
+      return;
+    }finally{
+      setLoading(false);
+    }
+    /*
     setTimeout(() => {
       const shouldShowNoDiagnosis = Math.random() > 0.7;
 
@@ -130,11 +210,7 @@ const DiagnosticTool = () => {
           noDiagnosisFound: false,
         });
       }
-
-      setLoading(false);
-      setShowModal(true);
-      setToast({ type: "success", message: "Analysis complete! Review the results." });
-    }, 2000);
+      */
   };
 
   const getConfidenceColor = (confidence) => {
@@ -144,9 +220,9 @@ const DiagnosticTool = () => {
   };
 
   const getConfidenceBar = (confidence) => {
-    if (confidence >= 80) return "bg-green-500";
-    if (confidence >= 60) return "bg-yellow-500";
-    return "bg-red-500";
+    if (confidence >= 80) return "bg-red-500";
+    if (confidence >= 50) return "bg-orange-500";
+    return "bg-yellow-500";
   };
 
   return (
@@ -228,18 +304,21 @@ const DiagnosticTool = () => {
             >
               <div className={`px-5 py-3 border-b ${cat.bg} flex items-center gap-2`}>
                 <span className={`text-sm font-semibold ${cat.color}`}>{cat.label}</span>
-                {cat.symptoms.filter((s) => selectedSymptoms.includes(s)).length > 0 && (
+                {cat.symptoms.filter((s) => selectedSymptoms.includes(s.feature_name)).length > 0 && (
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.bg} ${cat.color} border`}>
-                    {cat.symptoms.filter((s) => selectedSymptoms.includes(s)).length} selected
+                    {cat.symptoms.filter((s) => selectedSymptoms.includes(s.feature_name)).length} selected
                   </span>
                 )}
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {cat.symptoms.map((symptom) => {
-                  const checked = selectedSymptoms.includes(symptom);
+                  const checked = selectedSymptoms.some(
+                    (s) => s.feature_name === symptom.feature_name
+                  );
+
                   return (
                     <label
-                      key={symptom}
+                      key={symptom.feature_name}
                       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border cursor-pointer transition-all select-none ${
                         checked
                           ? `${cat.bg} ${cat.color} border-current font-medium`
@@ -252,7 +331,9 @@ const DiagnosticTool = () => {
                         onChange={() => toggleSymptom(symptom)}
                         className={`w-4 h-4 rounded ${cat.checkColor} flex-shrink-0`}
                       />
-                      <span className="text-[13px] leading-tight">{symptom}</span>
+                      <span className="text-[13px] leading-tight">
+                        {symptom.symptom_name}
+                      </span>
                     </label>
                   );
                 })}
@@ -334,12 +415,12 @@ const DiagnosticTool = () => {
                 <div className="flex flex-wrap gap-1.5">
                   {selectedSymptoms.map((s) => (
                     <button
-                      key={s}
+                      key={s.feature_name}
                       onClick={() => toggleSymptom(s)}
                       className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#5EE6FE]/10 text-[#5EE6FE] border border-[#5EE6FE]/20 rounded-full text-xs font-medium hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition group"
                       title="Click to remove"
                     >
-                      {s}
+                      {s.symptom_name}
                       <span className="opacity-0 group-hover:opacity-100 transition ml-0.5">×</span>
                     </button>
                   ))}
@@ -384,8 +465,8 @@ const DiagnosticTool = () => {
                 <p className="text-xs text-gray-500 mb-2">{diagnosisResults.analysisNotes}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {diagnosisResults.inputSymptoms.map((s) => (
-                    <span key={s} className="px-2 py-0.5 bg-white text-gray-600 text-xs rounded-full border border-gray-200">
-                      {s}
+                    <span key={s.feature_name} className="px-2 py-0.5 bg-white text-gray-600 text-xs rounded-full border border-gray-200">
+                      {s.symptom_name}
                     </span>
                   ))}
                 </div>
@@ -410,15 +491,15 @@ const DiagnosticTool = () => {
                       className="p-5 rounded-xl border border-gray-200 hover:border-[#5EE6FE]/40 hover:shadow-sm transition-all"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <h4 className="font-semibold text-gray-800">{diagnosis.condition}</h4>
-                        <span className={`flex-shrink-0 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getConfidenceColor(diagnosis.confidence)}`}>
-                          {diagnosis.confidence}% match
+                        <h4 className="font-semibold text-gray-800">{diagnosis.disease}</h4>
+                        <span className={`flex-shrink-0 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getConfidenceColor(diagnosis.risk_score)}`}>
+                          Risk: {diagnosis.risk_score.toFixed(0)}
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-gray-100 rounded-full mb-3">
                         <div
-                          className={`h-full rounded-full ${getConfidenceBar(diagnosis.confidence)} transition-all`}
-                          style={{ width: `${diagnosis.confidence}%` }}
+                          className={`h-full rounded-full ${getConfidenceBar(diagnosis.risk_score)} transition-all`}
+                          style={{ width: `${Math.min(diagnosis.risk_score, 100)}%` }}
                         />
                       </div>
                       <p className="text-sm text-gray-600 mb-4 leading-relaxed">{diagnosis.description}</p>
