@@ -25,29 +25,7 @@ def get_learner():
         )
 
     try:
-        # ------------------------------
-        # Patch WindowsPath for Linux
-        # ------------------------------
-        import pickle
-        from pathlib import PureWindowsPath, Path
-
-        class WindowsPathFix(PureWindowsPath):
-            def __new__(cls, *args, **kwargs):
-                return Path(*args)
-
-        _pickle_load_orig = pickle.load
-
-        def patched_pickle_load(f, *args, **kwargs):
-            return _pickle_load_orig(f, *args, **kwargs)
-
-        pickle.load = patched_pickle_load
-        # ------------------------------
-
-        # Load the learner
         learn = load_learner(MODEL_PATH)
-        # Optionally, re-export to fix paths permanently
-        learn.export(MODEL_PATH)
-
         return learn
     except Exception as error:
         model_load_error = str(error)
@@ -63,19 +41,14 @@ def predict_breed_from_bytes(file_bytes: bytes) -> dict:
         Predicts the breed from an image in memory (bytes).
         No disk I/O needed.
         """
-        # Convert bytes to PIL Image
         img = Image.open(BytesIO(file_bytes))
         learner = get_learner()
         
-        # Predict
         pred_class, pred_idx, probs = learner.predict(np.array(img))
 
-        #Clean up the output for JSON response
-
         confidence = float(probs[pred_idx])
-        breed = str(pred_class).title().replace('_', ' ')  # Capitalize breed name and replace underscores with spaces
+        breed = str(pred_class).title().replace('_', ' ')
 
-        #Generate note based on confidence
         if confidence > 0.85:
             main_note = "Most likely a " + breed
         elif confidence > 0.6:
@@ -83,7 +56,6 @@ def predict_breed_from_bytes(file_bytes: bytes) -> dict:
         else:
             main_note = "Uncertain, but could be a " + breed
 
-        #confidence disclaimer
         disclaimer = "This is an AI prediction and may not be accurate. Please consult a veterinarian for a definitive diagnosis."
         note = f"{main_note}.\n{disclaimer}"
 
