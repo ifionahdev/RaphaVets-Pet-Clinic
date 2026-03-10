@@ -4,17 +4,17 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 from fastapi import HTTPException
-from model_state import breed_model, breed_model_load_error
+import model_state
 
 def predict_breed_from_bytes(file_bytes: bytes) -> dict:
-    if breed_model_load_error is not None:
-        raise HTTPException(status_code=503, detail=f"Breed model failed to load: {breed_model_load_error}")
-    if breed_model is None:
+    if model_state.breed_model_load_error is not None:
+        raise HTTPException(status_code=503, detail=f"Breed model failed to load: {model_state.breed_model_load_error}")
+    if model_state.breed_model is None:
         raise HTTPException(status_code=503, detail="Breed model is not available")
 
     try:
         img = Image.open(BytesIO(file_bytes))
-        pred_class, pred_idx, probs = breed_model.predict(np.array(img))
+        pred_class, pred_idx, probs = model_state.breed_model.predict(np.array(img))
 
         confidence = float(probs[pred_idx])
         breed = str(pred_class).title().replace('_', ' ')

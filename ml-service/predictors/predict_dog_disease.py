@@ -3,8 +3,7 @@
 import pandas as pd
 import joblib
 from pathlib import Path
-from model_state import dog_diagnostic_model, dog_diagnostic_model_load_error, dog_diagnostic_scaler, dog_diagnostic_scaler_load_error
-
+import model_state
 # Load symptom columns to match training
 DATASET_PATH = Path(__file__).resolve().parent.parent / "datasets" / "dog_symptom_disease.csv"
 df = pd.read_csv(DATASET_PATH)
@@ -155,14 +154,14 @@ def predict_dog(symptom_input: dict, top_k: int = 3):
     :param top_k: number of top predictions to return
     :return: dict with top_k_diseases and risk_scores
     """
-    if dog_diagnostic_model_load_error or dog_diagnostic_scaler_load_error:
+    if model_state.dog_diagnostic_model_load_error or model_state.dog_diagnostic_scaler_load_error:
         raise RuntimeError(f"Dog diagnostic models failed to load: "
-                        f"{dog_diagnostic_model_load_error}, {dog_diagnostic_scaler_load_error}")
-    if dog_diagnostic_model is None or dog_diagnostic_scaler is None:
+                        f"{model_state.dog_diagnostic_model_load_error}, {model_state.dog_diagnostic_scaler_load_error}")
+    if model_state.dog_diagnostic_model is None or model_state.dog_diagnostic_scaler is None:
         raise RuntimeError("Dog diagnostic models are not available yet.")
 
-    models = dog_diagnostic_model
-    scaler = dog_diagnostic_scaler
+    models = model_state.dog_diagnostic_model
+    scaler = model_state.dog_diagnostic_scaler
 
     # Prepare DataFrame
     x_input = prepare_input(symptom_input)
