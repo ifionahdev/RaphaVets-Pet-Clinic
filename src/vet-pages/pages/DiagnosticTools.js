@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
-import { Brain, AlertTriangle, CheckCircle, HelpCircle, RotateCcw, X, Dog, Cat } from "lucide-react";
+import {
+  Brain,
+  AlertTriangle,
+  CheckCircle,
+  HelpCircle,
+  RotateCcw,
+  X,
+  Dog,
+  Cat,
+} from "lucide-react";
 import SuccessToast from "../../template/SuccessToast";
 import ErrorToast from "../../template/ErrorToast";
 import api from "../../api/axios";
 
+///////////MOCK DATA - REPLACE WITH API CALLS ///////////
+/*
 const symptomCategories = [
   {
     label: "Digestive",
@@ -75,14 +86,41 @@ const sampleDiagnoses = [
     treatment: "Antihistamines, topical treatments, dietary changes",
   },
 ];
+*/
+
+const enableCats = false; // toggle cat symptoms on/off until we have good data
 
 const categoryColors = [
-  { color: "text-orange-600", bg: "bg-orange-50 border-orange-200", checkColor: "accent-orange-500" },
-  { color: "text-sky-600", bg: "bg-sky-50 border-sky-200", checkColor: "accent-sky-500" },
-  { color: "text-pink-600", bg: "bg-pink-50 border-pink-200", checkColor: "accent-pink-500" },
-  { color: "text-violet-600", bg: "bg-violet-50 border-violet-200", checkColor: "accent-violet-500" },
-  { color: "text-teal-600", bg: "bg-teal-50 border-teal-200", checkColor: "accent-teal-500" },
-  { color: "text-amber-600", bg: "bg-amber-50 border-amber-200", checkColor: "accent-amber-500" },
+  {
+    color: "text-orange-600",
+    bg: "bg-orange-50 border-orange-200",
+    checkColor: "accent-orange-500",
+  },
+  {
+    color: "text-sky-600",
+    bg: "bg-sky-50 border-sky-200",
+    checkColor: "accent-sky-500",
+  },
+  {
+    color: "text-pink-600",
+    bg: "bg-pink-50 border-pink-200",
+    checkColor: "accent-pink-500",
+  },
+  {
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+    checkColor: "accent-violet-500",
+  },
+  {
+    color: "text-teal-600",
+    bg: "bg-teal-50 border-teal-200",
+    checkColor: "accent-teal-500",
+  },
+  {
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+    checkColor: "accent-amber-500",
+  },
 ];
 
 const DiagnosticTool = () => {
@@ -104,25 +142,23 @@ const DiagnosticTool = () => {
       setSymptomCategories(coloredData);
       // Process the fetched data as needed
       console.log("Fetched symptom categories:", data);
-
     } catch (error) {
       console.error("Error fetching symptoms:", error);
-      setToast({ type: "error", message: "Failed to load symptoms. Please try again." });
+      setToast({
+        type: "error",
+        message: "Failed to load symptoms. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const assignColorsToCategories = (categories) => {
-  return categories.map((cat, idx) => ({
-    ...cat,
-    ...categoryColors[idx % categoryColors.length], // cycle through palette
-  }));
-};
-
-  useEffect(() => {
-    fetchSymptomByCategories("dog");
-  }, []);
+    return categories.map((cat, idx) => ({
+      ...cat,
+      ...categoryColors[idx % categoryColors.length], // cycle through palette
+    }));
+  };
 
   useEffect(() => {
     fetchSymptomByCategories(species);
@@ -131,14 +167,10 @@ const DiagnosticTool = () => {
 
   const toggleSymptom = (symptom) => {
     setSelectedSymptoms((prev) => {
-      const exists = prev.some(
-        (s) => s.feature_name === symptom.feature_name
-      );
+      const exists = prev.some((s) => s.feature_name === symptom.feature_name);
 
       if (exists) {
-        return prev.filter(
-          (s) => s.feature_name !== symptom.feature_name
-        );
+        return prev.filter((s) => s.feature_name !== symptom.feature_name);
       }
 
       return [...prev, symptom];
@@ -160,15 +192,18 @@ const DiagnosticTool = () => {
 
   const analyzeSymptoms = async () => {
     if (selectedSymptoms.length === 0) {
-      setToast({ type: "error", message: "Please select at least one symptom before analyzing." });
+      setToast({
+        type: "error",
+        message: "Please select at least one symptom before analyzing.",
+      });
       return;
     }
     const payload = selectedSymptoms.map((s) => s.feature_name);
-    try{
+    try {
       setLoading(true);
       const res = await api.post("/ml/diagnostic", {
         species,
-        symptoms: payload
+        symptoms: payload,
       });
       console.log("ML response:", res.data);
 
@@ -177,23 +212,26 @@ const DiagnosticTool = () => {
         species,
         possibleDiagnoses: res.data, // directly use API response
         analysisNotes: `Analyzed ${selectedSymptoms.length} symptom(s) using multiple regression model.`,
-        noDiagnosisFound: res.data.length === 0
+        noDiagnosisFound: res.data.length === 0,
       });
 
       setShowModal(true);
-
-    }catch(err){
+    } catch (err) {
       console.error("Error during analysis:", err);
-      setToast({ type: "error", message: "Analysis failed. Please try again." });
+      setToast({
+        type: "error",
+        message: "Analysis failed. Please try again.",
+      });
       return;
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
 
   const getConfidenceColor = (confidence) => {
     if (confidence >= 80) return "text-green-700 bg-green-100 border-green-200";
-    if (confidence >= 60) return "text-yellow-700 bg-yellow-100 border-yellow-200";
+    if (confidence >= 60)
+      return "text-yellow-700 bg-yellow-100 border-yellow-200";
     return "text-red-700 bg-red-100 border-red-200";
   };
 
@@ -205,7 +243,6 @@ const DiagnosticTool = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#FBFBFB] font-sans overflow-hidden">
-
       {/* Species Selector */}
       <div className="px-6 pt-5 pb-3 flex-shrink-0">
         <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl p-1.5 shadow-sm w-fit">
@@ -217,31 +254,39 @@ const DiagnosticTool = () => {
                 : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
             }`}
           >
-            <Dog  size = {18}/> Dog
+            <Dog size={18} /> Dog
           </button>
-          <button
-            onClick={() => handleSpeciesChange("cat")}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-              species === "cat"
-                ? "bg-[#5EE6FE] text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <Cat  size = {18}/> Cat
-          </button>
+
+          {/* 
+            Set enableCats to true once we have good cat symptom data to show the cat button 
+          */}
+          {enableCats && (
+            <button
+              onClick={() => handleSpeciesChange("cat")}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                species === "cat"
+                  ? "bg-[#5EE6FE] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <Cat size={18} /> Cat
+            </button>
+          )}
         </div>
         <p className="text-xs text-gray-400 mt-2 ml-1">
-          Diagnosing for: <span className="font-semibold text-gray-600 capitalize">{species}</span>
-          <span className="mx-1">·</span>Switching species will reset your symptom selection.
+          Diagnosing for:{" "}
+          <span className="font-semibold text-gray-600 capitalize">
+            {species}
+          </span>
+          <span className="mx-1">·</span>Switching species will reset your
+          symptom selection.
         </p>
       </div>
 
       {/* Main Content — left scrolls, right stays fixed */}
       <div className="flex flex-1 overflow-hidden px-6 pb-6 gap-6">
-
         {/* LEFT: Scrollable symptom area */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-4 min-w-0">
-
           {/* Symptom Header */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
@@ -280,18 +325,31 @@ const DiagnosticTool = () => {
               key={cat.label}
               className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
             >
-              <div className={`px-5 py-3 border-b ${cat.bg} flex items-center gap-2`}>
-                <span className={`text-sm font-semibold ${cat.color}`}>{cat.label}</span>
-                {cat.symptoms.filter((s) => selectedSymptoms.includes(s.feature_name)).length > 0 && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.bg} ${cat.color} border`}>
-                    {cat.symptoms.filter((s) => selectedSymptoms.includes(s.feature_name)).length} selected
+              <div
+                className={`px-5 py-3 border-b ${cat.bg} flex items-center gap-2`}
+              >
+                <span className={`text-sm font-semibold ${cat.color}`}>
+                  {cat.label}
+                </span>
+                {cat.symptoms.filter((s) =>
+                  selectedSymptoms.includes(s.feature_name),
+                ).length > 0 && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.bg} ${cat.color} border`}
+                  >
+                    {
+                      cat.symptoms.filter((s) =>
+                        selectedSymptoms.includes(s.feature_name),
+                      ).length
+                    }{" "}
+                    selected
                   </span>
                 )}
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {cat.symptoms.map((symptom) => {
                   const checked = selectedSymptoms.some(
-                    (s) => s.feature_name === symptom.feature_name
+                    (s) => s.feature_name === symptom.feature_name,
                   );
 
                   return (
@@ -334,7 +392,9 @@ const DiagnosticTool = () => {
               ) : (
                 <>
                   <Brain className="w-4 h-4" />
-                  Analyze Symptoms{selectedSymptoms.length > 0 && ` (${selectedSymptoms.length})`}
+                  Analyze Symptoms
+                  {selectedSymptoms.length > 0 &&
+                    ` (${selectedSymptoms.length})`}
                 </>
               )}
             </button>
@@ -343,30 +403,50 @@ const DiagnosticTool = () => {
 
         {/* RIGHT: Sticky info panel — never scrolls */}
         <div className="w-72 xl:w-80 flex-shrink-0 flex flex-col gap-4 overflow-hidden">
-
           {/* How It Works */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-shrink-0">
-            <h3 className="text-base font-semibold text-gray-800 mb-4">How It Works</h3>
+            <h3 className="text-base font-semibold text-gray-800 mb-4">
+              How It Works
+            </h3>
             <div className="space-y-4">
               {[
-                { step: "1", title: "Choose Species", desc: "Select whether the patient is a Dog or Cat before starting." },
-                { step: "2", title: "Select Symptoms", desc: "Check all observable symptoms from the categories on the left." },
-                { step: "3", title: "Run Analysis", desc: "Our regression model ranks possible conditions by confidence." },
+                {
+                  step: "1",
+                  title: "Choose Species",
+                  desc: "Select whether the patient is a Dog or Cat before starting.",
+                },
+                {
+                  step: "2",
+                  title: "Select Symptoms",
+                  desc: "Check all observable symptoms from the categories on the left.",
+                },
+                {
+                  step: "3",
+                  title: "Run Analysis",
+                  desc: "Our regression model ranks possible conditions by confidence.",
+                },
               ].map((item) => (
                 <div key={item.step} className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-[#5EE6FE]/10 border border-[#5EE6FE]/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-[#5EE6FE] text-sm font-bold">{item.step}</span>
+                    <span className="text-[#5EE6FE] text-sm font-bold">
+                      {item.step}
+                    </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-800 text-sm">{item.title}</p>
-                    <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">{item.desc}</p>
+                    <p className="font-medium text-gray-800 text-sm">
+                      {item.title}
+                    </p>
+                    <p className="text-gray-500 text-xs mt-0.5 leading-relaxed">
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="mt-5 p-3.5 bg-[#5EE6FE]/5 border border-[#5EE6FE]/20 rounded-xl">
               <p className="text-xs text-[#3ab8cf] leading-relaxed">
-                <strong>Tip:</strong> Select all clearly evident symptoms. More symptoms yield more accurate results.
+                <strong>Tip:</strong> Select all clearly evident symptoms. More
+                symptoms yield more accurate results.
               </p>
             </div>
           </div>
@@ -374,10 +454,13 @@ const DiagnosticTool = () => {
           {/* Selected Symptoms Preview */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 flex flex-col flex-1 min-h-0 overflow-hidden">
             <div className="flex items-center justify-between mb-3 flex-shrink-0">
-              <h3 className="text-sm font-semibold text-gray-800">Selected Symptoms</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                Selected Symptoms
+              </h3>
               {selectedSymptoms.length > 0 && (
                 <span className="text-xs text-gray-400">
-                  {selectedSymptoms.length} symptom{selectedSymptoms.length !== 1 ? "s" : ""}
+                  {selectedSymptoms.length} symptom
+                  {selectedSymptoms.length !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
@@ -386,7 +469,9 @@ const DiagnosticTool = () => {
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
                   <CheckCircle className="w-5 h-5 text-gray-300" />
                 </div>
-                <p className="text-xs text-gray-400">No symptoms selected yet</p>
+                <p className="text-xs text-gray-400">
+                  No symptoms selected yet
+                </p>
               </div>
             ) : (
               <div className="overflow-y-auto flex-1">
@@ -399,7 +484,9 @@ const DiagnosticTool = () => {
                       title="Click to remove"
                     >
                       {s.symptom_name}
-                      <span className="opacity-0 group-hover:opacity-100 transition ml-0.5">×</span>
+                      <span className="opacity-0 group-hover:opacity-100 transition ml-0.5">
+                        ×
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -413,7 +500,6 @@ const DiagnosticTool = () => {
       {showModal && diagnosisResults && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -421,9 +507,16 @@ const DiagnosticTool = () => {
                   <Brain className="w-5 h-5 text-[#5EE6FE]" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-gray-800">Analysis Results</h3>
+                  <h3 className="text-base font-semibold text-gray-800">
+                    Analysis Results
+                  </h3>
                   <p className="text-xs text-gray-400 capitalize">
-                    {diagnosisResults.species} · {diagnosisResults.inputSymptoms.length} symptom{diagnosisResults.inputSymptoms.length !== 1 ? "s" : ""} analyzed
+                    {diagnosisResults.species} ·{" "}
+                    {diagnosisResults.inputSymptoms.length} symptom
+                    {diagnosisResults.inputSymptoms.length !== 1
+                      ? "s"
+                      : ""}{" "}
+                    analyzed
                   </p>
                 </div>
               </div>
@@ -437,13 +530,17 @@ const DiagnosticTool = () => {
 
             {/* Modal Body */}
             <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
-
               {/* Input Summary */}
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <p className="text-xs text-gray-500 mb-2">{diagnosisResults.analysisNotes}</p>
+                <p className="text-xs text-gray-500 mb-2">
+                  {diagnosisResults.analysisNotes}
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {diagnosisResults.inputSymptoms.map((s) => (
-                    <span key={s.feature_name} className="px-2 py-0.5 bg-white text-gray-600 text-xs rounded-full border border-gray-200">
+                    <span
+                      key={s.feature_name}
+                      className="px-2 py-0.5 bg-white text-gray-600 text-xs rounded-full border border-gray-200"
+                    >
                       {s.symptom_name}
                     </span>
                   ))}
@@ -456,9 +553,12 @@ const DiagnosticTool = () => {
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <HelpCircle className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h4 className="text-base font-semibold text-gray-800 mb-2">No Specific Diagnosis Found</h4>
+                  <h4 className="text-base font-semibold text-gray-800 mb-2">
+                    No Specific Diagnosis Found
+                  </h4>
                   <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
-                    The selected symptoms don't closely match any condition in our database. A full clinical evaluation is recommended.
+                    The selected symptoms don't closely match any condition in
+                    our database. A full clinical evaluation is recommended.
                   </p>
                 </div>
               ) : (
@@ -469,20 +569,30 @@ const DiagnosticTool = () => {
                       className="p-5 rounded-xl border border-gray-200 hover:border-[#5EE6FE]/40 hover:shadow-sm transition-all"
                     >
                       <div className="flex items-start justify-between gap-3 mb-3">
-                        <h4 className="font-semibold text-gray-800">{diagnosis.disease}</h4>
-                        <span className={`flex-shrink-0 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getConfidenceColor(diagnosis.risk_score)}`}>
-                          Risk: {diagnosis.risk_score.toFixed(0)}
+                        <h4 className="font-semibold text-gray-800">
+                          {diagnosis.disease}
+                        </h4>
+                        <span
+                          className={`flex-shrink-0 flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getConfidenceColor(diagnosis.risk_score)}`}
+                        >
+                          Confidence: {diagnosis.risk_score.toFixed(0)}%
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-gray-100 rounded-full mb-3">
                         <div
                           className={`h-full rounded-full ${getConfidenceBar(diagnosis.risk_score)} transition-all`}
-                          style={{ width: `${Math.min(diagnosis.risk_score, 100)}%` }}
+                          style={{
+                            width: `${Math.min(diagnosis.risk_score, 100)}%`,
+                          }}
                         />
                       </div>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">{diagnosis.description}</p>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        {diagnosis.description}
+                      </p>
                       <div>
-                        <p className="text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">Matching Symptoms</p>
+                        <p className="text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">
+                          Matching Symptoms
+                        </p>
                         <div className="flex flex-wrap gap-1.5">
                           {diagnosis.symptoms.map((symptom, idx) => (
                             <span
@@ -503,7 +613,9 @@ const DiagnosticTool = () => {
               <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-amber-700 leading-relaxed">
-                  <strong>Important:</strong> This analysis is a decision support tool only. Always combine results with clinical examination and professional veterinary judgment.
+                  <strong>Important:</strong> This analysis is a decision
+                  support tool only. Always combine results with clinical
+                  examination and professional veterinary judgment.
                 </p>
               </div>
             </div>
@@ -511,7 +623,9 @@ const DiagnosticTool = () => {
             {/* Modal Footer */}
             <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 flex-shrink-0">
               <button
-                onClick={() => { clearAll(); }}
+                onClick={() => {
+                  clearAll();
+                }}
                 className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition font-medium"
               >
                 New Analysis
@@ -527,8 +641,12 @@ const DiagnosticTool = () => {
         </div>
       )}
 
-      {toast?.type === "success" && <SuccessToast message={toast.message} onClose={() => setToast(null)} />}
-      {toast?.type === "error" && <ErrorToast message={toast.message} onClose={() => setToast(null)} />}
+      {toast?.type === "success" && (
+        <SuccessToast message={toast.message} onClose={() => setToast(null)} />
+      )}
+      {toast?.type === "error" && (
+        <ErrorToast message={toast.message} onClose={() => setToast(null)} />
+      )}
     </div>
   );
 };
