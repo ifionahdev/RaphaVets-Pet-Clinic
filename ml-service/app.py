@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import fastai, torch, torchvision, sklearn, numpy
 from routes import breed_router as breed
 from routes import disease_router as disease
-from model_state import load_models
+from model_state import load_models, breed_model, dog_diagnostic_model, dog_diagnostic_scaler
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -39,15 +39,14 @@ def health_check():
 
 @app.get("/ready")
 def readiness_check():
-    """Return 200 only when required models are loaded."""
-    from pathlib import Path
-    model_dir = Path(__file__).resolve().parents[0] / "models"
-    expected = [
-        model_dir / "breed_model.pkl",
-        model_dir / "dog_diagnostic_model.pkl",
-        model_dir / "dog_diagnostic_scaler.pkl",
-    ]
-    missing = [p.name for p in expected if not p.exists()]
+    missing = []
+    if breed_model is None:
+        missing.append("breed_model")
+    if dog_diagnostic_model is None:
+        missing.append("dog_diagnostic_model")
+    if dog_diagnostic_scaler is None:
+        missing.append("dog_diagnostic_scaler")
     if missing:
+        load_models()  # Attempt to load missing models
         return {"status": "loading", "missing": missing}
     return {"status": "ready"}
