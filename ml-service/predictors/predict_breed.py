@@ -1,9 +1,28 @@
-from fastai.vision.all import load_learner
+import sys
+import pickle
+from pathlib import Path, PureWindowsPath, PurePosixPath
+from io import BytesIO
 from PIL import Image
 import numpy as np
-from pathlib import Path
-from io import BytesIO
 from fastapi import HTTPException
+
+# === CRITICAL: Patch pickle BEFORE importing fastai ===
+# This handles WindowsPath objects baked into the model file
+_original_find_class = pickle.Unpickler.find_class.__func__
+
+def _patched_find_class(self, module, name):
+    """Intercept WindowsPath deserialization and convert to PureWindowsPath"""
+    if module == "pathlib":
+        if name == "WindowsPath":
+            return PureWindowsPath
+        elif name == "PosixPath":
+            return PurePosixPath
+    return _original_find_class(self, module, name)
+
+pickle.Unpickler.find_class = _patched_find_class
+
+# NOW safe to import fastai
+from fastai.vision.all import load_learner
 
 ml_service_root = Path(__file__).resolve().parents[1]
 MODEL_PATH = str(ml_service_root / "models" / "breed_model.pkl")
