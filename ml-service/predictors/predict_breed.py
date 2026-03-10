@@ -6,7 +6,7 @@ from io import BytesIO
 from fastapi import HTTPException
 
 ml_service_root = Path(__file__).resolve().parents[1]
-MODEL_PATH = ml_service_root / "models" / "breed_model.pkl"
+MODEL_PATH = str(ml_service_root / "models" / "breed_model.pkl")
 
 learn = None
 model_load_error = None
