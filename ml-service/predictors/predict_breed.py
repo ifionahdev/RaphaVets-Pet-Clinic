@@ -4,40 +4,18 @@ from io import BytesIO
 from PIL import Image
 import numpy as np
 from fastapi import HTTPException
-from fastai.vision.all import load_learner
-
-ml_service_root = Path(__file__).resolve().parents[1]
-MODEL_PATH = str(ml_service_root / "models" / "breed_model.pkl")
-
-learn = None
-model_load_error = None
-
-def get_learner():
-    global learn, model_load_error
-    if learn is not None:
-        return learn
-    if model_load_error is not None:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Model failed to load: {model_load_error}",
-        )
-    try:
-        learn = load_learner(MODEL_PATH)
-        return learn
-    except Exception as error:
-        model_load_error = str(error)
-        print("ML model load error:", error)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Model failed to load: {model_load_error}",
-        )
+from model_state import breed_model, breed_model_load_error
 
 def predict_breed_from_bytes(file_bytes: bytes) -> dict:
+    if breed_model_load_error is not None:
+        raise HTTPException(status_code=503, detail=f"Breed model failed to load: {breed_model_load_error}")
+    if breed_model is None:
+        raise HTTPException(status_code=503, detail="Breed model is not available")
+
     try:
         img = Image.open(BytesIO(file_bytes))
-        learner = get_learner()
-        
-        pred_class, pred_idx, probs = learner.predict(np.array(img))
+        pred_class, pred_idx, probs = breed_model.predict(np.array(img))
+
         confidence = float(probs[pred_idx])
         breed = str(pred_class).title().replace('_', ' ')
         

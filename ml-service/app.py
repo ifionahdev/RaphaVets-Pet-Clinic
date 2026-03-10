@@ -2,16 +2,18 @@ from fastapi import FastAPI
 import fastai, torch, torchvision, sklearn, numpy
 from routes import breed_router as breed
 from routes import disease_router as disease
+from model_state import load_models
+from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="ML Service")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Starting up ML Service...")
+    load_models()  # Preload models during startup
+    yield
+    print("Shutting down ML Service...")
 
-# Print versions (for debugging)
-print("fastai:", fastai.__version__)
-print("torch:", torch.__version__)
-print("torchvision:", torchvision.__version__)
-print("scikit-learn:", sklearn.__version__)
-print("numpy:", numpy.__version__)
+app = FastAPI(title="ML Service", lifespan=lifespan)
 
 # Add CORS middleware
 app.add_middleware(
