@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 
-export default function BreedDetectCard({ data, handleReset, handleSaveRecord, loading }) {
+export default function BreedDetectCard({ data, handleReset, loading }) {
   if (!data) {
     return (
       <motion.div 
@@ -86,7 +86,7 @@ export default function BreedDetectCard({ data, handleReset, handleSaveRecord, l
           <span>Upload Another</span>
         </button>
         
-        <button
+        {/* <button
           onClick={handleSaveRecord}
           className="flex-1 px-3 sm:px-4 py-2 border border-[#2FA394] text-[#2FA394] font-medium rounded-lg text-xs sm:text-sm hover:bg-[#2FA394] hover:text-white transition-all flex items-center justify-center gap-2"
         >
@@ -94,7 +94,7 @@ export default function BreedDetectCard({ data, handleReset, handleSaveRecord, l
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
           </svg>
           <span>Save Record</span>
-        </button>
+        </button> */}
       </div>
     </motion.div>
   );

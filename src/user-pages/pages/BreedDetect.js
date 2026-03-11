@@ -18,14 +18,14 @@ function BreedDetect() {
   const [error, setError] = useState("");
 
   // Save record handler
-  const handleSaveRecord = () => {
-    if (!result) {
-      alert("No result available to save yet!");
-      return;
-    }
+  // const handleSaveRecord = () => {
+  //   if (!result) {
+  //     alert("No result available to save yet!");
+  //     return;
+  //   }
 
-    alert(`✅ Record saved successfully!\nBreed: ${result.breed}\nConfidence: ${(result.confidence * 100).toFixed(1)}%`);
-  };
+  //   alert(`✅ Record saved successfully!\nBreed: ${result.breed}\nConfidence: ${(result.confidence * 100).toFixed(1)}%`);
+  // };
 
 
   useEffect(() => {
@@ -243,7 +243,7 @@ function BreedDetect() {
             <BreedDetectCard 
               data={result} 
               handleReset={handleReset} 
-              handleSaveRecord={handleSaveRecord} 
+              // handleSaveRecord={handleSaveRecord} 
               loading={loading}
             />
 
