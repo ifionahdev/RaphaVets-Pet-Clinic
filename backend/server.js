@@ -11,23 +11,25 @@ import appointmentRoute from "./routes/appointmentRoute.js";
 import petRoute from "./routes/petRoute.js";
 import clientRoute from "./routes/admin_routes/ownerAndPetRoute.js";
 import dashboardRoute from "./routes/admin_routes/dashboardRoute.js";
-import petCareTipsRoutes from './routes/petCareTipsRoute.js';
-import videoRoutes from './routes/videoRoute.js';
-import faqRoute from './routes/faqRoute.js';
-import contentManagementRoute from './routes/admin_routes/contentManagementRoute.js';
+import petCareTipsRoutes from "./routes/petCareTipsRoute.js";
+import videoRoutes from "./routes/videoRoute.js";
+import faqRoute from "./routes/faqRoute.js";
+import contentManagementRoute from "./routes/admin_routes/contentManagementRoute.js";
 import appointmentVisitRoute from "./routes/admin_routes/appointmentVisitRoute.js";
-import labRecordRoute from './routes/admin_routes/labRecordRoute.js';
-import medicalRecordsRoute from './routes/labRecordsRoute.js';
-import chatRoutes from './routes/chatRoute.js';
-import breedDetectRoute from './routes/ml_routes/breedDetectRoute.js';
+import labRecordRoute from "./routes/admin_routes/labRecordRoute.js";
+import medicalRecordsRoute from "./routes/labRecordsRoute.js";
+import chatRoutes from "./routes/chatRoute.js";
+import breedDetectRoute from "./routes/ml_routes/breedDetectRoute.js";
+import predictDiagnosisRoute from "./routes/ml_routes/predictDiagnosisRoute.js";
 import dotenv from "dotenv";
-import supportRoute from './routes/supportRoute.js';
-import notificationRoute from './routes/notificationRoute.js';
+import supportRoute from "./routes/supportRoute.js";
+import notificationRoute from "./routes/notificationRoute.js";
 import "./cron/appointmentCron.js";
 import "./cron/contentLifecycleCron.js";
-import reportRoute from './routes/admin_routes/reportRoute.js';
-import adminSettingsRoute from './routes/admin_routes/adminSettingsRoute.js';
-import vetDashboardRoute from './routes/vet_routers/vetDashboardRoute.js';
+import reportRoute from "./routes/admin_routes/reportRoute.js";
+import adminSettingsRoute from "./routes/admin_routes/adminSettingsRoute.js";
+import vetDashboardRoute from "./routes/vet_routers/vetDashboardRoute.js";
+import diagnosticRoute from "./routes/vet_routers/diagnosticRoute.js";
 import { UPLOADS_ROOT } from "./utils/uploadPaths.js";
 
 // ----------------------
@@ -43,7 +45,7 @@ const server = createServer(app);
 const io = initializeSocket(server);
 
 // Make io accessible to routes
-app.set('io', io);
+app.set("io", io);
 
 app.use(cors());
 app.use(express.json());
@@ -63,27 +65,37 @@ app.use("/api/notifications", notificationRoute);
 // ADMIN SIDE ROUTES
 app.use("/api/admin", clientRoute);
 app.use("/api/admin/dashboard", dashboardRoute);
-app.use('/api/admin/content', contentManagementRoute);
+app.use("/api/admin/content", contentManagementRoute);
 app.use("/api/admin/appointments", appointmentVisitRoute);
-app.use('/api/admin/pet-records', labRecordRoute);
-app.use('/api/medical-records', medicalRecordsRoute);
+app.use("/api/admin/pet-records", labRecordRoute);
+app.use("/api/medical-records", medicalRecordsRoute);
 app.use("/api/chatbot", chatRoutes);
-app.use('/api/support', supportRoute);
+app.use("/api/support", supportRoute);
 app.use("/api/admin", reportRoute);
-app.use('/api/admin/settings', adminSettingsRoute);
+app.use("/api/admin/settings", adminSettingsRoute);
 
 //VET ROUTES
 app.use("/api/vet", vetDashboardRoute);
+app.use("/api/diagnostic", diagnosticRoute);
 
 app.use("/uploads", express.static(UPLOADS_ROOT));
 app.use("/api/ml", breedDetectRoute);
+app.use("/api/ml/diagnostic", predictDiagnosisRoute);
 
 app.get("/api/test", (req, res) => {
   res.json({ message: "Backend connected!" });
 });
 
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err);
+  res.status(err.status || 500).json({
+    error: err.message || "Internal Server Error",
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => 
-  console.log(`✅_inches Server running on port ${PORT}`)
+server.listen(PORT, () =>
+  console.log(`✅_inches Server running on port ${PORT}`),
 );

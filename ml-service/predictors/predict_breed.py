@@ -1,70 +1,34 @@
-from fastai.vision.all import load_learner
-from PIL import Image
-import numpy as np
+import pickle
 from pathlib import Path
 from io import BytesIO
+from PIL import Image
+import numpy as np
 from fastapi import HTTPException
-
-ml_service_root = Path(__file__).resolve().parents[1]
-MODEL_PATH = ml_service_root / "models" / "breed_model.pkl"
-
-learn = None
-model_load_error = None
-
-
-def get_learner():
-    global learn, model_load_error
-
-    if learn is not None:
-        return learn
-
-    if model_load_error is not None:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Model failed to load: {model_load_error}",
-        )
-
-    try:
-        learn = load_learner(MODEL_PATH)
-        return learn
-    except Exception as error:
-        model_load_error = str(error)
-        print("ML model load error:", error)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Model failed to load: {model_load_error}",
-        )
+import model_state
 
 def predict_breed_from_bytes(file_bytes: bytes) -> dict:
-    try:
-        """
-        Predicts the breed from an image in memory (bytes).
-        No disk I/O needed.
-        """
-        # Convert bytes to PIL Image
-        img = Image.open(BytesIO(file_bytes))
-        learner = get_learner()
-        
-        # Predict
-        pred_class, pred_idx, probs = learner.predict(np.array(img))
+    if model_state.breed_model_load_error is not None:
+        raise HTTPException(status_code=503, detail=f"Breed model failed to load: {model_state.breed_model_load_error}")
+    if model_state.breed_model is None:
+        raise HTTPException(status_code=503, detail="Breed model is not available")
 
-        #Clean up the output for JSON response
+    try:
+        img = Image.open(BytesIO(file_bytes))
+        pred_class, pred_idx, probs = model_state.breed_model.predict(np.array(img))
 
         confidence = float(probs[pred_idx])
-        breed = str(pred_class).title().replace('_', ' ')  # Capitalize breed name and replace underscores with spaces
-
-        #Generate note based on confidence
+        breed = str(pred_class).title().replace('_', ' ')
+        
         if confidence > 0.85:
             main_note = "Most likely a " + breed
         elif confidence > 0.6:
             main_note = "Possibly a " + breed
         else:
             main_note = "Uncertain, but could be a " + breed
-
-        #confidence disclaimer
+        
         disclaimer = "This is an AI prediction and may not be accurate. Please consult a veterinarian for a definitive diagnosis."
         note = f"{main_note}.\n{disclaimer}"
-
+        
         return {
             "breed": breed,
             "confidence": confidence,

@@ -1,0 +1,50 @@
+from fastai.vision.all import load_learner
+from pathlib import Path
+
+import joblib
+
+breed_model = None
+dog_diagnostic_model = None
+dog_diagnostic_scaler = None
+dog_diagnostic_model_load_error = None
+dog_diagnostic_scaler_load_error = None
+breed_model_load_error = None
+
+def load_models():
+    global breed_model, breed_model_load_error
+    global dog_diagnostic_model, dog_diagnostic_model_load_error
+    global dog_diagnostic_scaler, dog_diagnostic_scaler_load_error
+    
+    model_path = Path(__file__).resolve().parent / "models"
+
+    print("Attempting to load models from:", model_path)
+    print("Files in model directory:", list(model_path.glob("*")))
+
+    if breed_model is None and breed_model_load_error is None:
+        try:
+            breed_model_path = model_path / "breed_model.pkl"
+            breed_model = load_learner(breed_model_path)
+
+            print("Breed model loaded successfully: ", breed_model is not None)
+        except Exception as e:
+            breed_model_load_error = str(e)
+            print("Error loading breed model:", breed_model_load_error)
+
+    if dog_diagnostic_model is None and dog_diagnostic_model_load_error is None:
+        try:
+            dog_diagnostic_model_path = model_path / "dog_diagnostic_model.pkl"
+            dog_diagnostic_model = joblib.load(dog_diagnostic_model_path)
+            print("Dog diagnostic model loaded successfully: ", dog_diagnostic_model is not None)
+
+        except Exception as e:
+            dog_diagnostic_model_load_error = str(e)
+            print("Error loading dog diagnostic model:", dog_diagnostic_model_load_error)
+
+    if dog_diagnostic_scaler is None and dog_diagnostic_scaler_load_error is None:
+        try:
+            dog_diagnostic_scaler_path = model_path / "dog_diagnostic_scaler.pkl"
+            dog_diagnostic_scaler = joblib.load(dog_diagnostic_scaler_path)
+            print("Dog diagnostic scaler loaded successfully: ", dog_diagnostic_scaler is not None)
+        except Exception as e:
+            dog_diagnostic_scaler_load_error = str(e)
+            print("Error loading dog diagnostic scaler:", dog_diagnostic_scaler_load_error)

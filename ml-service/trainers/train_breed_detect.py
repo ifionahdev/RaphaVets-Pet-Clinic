@@ -39,7 +39,7 @@ def main():
         batch_tfms=aug_transforms(size=224)
     )
 
-    dls = dblock.dataloaders(path/'images', bs=32, num_workers=0)
+    dls = dblock.dataloaders(path/'images', bs=32, num_workers=6)
     dls.show_batch(max_n=4, figsize=(8,8))
 
     # ---------------------------
@@ -77,6 +77,14 @@ def main():
     export_path.parent.mkdir(parents=True, exist_ok=True)
     learn.export(export_path)
     print(f"Model exported to: {export_path}")
+
+    # ---------------------------
+    # 8️⃣ Clean up temporary files
+    # ---------------------------
+    model_pth = ml_service_root / "models" / "model.pth"
+    if model_pth.exists():
+        model_pth.unlink()
+        print(f"Deleted temporary file: {model_pth}")
 
 
 if __name__ == "__main__":
